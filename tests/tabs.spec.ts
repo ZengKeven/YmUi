@@ -1,5 +1,45 @@
 import { expect, test } from '@playwright/test'
 
+test('tabs and the active panel fill the available height in fixed, percentage and flex layouts', async ({ page }) => {
+  await page.goto('/tests/fixture/')
+  for (const [layout, height] of Object.entries({ fixed: 288, percentage: 320, flex: 284 })) {
+    const container = page.locator(`#tabs-fill-${layout}`)
+    const card = container.locator('.ym-tabs')
+    const panel = card.getByRole('tabpanel')
+    for (const name of ['摘要', '明细']) {
+      await card.getByRole('tab', { name }).click()
+      await expect(panel).toHaveAccessibleName(name)
+      const header = (await card.getByRole('tablist').boundingBox())!
+      const content = (await panel.boundingBox())!
+      const bounds = (await card.boundingBox())!
+      expect(bounds.height).toBe(height)
+      expect(content.y).toBe(header.y + header.height)
+      expect(content.y + content.height).toBe(bounds.y + bounds.height - 1)
+    }
+    if (layout === 'flex') {
+      const bounds = (await container.boundingBox())!
+      const cardBounds = (await card.boundingBox())!
+      const footer = (await container.locator('footer').boundingBox())!
+      expect(cardBounds.y).toBe(bounds.y + 40)
+      expect(footer.y).toBe(cardBounds.y + cardBounds.height)
+      expect(footer.y + footer.height).toBe(bounds.y + bounds.height)
+      await panel.hover()
+      await page.mouse.wheel(0, 200)
+      await expect.poll(() => panel.evaluate(el => el.scrollTop)).toBeGreaterThan(0)
+    }
+  }
+})
+
+test('unconstrained tabs grow with their content', async ({ page }) => {
+  await page.goto('/tests/fixture/')
+  const card = page.locator('#tabs-fill-auto .ym-tabs')
+  const summaryHeight = (await card.boundingBox())!.height
+  await card.getByRole('tab', { name: '明细' }).click()
+  const panel = card.getByRole('tabpanel', { name: '明细' })
+  expect((await card.boundingBox())!.height).toBeGreaterThan(summaryHeight + 500)
+  expect(await panel.evaluate(el => el.scrollHeight === el.clientHeight)).toBe(true)
+})
+
 test('each tab renders its own default slot and preserves input when revisited', async ({ page }) => {
   await page.goto('/tests/fixture/')
   const cases = page.locator('#tabs-cases')

@@ -54,4 +54,26 @@ const primary = ref('#236547')
       <t-tab-panel value="history" label="操作记录">编辑记录</t-tab-panel>
     </YmTabs>
   </div>
+  <div v-for="layout in ['fixed', 'percentage', 'flex', 'auto']" :id="`tabs-fill-${layout}`" :key="layout">
+    <header v-if="layout === 'flex'">详情页</header>
+    <div class="tabs-fill-host">
+      <YmTabs>
+        <t-tab-panel value="summary" label="摘要">基本信息</t-tab-panel>
+        <t-tab-panel value="details" label="明细">
+          <div style="height: 640px">详细记录</div>
+        </t-tab-panel>
+      </YmTabs>
+      <footer v-if="layout === 'flex'">操作栏</footer>
+    </div>
+  </div>
 </template>
+
+<style scoped>
+#tabs-fill-fixed .tabs-fill-host { height: 288px; }
+#tabs-fill-percentage { height: 320px; }
+#tabs-fill-percentage .tabs-fill-host { height: 100%; }
+#tabs-fill-flex { display: flex; flex-direction: column; height: 360px; }
+#tabs-fill-flex .tabs-fill-host { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+#tabs-fill-flex header { flex: 0 0 40px; }
+#tabs-fill-flex footer { flex: 0 0 36px; }
+</style>
