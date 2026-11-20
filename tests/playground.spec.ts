@@ -219,6 +219,32 @@ test('the checkbox preview keeps select-all and notification channels in sync', 
   expect(source).toMatch(/<YmCheckboxGroup\b[^>]*size="large"[^>]*disabled/)
 })
 
+test('the radio preview selects one delivery method and copies the configured group', async ({ page, context }) => {
+  await context.grantPermissions(['clipboard-read', 'clipboard-write'])
+  await page.goto('/button/')
+  await page.locator('#VPSidebarNav').getByRole('link', { name: 'YmRadio 单选框' }).click()
+  await expect(page).toHaveURL('/radio/')
+  const group = page.getByRole('radiogroup', { name: '配送方式' })
+  const courier = group.getByRole('radio', { name: '快递配送' })
+  const pickup = group.getByRole('radio', { name: '门店自提' })
+  await expect(courier).toBeChecked()
+  await expect(group.getByRole('radio', { name: '当日达' })).toBeDisabled()
+  await pickup.check()
+  await expect(courier).not.toBeChecked()
+  await expect(pickup).toBeChecked()
+
+  await page.getByLabel('排列方向').selectOption('vertical')
+  await expect(group).toHaveCSS('flex-direction', 'column')
+  await page.getByLabel('单选框尺寸').selectOption('large')
+  await page.getByLabel('整组禁用').check()
+  await expect(pickup).toBeDisabled()
+  const source = await copyPreview(page)
+  expect(source).toContain('<YmRadioGroup v-model="delivery"')
+  expect(source).toContain('direction="vertical"')
+  expect(source).toContain('size="large"')
+  expect(source).toContain('<YmRadio value="pickup">门店自提</YmRadio>')
+})
+
 test('the layout preview keeps its sidebar controls and brand in sync', async ({ page }) => {
   await page.goto('/button/')
   await page.locator('#VPSidebarNav').getByRole('link', { name: 'YmLayout 布局' }).click()

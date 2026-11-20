@@ -6,6 +6,7 @@ import IconCases from './IconCases.vue'
 import LayoutCases from './LayoutCases.vue'
 import MenuCases from './MenuCases.vue'
 import PaginationCases from './PaginationCases.vue'
+import RadioCases from './RadioCases.vue'
 import SpaceCases from './SpaceCases.vue'
 import StepsCases from './StepsCases.vue'
 import TabsCases from './TabsCases.vue'
@@ -83,6 +84,7 @@ function record(event: MouseEvent) {
   <SpaceCases />
   <MenuCases />
   <PaginationCases />
+  <RadioCases />
   <StepsCases />
   <TabsCases />
 </template>
