@@ -132,6 +132,22 @@ test('the layout preview keeps its sidebar controls and brand in sync', async ({
   await expect(name).toBeVisible()
 })
 
+test('the space preview changes direction, gaps and separators from its controls', async ({ page }) => {
+  await page.goto('/button/')
+  await page.locator('#VPSidebarNav').getByRole('link', { name: 'YmSpace 间距' }).click()
+  await expect(page).toHaveURL('/space/')
+  const space = page.locator('.demo-canvas .ym-space')
+  await expect(space.getByText('质量验收')).toBeVisible()
+  await page.getByRole('combobox', { name: '间距', exact: true }).selectOption('pair')
+  await expect(space).toHaveCSS('gap', '8px 24px')
+  await page.getByRole('combobox', { name: '分隔符' }).selectOption('icon')
+  await expect(space.locator('svg[data-name="chevron-right"]')).toHaveCount(2)
+  await page.getByRole('combobox', { name: '排列方向' }).selectOption('vertical')
+  await expect(space).toHaveCSS('flex-direction', 'column')
+  await page.getByRole('combobox', { name: '分隔符' }).selectOption('none')
+  await expect(space.locator('.ym-space__separator')).toHaveCount(0)
+})
+
 test('the icon gallery previews the user icon and switches glyphs, size and color', async ({ page }) => {
   await page.goto('/button/')
   await page.locator('#VPSidebarNav').getByRole('link', { name: 'YmIcon 图标' }).click()

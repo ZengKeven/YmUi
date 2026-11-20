@@ -2,6 +2,7 @@
 @import './components/icon/index.css';
 @import './components/layout/index.css';
 @import './components/loading/index.css';
+@import './components/space/index.css';
 
 :where(:root) {
   --ym-light-primary: #006eff;
