@@ -1,0 +1,24 @@
+.ym-icon {
+  display: inline-block;
+  flex: none;
+  width: 1em;
+  height: 1em;
+  font-size: var(--ym-icon-size, inherit);
+  vertical-align: -0.125em;
+}
+
+:where(.ym-theme, .ym-icon)[data-size='extra-small'] { --ym-icon-size: 0.75rem; }
+:where(.ym-theme, .ym-icon)[data-size='small'] { --ym-icon-size: 0.875rem; }
+:where(.ym-theme, .ym-icon)[data-size='medium'] { --ym-icon-size: 1rem; }
+:where(.ym-theme, .ym-icon)[data-size='large'] { --ym-icon-size: 1.5rem; }
+
+@keyframes ym-icon-spin {
+  to { transform: rotate(1turn); }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .ym-icon[data-name='loading'] > path {
+    transform-origin: center;
+    animation: ym-icon-spin 700ms linear infinite;
+  }
+}

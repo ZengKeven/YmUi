@@ -1,0 +1,57 @@
+:root {
+  --vp-font-family-base: Inter, "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+  --vp-c-brand-1: #0062dc;
+  --vp-c-brand-2: #006eff;
+  --vp-c-brand-3: #006eff;
+  --vp-layout-max-width: 100%;
+  --vp-sidebar-width: 15rem;
+  --vp-nav-height: 3.5rem;
+  --vp-sidebar-bg-color: var(--vp-c-bg);
+  --vp-c-text-1: #20242b;
+  --vp-c-text-2: #555d68;
+}
+.dark {
+  --vp-c-brand-1: #89b9ff;
+  --vp-c-brand-2: #5397ff;
+  --vp-c-text-1: #e7eaf0;
+  --vp-c-text-2: #b3bbc8;
+}
+.VPNavBar .title { font-weight: 740; letter-spacing: -.035em; }
+.VPNavBar .VPNavBarTitle .title { border-color: transparent; }
+.VPNavBar .divider-line { background: var(--vp-c-divider); }
+.VPSidebar { border-inline-end: 1px solid var(--vp-c-divider); }
+.VPSidebar .nav .group { width: 100%; border-top: 0; }
+.VPSidebarItem.level-0 > .item { padding-inline: .65rem; }
+.VPSidebarItem.level-0 > .item > .text {
+  color: var(--vp-c-text-2);
+  font-size: .78rem;
+  font-weight: 600;
+}
+.VPSidebarItem.level-1 > .item { border-radius: .3rem; }
+.VPSidebarItem.level-1 > .item > .link { padding: .32rem .75rem; }
+.VPSidebarItem.level-1 > .item:hover { background: var(--vp-c-default-soft); }
+.VPSidebarItem.level-1.is-active > .item { background: #006eff; }
+#VPSidebarNav a[aria-current='page'] .text { color: #fff; }
+.Layout .VPDoc.has-aside .content-container { max-width: 65rem; }
+.vp-doc h1 { font-size: clamp(2rem, 3.2vw, 3rem); line-height: 1.16; letter-spacing: -.04em; }
+.vp-doc h1 + p { margin-block: 1rem 1.65rem; color: var(--vp-c-text-2); }
+.vp-doc h2 { margin-top: 2.6rem; font-size: 1.4rem; }
+.vp-doc h3 { font-size: 1.06rem; }
+.vp-doc th, .vp-doc td { font-size: .86rem; }
+.vp-doc th { white-space: nowrap; }
+.vp-doc h2[id='交互示例']:has(+ .component-demo) {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+@media (min-width: 60rem) {
+  .Layout .VPSidebar { padding-inline: .75rem; }
+  .VPDoc.has-sidebar { padding-top: 3.5rem; }
+}
+@media (min-width: 90rem) {
+  .Layout .VPDoc .container { max-width: 90rem; }
+}

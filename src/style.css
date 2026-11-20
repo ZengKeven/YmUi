@@ -1,0 +1,75 @@
+@import './components/button/index.css';
+@import './components/icon/index.css';
+@import './components/loading/index.css';
+
+:where(:root) {
+  --ym-light-primary: #006eff;
+  --ym-dark-primary: #006eff;
+  --ym-light-success: #0abf5b;
+  --ym-dark-success: #0abf5b;
+  --ym-light-danger: #e54545;
+  --ym-dark-danger: #e54545;
+  --ym-light-warning: #ff7200;
+  --ym-dark-warning: #ff7200;
+  --ym-light-surface: #ffffff;
+  --ym-dark-surface: #181b20;
+  --ym-light-text: #232831;
+  --ym-dark-text: #ffffff;
+  --ym-light-border: #bbc3ce;
+  --ym-dark-border: #596371;
+  --ym-light-on-accent: #ffffff;
+  --ym-dark-on-accent: #ffffff;
+  --ym-radius: 0.375rem;
+}
+
+/* Plain buttons and providers without an explicit mode start in the light palette. */
+:where(:root, .ym-theme[data-ym-palette]) {
+  --ym-color-primary: var(--ym-light-primary);
+  --ym-color-danger: var(--ym-light-danger);
+  --ym-color-warning: var(--ym-light-warning);
+  --ym-color-success: var(--ym-light-success);
+  --ym-color-surface: var(--ym-light-surface);
+  --ym-color-text: var(--ym-light-text);
+  --ym-color-border: var(--ym-light-border);
+  --ym-color-on-accent: var(--ym-light-on-accent);
+}
+
+:where(.ym-theme[data-theme], .ym-theme[data-theme] .ym-theme[data-ym-palette]) {
+  --ym-color-primary: light-dark(var(--ym-light-primary), var(--ym-dark-primary));
+  --ym-color-danger: light-dark(var(--ym-light-danger), var(--ym-dark-danger));
+  --ym-color-warning: light-dark(var(--ym-light-warning), var(--ym-dark-warning));
+  --ym-color-success: light-dark(var(--ym-light-success), var(--ym-dark-success));
+  --ym-color-surface: light-dark(var(--ym-light-surface), var(--ym-dark-surface));
+  --ym-color-text: light-dark(var(--ym-light-text), var(--ym-dark-text));
+  --ym-color-border: light-dark(var(--ym-light-border), var(--ym-dark-border));
+  --ym-color-on-accent: light-dark(var(--ym-light-on-accent), var(--ym-dark-on-accent));
+}
+
+:where(.ym-theme[data-theme], .ym-theme[data-ym-palette]) { color: var(--ym-color-text); }
+:where(.ym-theme[data-theme='light']) { color-scheme: light; }
+:where(.ym-theme[data-theme='dark']) { color-scheme: dark; }
+:where(.ym-theme[data-theme='auto']) { color-scheme: light dark; }
+
+:where(:root, .ym-theme[data-size='medium'], .ym-button[data-size='medium']) {
+  --ym-control-height: 2rem;
+  --ym-control-font-size: 0.875rem;
+  --ym-control-padding: 0.875rem;
+}
+
+:where(.ym-theme, .ym-button)[data-size='extra-small'] {
+  --ym-control-height: 1.25rem;
+  --ym-control-font-size: 0.6875rem;
+  --ym-control-padding: 0.375rem;
+}
+
+:where(.ym-theme, .ym-button)[data-size='small'] {
+  --ym-control-height: 1.5rem;
+  --ym-control-font-size: 0.75rem;
+  --ym-control-padding: 0.625rem;
+}
+
+:where(.ym-theme, .ym-button)[data-size='large'] {
+  --ym-control-height: 2.5rem;
+  --ym-control-font-size: 1rem;
+  --ym-control-padding: 1.125rem;
+}

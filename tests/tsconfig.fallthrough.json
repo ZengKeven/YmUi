@@ -1,0 +1,5 @@
+{
+  "extends": "../tsconfig.json",
+  "vueCompilerOptions": { "checkUnknownProps": false },
+  "include": ["../playground/examples/button.demo.vue"]
+}

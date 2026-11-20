@@ -1,0 +1,15 @@
+.ym-loading-origin { display: contents; }
+.ym-loading-origin--wrapped { position: relative; display: inline-flex; }
+.ym-loading {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4em;
+  color: var(--ym-color-primary);
+}
+.ym-loading--inherit { color: var(--ym-loading-parent-color, inherit); }
+.ym-loading--attached, .ym-loading--covered { position: absolute; inset: 0; z-index: 1; }
+:where(:has(> .ym-loading--attached)) { position: relative; }
+.ym-loading--fullscreen { position: fixed; inset: 0; z-index: 3500; }
+.ym-loading--overlay { background: color-mix(in srgb, var(--ym-color-surface) 78%, transparent); }
+:is(html, body):has(.ym-loading--lock) { overflow: hidden; }

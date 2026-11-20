@@ -1,0 +1,54 @@
+{
+  "name": "ym-ui-vapor",
+  "version": "0.1.0-alpha.0",
+  "description": "基于 Vue 3.6 Vapor 的 UI 组件库",
+  "license": "UNLICENSED",
+  "type": "module",
+  "engines": {
+    "node": ">=26.0.0"
+  },
+  "files": [
+    "dist",
+    "LICENSE-TDesign-Icons",
+    "src/components/*/index.md"
+  ],
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./style.css": "./dist/style.css"
+  },
+  "sideEffects": [
+    "**/*.css"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/",
+    "tag": "next"
+  },
+  "scripts": {
+    "dev": "vitepress dev playground",
+    "typecheck": "vue-tsc --noEmit && vue-tsc --noEmit -p tests/tsconfig.fallthrough.json",
+    "build": "vite build && vue-tsc -p tsconfig.build.json",
+    "build:playground": "vitepress build playground",
+    "test:browser": "npm run build && npm run build:playground && playwright test",
+    "prepack": "npm run typecheck && npm run build"
+  },
+  "peerDependencies": {
+    "vue": "3.6.0-rc.15"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.65.1",
+    "@types/node": "26.6.6",
+    "@vitejs/plugin-vue": "6.0.11",
+    "@vue/compiler-sfc": "3.6.0-rc.15",
+    "typescript": "5.9.3",
+    "vite": "8.3.8",
+    "vitepress": "2.0.0-alpha.21",
+    "vue": "3.6.0-rc.15",
+    "vue-tsc": "3.3.14"
+  }
+}
