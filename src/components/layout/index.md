@@ -16,8 +16,9 @@ category: 基础组件
 | --- | --- | --- | --- |
 | logo | `string` | — | 系统 Logo 的图片地址，展开和收起时均显示。 |
 | systemName | `string` | — | 展开时显示在 Logo 旁的系统名称。 |
-| headerHeight | `number` | `48` | 顶栏高度，单位为 px。侧栏顶部与顶栏等高，收起后的侧栏宽度也使用此值。 |
+| headerHeight | `number` | `48` | 顶栏与侧栏顶部品牌区的高度，单位为 px。 |
 | asideWidth | `number` | `232` | 展开时的侧栏宽度，单位为 px。 |
+| collapsedWidth | `number` | `48` | 收起时的侧栏宽度，单位为 px，可独立于顶栏高度设置。 |
 | collapsed | `boolean` | 初始为 `false` | 侧栏是否收起，可通过 `v-model:collapsed` 同步。省略时由组件管理。 |
 
 ## 事件
@@ -45,7 +46,7 @@ import 'ym-ui-vapor/style.css'
 </script>
 
 <template>
-  <YmLayout logo="/logo.svg" system-name="仓储管理" style="height: 100dvh">
+  <YmLayout logo="/logo.svg" system-name="仓储管理" :collapsed-width="56" style="height: 100dvh">
     <template #header>库存查询</template>
     <template #aside="{ collapsed }">
       <a href="/inventory" aria-label="库存查询">

@@ -21,7 +21,7 @@
   background: var(--ym-color-primary);
 }
 
-.ym-layout__aside--collapsed { width: var(--ym-layout-header-height); }
+.ym-layout__aside--collapsed { width: var(--ym-layout-collapsed-width); }
 
 .ym-layout__brand,
 .ym-layout__header {

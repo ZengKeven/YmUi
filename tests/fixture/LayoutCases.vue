@@ -9,7 +9,7 @@ const requests = ref<boolean[]>([])
 
 <template>
   <div style="width: 800px; height: 300px">
-    <YmLayout id="layout" :logo="logo" system-name="库存管理">
+    <YmLayout id="layout" :logo="logo" system-name="库存管理" :collapsed-width="56">
       <template #header>工作台</template>
       <template #aside="{ collapsed }">{{ collapsed ? '简洁导航' : '完整导航' }}</template>
       <template #content><div style="width: 1200px; height: 600px">库存清单</div></template>

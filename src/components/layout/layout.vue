@@ -20,6 +20,7 @@ const collapsed = useModel(props, 'collapsed')
   <div class="ym-layout" :style="{
     '--ym-layout-header-height': `${props.headerHeight}px`,
     '--ym-layout-aside-width': `${props.asideWidth}px`,
+    '--ym-layout-collapsed-width': `${props.collapsedWidth}px`,
   }">
     <LayoutAside :logo="props.logo" :system-name="props.systemName" :collapsed="collapsed"
       @toggle="collapsed = !collapsed">

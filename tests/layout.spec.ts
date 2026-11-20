@@ -15,7 +15,7 @@ async function expectAreas(layout: Locator, asideWidth: number, headerHeight: nu
   })
 }
 
-test('the sidebar collapses to the header height and the content fills the remaining space', async ({ page }) => {
+test('the sidebar collapses to its configured width and the content fills the remaining space', async ({ page }) => {
   await page.goto('/tests/fixture/')
   const layout = page.locator('#layout')
   const aside = layout.locator('aside')
@@ -42,7 +42,7 @@ test('the sidebar collapses to the header height and the content fills the remai
   expect(bottomGap).toBeLessThanOrEqual(toggle.height)
 
   await button.click()
-  await expectAreas(layout, 48, 48)
+  await expectAreas(layout, 56, 48)
   await expect(logo).toBeVisible()
   await expect(name).toBeHidden()
   await expect(aside.getByText('简洁导航')).toBeVisible()
@@ -62,7 +62,7 @@ test('a controlled sidebar requests each change once and follows its parent and 
   const parentControl = page.getByLabel('外部收起侧栏')
   const requests = page.locator('#layout-requests')
 
-  await expectAreas(layout, 64, 64)
+  await expectAreas(layout, 48, 64)
   await button.click()
   await expect(requests).toHaveText('false')
   await expect(button).toHaveAttribute('aria-expanded', 'false')
@@ -74,6 +74,6 @@ test('a controlled sidebar requests each change once and follows its parent and 
   await expect(requests).toHaveText('false,true')
   await expect(button).toHaveAttribute('aria-expanded', 'true')
   await parentControl.check()
-  await expectAreas(layout, 64, 64)
+  await expectAreas(layout, 48, 64)
   await expect(requests).toHaveText('false,true')
 })
