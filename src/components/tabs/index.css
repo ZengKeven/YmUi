@@ -10,11 +10,27 @@
   font-size: var(--ym-control-font-size);
 }
 
-.ym-tabs__list {
+.ym-tabs__header {
   display: flex;
-  overflow-x: auto;
   border-radius: var(--ym-radius) var(--ym-radius) 0 0;
   background: color-mix(in srgb, var(--ym-color-border) 20%, var(--ym-color-surface));
+}
+.ym-tabs__list {
+  display: flex;
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-x: auto;
+  border-radius: inherit;
+}
+.ym-tabs__actions { display: flex; align-items: center; min-width: 0; }
+.ym-tabs__action:not([hidden]) {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: .4em;
+  padding-inline: .75em;
+  overflow-wrap: anywhere;
 }
 
 .ym-tabs__tab.ym-button {

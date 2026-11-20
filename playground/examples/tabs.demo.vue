@@ -1,10 +1,11 @@
 <script setup lang="ts" vapor>
 import { ref } from 'vue'
-import { YmIcon, YmTabPanel as TTabPanel, YmTabs, type ControlSize } from '../../src'
+import { YmButton, YmIcon, YmTabPanel as TTabPanel, YmTabs, type ControlSize } from '../../src'
 import PreviewFrame from './PreviewFrame.vue'
 import { sizes } from './settings'
 
 const active = ref<string | number>('home')
+const note = ref('')
 const size = ref<ControlSize>()
 const showIcons = ref(true)
 </script>
@@ -15,10 +16,14 @@ const showIcons = ref(true)
       <YmTabs v-model="active" :size="size">
         <t-tab-panel value="home">
           <template #label><YmIcon v-if="showIcons" name="home" />首页</template>
+          <template #action>
+            <YmButton variant="text" theme="primary" @click="active = 'schedule'">查看日程</YmButton>
+          </template>
           今天有 2 项日程。
         </t-tab-panel>
         <t-tab-panel value="schedule">
           <template #label><YmIcon v-if="showIcons" name="calendar" />日程</template>
+          <template #action>共 2 项</template>
           <ul class="tabs-demo-agenda">
             <li><time>09:30</time> 采购例会</li>
             <li><time>14:00</time> 库存盘点</li>
@@ -26,8 +31,11 @@ const showIcons = ref(true)
         </t-tab-panel>
         <t-tab-panel value="tasks">
           <template #label><YmIcon v-if="showIcons" name="list-view" />事项</template>
+          <template #action>
+            <YmButton variant="text" :disabled="!note" @click="note = ''">清空备注</YmButton>
+          </template>
           <label class="tabs-demo-note">事项备注
-            <input type="text" placeholder="记录待办事项" />
+            <input v-model="note" type="text" placeholder="记录待办事项" />
           </label>
         </t-tab-panel>
       </YmTabs>

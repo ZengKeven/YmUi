@@ -6,6 +6,7 @@ const current = ref<string | number>(0)
 const changes = ref<(string | number)[]>([])
 const updates = ref<(string | number)[]>([])
 const notes = ref(0)
+const refreshes = ref(0)
 const compact = ref(false)
 const dark = ref(false)
 const localSize = ref(false)
@@ -26,11 +27,13 @@ const primary = ref('#236547')
           @update:model-value="updates.push($event)" @change="changes.push($event)">
           <t-tab-panel :value="0" label="工作首页">
             <template #label><YmIcon name="home" /> 首页</template>
+            <template #action><button @click="refreshes++">刷新首页 {{ refreshes }}</button></template>
             <h3>工作台</h3>
             <label>未保存草稿 <input /></label>
           </t-tab-panel>
           <t-tab-panel value="calendar" label="日程"><ul><li>采购评审</li></ul></t-tab-panel>
           <t-tab-panel value="notes" label="事项">
+            <template #action><input aria-label="筛选事项" /></template>
             <button @click="notes++">登记事项</button><output>{{ notes }}</output>
           </t-tab-panel>
         </YmTabs>

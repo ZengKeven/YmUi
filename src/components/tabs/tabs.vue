@@ -12,10 +12,12 @@ defineSlots<{ default?: () => unknown }>()
 const model = useModel(props, 'modelValue')
 const panels = shallowReactive<TabPanelProps[]>([])
 const tablist = useTemplateRef<HTMLDivElement>('tablist')
+const actions = useTemplateRef<HTMLDivElement>('actions')
 const active = computed(() => panels.find(panel => panel.value === model.value)?.value ?? panels[0]?.value)
 
 provide(tabsKey, {
   tablist,
+  actions,
   active,
   register(panel) {
     panels.push(panel)
@@ -50,7 +52,10 @@ function moveFocus(event: KeyboardEvent) {
 
 <template>
   <div class="ym-tabs" :data-size="props.size">
-    <div ref="tablist" class="ym-tabs__list" role="tablist" aria-label="选项卡" @keydown="moveFocus"></div>
+    <div class="ym-tabs__header">
+      <div ref="tablist" class="ym-tabs__list" role="tablist" aria-label="选项卡" @keydown="moveFocus"></div>
+      <div ref="actions" class="ym-tabs__actions"></div>
+    </div>
     <slot />
   </div>
 </template>

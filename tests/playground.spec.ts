@@ -207,7 +207,8 @@ test('the tabs demo switches between distinct slotted content and retains a draf
   const demo = page.locator('.demo-canvas')
   const panel = demo.getByRole('tabpanel')
   await expect(panel).toHaveText('今天有 2 项日程。')
-  await demo.getByRole('tab', { name: '日程' }).click()
+  await demo.getByRole('button', { name: '查看日程' }).click()
+  await expect(demo.getByText('共 2 项', { exact: true })).toBeVisible()
   await expect(panel).toContainText('库存盘点')
   const tasks = demo.getByRole('tab', { name: '事项' })
   await tasks.click()
@@ -215,6 +216,8 @@ test('the tabs demo switches between distinct slotted content and retains a draf
   await demo.getByRole('tab', { name: '首页' }).click()
   await tasks.click()
   await expect(panel.getByRole('textbox')).toHaveValue('核对订单')
+  await demo.getByRole('button', { name: '清空备注' }).click()
+  await expect(panel.getByRole('textbox')).toHaveValue('')
 })
 
 test('the icon gallery previews the user icon and switches glyphs, size and color', async ({ page }) => {

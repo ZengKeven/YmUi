@@ -35,6 +35,7 @@ category: 导航组件
 | YmTabs.default | 放置各个 `YmTabPanel`，顺序决定标签的排列顺序。 |
 | YmTabPanel.default | 该面板的正文，可直接放入文本、表单或其他 Vue 组件。切换面板会保留已输入的内容。 |
 | YmTabPanel.label | 自定义标签头，可组合图标和文字，优先于 `label` 属性。 |
+| YmTabPanel.action | 在标签栏右侧显示当前面板的操作或说明。每个面板可分别传入按钮、文本或其他组件。 |
 
 ## 使用指南
 
@@ -43,7 +44,7 @@ category: 导航组件
 ```vue
 <script setup lang="ts" vapor>
 import { ref } from 'vue'
-import { YmIcon, YmTabPanel as TTabPanel, YmTabs } from 'ym-ui-vapor'
+import { YmButton, YmIcon, YmTabPanel as TTabPanel, YmTabs } from 'ym-ui-vapor'
 import 'ym-ui-vapor/style.css'
 
 const active = ref('home')
@@ -53,9 +54,13 @@ const active = ref('home')
   <YmTabs v-model="active">
     <t-tab-panel value="home">
       <template #label><YmIcon name="home" />首页</template>
+      <template #action>
+        <YmButton variant="text" @click="active = 'schedule'">查看日程</YmButton>
+      </template>
       今天有 2 项日程。
     </t-tab-panel>
     <t-tab-panel value="schedule" label="日程">
+      <template #action>共 2 项</template>
       <ul><li>09:30 采购例会</li><li>14:00 库存盘点</li></ul>
     </t-tab-panel>
     <t-tab-panel value="tasks" label="事项">

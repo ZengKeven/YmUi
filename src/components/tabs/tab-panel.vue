@@ -6,10 +6,10 @@ import { tabPanelProps } from './props'
 
 defineOptions({ name: 'YmTabPanel' })
 const props = defineProps(tabPanelProps)
-defineSlots<{ default?: () => unknown; label?: () => unknown }>()
+const slots = defineSlots<{ default?: () => unknown; label?: () => unknown; action?: () => unknown }>()
 const tabs = inject(tabsKey)
 if (!tabs) throw new Error('YmTabPanel 需要放在 YmTabs 内。')
-const { active, tablist, register, select } = tabs
+const { active, tablist, actions, register, select } = tabs
 onScopeDispose(register(props))
 const selected = computed(() => props.value === active.value)
 const id = useId()
@@ -24,6 +24,9 @@ const id = useId()
         @click="select(props.value)">
         <slot name="label">{{ props.label ?? props.value }}</slot>
       </YmButton>
+    </Teleport>
+    <Teleport v-if="slots.action && actions" :to="actions">
+      <div class="ym-tabs__action" :hidden="!selected"><slot name="action" /></div>
     </Teleport>
     <slot />
   </div>
