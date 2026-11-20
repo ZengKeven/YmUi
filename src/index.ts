@@ -1,6 +1,10 @@
 import { version as packageVersion } from '../package.json'
 
 export { YmButton, type ButtonProps } from './components/button'
+export {
+  YmCheckbox, YmCheckboxGroup, type CheckboxGroupChangeContext, type CheckboxGroupProps,
+  type CheckboxOption, type CheckboxProps, type CheckboxValue,
+} from './components/checkbox'
 export { YmIcon, type IconName, type IconProps } from './components/icon'
 export { YmLayout, type LayoutProps } from './components/layout'
 export { YmLoading, type LoadingProps } from './components/loading'
