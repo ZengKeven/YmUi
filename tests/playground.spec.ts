@@ -1,7 +1,5 @@
-import { mkdir, writeFile } from 'node:fs/promises'
-import { join, relative } from 'node:path'
 import { expect, test, type Page } from '@playwright/test'
-import { compileScript, parse } from '@vue/compiler-sfc'
+import { compileTemplate } from '@vue/compiler-sfc'
 
 async function copyPreview(page: Page) {
   const header = page.locator('.demo-name')
@@ -10,7 +8,7 @@ async function copyPreview(page: Page) {
   return page.evaluate(() => navigator.clipboard.readText())
 }
 
-test('every component preview copies a standalone Vue example', async ({ page, context }) => {
+test('every preview copies only the component markup', async ({ page, context }) => {
   await context.grantPermissions(['clipboard-read', 'clipboard-write'])
   await page.goto('/button/')
   const links = page.locator('#VPSidebarNav').getByRole('link')
@@ -22,51 +20,69 @@ test('every component preview copies a standalone Vue example', async ({ page, c
   for (const { name, path } of pages) {
     await page.goto(path)
     const source = await copyPreview(page)
-    const { descriptor, errors } = parse(source, { filename: 'CopiedDemo.vue' })
+    expect(source, name).toMatch(/^<(?:Ym[A-Z]|ConfigProvider)/)
+    expect(source, name).toContain(`<${name}`)
+    expect(source, name).not.toMatch(/<(?:script|style)\b|^\s*(?:import|export|const|let)\s/m)
+    expect(source, name).not.toMatch(/PreviewFrame|GlobalControls|#controls|#preview/)
+    if (name !== 'ConfigProvider') expect(source, name).not.toContain('<ConfigProvider')
+    const { errors } = compileTemplate({ source, filename: 'Copied.vue', id: 'copied' })
     expect(errors, name).toEqual([])
-    expect(descriptor.scriptSetup?.content).toMatch(/from\s*['"]ym-ui-vapor['"]/)
-    expect(descriptor.scriptSetup?.content).toMatch(/import\s*['"]ym-ui-vapor\/style\.css['"]/)
-    expect(source).toContain(name)
-    expect(source).not.toMatch(/PreviewFrame|GlobalControls|\.\.\/\.\.\/src|#controls/)
-    expect(descriptor.template?.content.trim()).toBeTruthy()
-    expect(() => compileScript(descriptor, { id: 'copied-demo', inlineTemplate: true }), name).not.toThrow()
   }
 })
 
-test('pasting a copied Tabs preview restores its current inputs, configuration and slots', async ({ page, context }, testInfo) => {
+test('copied Tabs markup reflects the selected size and preserves slots and bindings', async ({ page, context }) => {
   await context.grantPermissions(['clipboard-read', 'clipboard-write'])
   await page.goto('/tabs/')
-  await page.getByText('全局设置', { exact: true }).click()
-  await page.getByRole('combobox', { name: '显示模式' }).selectOption('dark')
-  await page.getByLabel('深色品牌色').fill('#ad7856')
-  await page.getByRole('slider').fill('13')
   await page.getByLabel('选项卡尺寸').selectOption('large')
   await page.getByLabel('显示图标').uncheck()
-  await page.getByRole('tab', { name: '事项' }).click()
-  const note = '采购 </script> & "备注"'
-  await page.getByRole('textbox', { name: '事项备注' }).fill(note)
   const source = await copyPreview(page)
+  expect(source).not.toContain('<YmIcon')
+  expect(source).toMatch(/<YmTabs\b[^>]*\bsize="large"/)
+  expect(source).toContain('v-model="active"')
+  expect(source).toContain('v-model="note"')
+  expect(source).toContain('<t-tab-panel value="tasks">')
+  expect(source).toContain('#label')
+  expect(source).toContain('#action')
+  expect(source).toContain("@click=\"note = ''\"")
 
-  // Use the component fixture's Vite server to compile the pasted file against the package entry.
-  const dir = testInfo.outputPath('pasted')
-  await mkdir(dir, { recursive: true })
-  await writeFile(join(dir, 'App.vue'), source)
-  await writeFile(join(dir, 'index.html'), `<div id="app"></div><script type="module">
-    import { createVaporApp } from 'vue'
-    import App from './App.vue'
-    createVaporApp(App).mount('#app')
-  </script>`)
-  const fixture = testInfo.config.projects.find(project => project.name === 'components')!
-  await page.goto(new URL(relative(process.cwd(), join(dir, 'index.html')), fixture.use.baseURL).href)
-  const active = page.getByRole('tab', { name: '事项', selected: true })
-  await expect(active).toHaveCSS('height', '52px')
-  await expect(active).toHaveCSS('color', 'rgb(173, 120, 86)')
-  await expect(active).toHaveCSS('border-top-right-radius', '13px')
-  await expect(page.getByRole('tablist').locator('svg')).toHaveCount(0)
-  const input = page.getByRole('tabpanel', { name: '事项' }).getByRole('textbox', { name: '事项备注' })
-  await expect(input).toHaveValue(note)
-  await page.getByRole('button', { name: '清空备注' }).click()
-  await expect(input).toHaveValue('')
+  await page.getByLabel('选项卡尺寸').selectOption('small')
+  await page.getByLabel('显示图标').check()
+  const withIcons = await copyPreview(page)
+  expect(withIcons).toMatch(/<YmTabs\b[^>]*\bsize="small"/)
+  expect(withIcons).toContain('<YmIcon')
+})
+
+test('copied Loading text round-trips through a template attribute', async ({ page, context }) => {
+  await context.grantPermissions(['clipboard-read', 'clipboard-write'])
+  await page.goto('/loading/')
+  const message = '订单 "A" &lt; B < C'
+  await page.getByRole('textbox', { name: 'text', exact: true }).fill(message)
+  const source = await copyPreview(page)
+  const decoded = await page.evaluate(markup => {
+    const template = document.createElement('template')
+    template.innerHTML = markup
+    return template.content.querySelector('YmLoading')?.getAttribute('text')
+  }, source)
+  expect(decoded).toBe(message)
+})
+
+test('the Icon and ConfigProvider snippets use the settings visible at copy time', async ({ page, context }) => {
+  await context.grantPermissions(['clipboard-read', 'clipboard-write'])
+  await page.goto('/icon/')
+  await page.getByRole('button', { name: '加载中 · loading' }).click()
+  await page.getByRole('combobox', { name: 'size', exact: true }).selectOption('32px')
+  const icon = await copyPreview(page)
+  expect(icon).toContain('name="loading"')
+  expect(icon).toContain('size="32px"')
+  expect(icon).toContain('aria-label="加载中"')
+
+  await page.goto('/config-provider/')
+  await page.getByRole('combobox', { name: '显示模式' }).selectOption('dark')
+  await page.getByLabel('默认尺寸').selectOption('large')
+  const provider = await copyPreview(page)
+  expect(provider).toMatch(/^<ConfigProvider\b[^>]*\bmode="dark"/)
+  expect(provider).toMatch(/^<ConfigProvider\b[^>]*\bsize="large"/)
+  expect(provider).toContain('<YmButton>保存</YmButton>')
 })
 
 test('every component page lists the five documentation sections in order', async ({ page }) => {

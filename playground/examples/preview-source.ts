@@ -1,36 +1,28 @@
-import type { settings } from './settings'
+export type PreviewPart = string | { name: string; index: number } | { when: number; parts: PreviewPart[] }
 
-export interface PreviewSource {
-  template: string
-  scriptParts: (string | { binding: string })[]
-  style: string
+function attribute(name: string, value: unknown): string {
+  if (value === undefined) return ''
+  if (value === true) return ` ${name}`
+  if (typeof value === 'string') {
+    const escaped = value.replaceAll('&', '&amp;').replaceAll('"', '&quot;').replaceAll('<', '&lt;')
+    return ` ${name}="${escaped}"`
+  }
+  const literal = JSON.stringify(value)
+  if (!literal.includes('"')) return ` :${name}="${literal}"`
+  const escaped = literal.replaceAll('&', '&amp;').replaceAll("'", '&#39;').replaceAll('<', '&lt;')
+  return ` :${name}='${escaped}'`
 }
 
-function literal(value: unknown) {
-  // 文本可能包含 </script>，不能让输入提前结束 Vue 的脚本块。
-  return JSON.stringify(value).replaceAll('<', '\\u003c')
-}
-
-export function renderPreviewSource(source: PreviewSource, state: Record<string, unknown>, config: typeof settings) {
-  const script = source.scriptParts.map(part => {
+export function renderPreviewSource(parts: PreviewPart[], values: unknown[]): string {
+  return parts.map(part => {
     if (typeof part === 'string') return part
-    if (!Object.hasOwn(state, part.binding)) throw new Error(`Missing preview state: ${part.binding}`)
-    const value = state[part.binding]
-    return value === undefined ? '' : literal(value)
+    if ('when' in part) return values[part.when] ? renderPreviewSource(part.parts, values) : ''
+    return attribute(part.name, values[part.index])
   }).join('')
-  const preview = source.template.split('\n').map(line => line ? `    ${line}` : '').join('\n')
-  const globalConfig = [
-    'const globalConfig = {',
-    `  mode: ${literal(config.mode)}, size: ${literal(config.size)}, radius: ${literal(config.radius)},`,
-    '  theme: {',
-    `    light: { primary: ${literal(config.lightPrimary)} },`,
-    `    dark: { primary: ${literal(config.darkPrimary)} },`,
-    '  },',
-    '} as const',
-  ].join('\n')
-  return [
-    `<script setup lang="ts" vapor>\n${script.trim()}\n\n${globalConfig}\n</script>`,
-    `<template>\n  <ConfigProvider v-bind="globalConfig">\n${preview}\n  </ConfigProvider>\n</template>`,
-    source.style,
-  ].filter(Boolean).join('\n\n') + '\n'
+}
+
+export function wrapConfigProvider(content: string, config: Record<string, unknown>) {
+  const props = Object.entries(config).map(([name, value]) => attribute(name, value)).join('')
+  const children = content.split('\n').map(line => `  ${line}`).join('\n')
+  return `<ConfigProvider${props}>\n${children}\n</ConfigProvider>`
 }

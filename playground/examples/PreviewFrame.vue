@@ -1,12 +1,16 @@
 <script setup lang="ts" vapor>
-import { onScopeDispose, ref } from 'vue'
+import { computed, onScopeDispose, ref } from 'vue'
 import { ConfigProvider, YmIcon } from '../../src'
 import { settings } from './settings'
 import GlobalControls from './GlobalControls.vue'
-import { renderPreviewSource, type PreviewSource } from './preview-source'
+import { renderPreviewSource, wrapConfigProvider, type PreviewPart } from './preview-source'
 
-// Playground 构建插件从 #preview 生成 source 和对应的响应式 state。
-const props = defineProps<{ name: string; globalOnly?: boolean; source?: PreviewSource; state?: Record<string, unknown> }>()
+// 构建时从 #preview 提取组件模板，复制时读取当前配置。
+const props = defineProps<{ name: string; globalOnly?: boolean; source?: PreviewPart[]; values?: unknown[] }>()
+const globalConfig = computed(() => ({
+  mode: settings.mode, size: settings.size, radius: settings.radius,
+  theme: { light: { primary: settings.lightPrimary }, dark: { primary: settings.darkPrimary } },
+}))
 const feedback = ref('')
 let feedbackTimer: ReturnType<typeof setTimeout>
 onScopeDispose(() => clearTimeout(feedbackTimer))
@@ -31,7 +35,8 @@ async function copyCode() {
   if (!props.source) return
   clearTimeout(feedbackTimer)
   try {
-    const text = renderPreviewSource(props.source, props.state ?? {}, settings)
+    const template = renderPreviewSource(props.source, props.values ?? [])
+    const text = props.globalOnly ? wrapConfigProvider(template, globalConfig.value) : template
     try {
       await navigator.clipboard.writeText(text)
     } catch {
@@ -46,8 +51,7 @@ async function copyCode() {
 </script>
 
 <template>
-  <ConfigProvider class="playground" :mode="settings.mode" :size="settings.size" :radius="settings.radius"
-    :theme="{ light: { primary: settings.lightPrimary }, dark: { primary: settings.darkPrimary } }">
+  <ConfigProvider class="playground" v-bind="globalConfig">
     <div class="demo-board">
       <div class="demo-stage">
         <div class="demo-caption demo-name">

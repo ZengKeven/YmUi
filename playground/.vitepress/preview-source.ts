@@ -1,104 +1,102 @@
-import { compileScript, compileTemplate, MagicString, parse, type SFCDescriptor } from '@vue/compiler-sfc'
-import ts from 'typescript'
+import { compileScript, MagicString, parse, type SFCDescriptor } from '@vue/compiler-sfc'
+import type { Node } from '@babel/types'
+import { ElementTypes, type ElementNode, type TemplateChildNode } from '@vue/compiler-core'
 import type { Plugin } from 'vite'
+import type { PreviewPart } from '../examples/preview-source'
 
-type ScriptPart = string | { binding: string }
+function elements(children: TemplateChildNode[]) {
+  return children.filter((node): node is ElementNode => 'tag' in node)
+}
 
-function previewTemplate(descriptor: SFCDescriptor) {
-  const frame = descriptor.template?.ast?.children.find(node => 'tag' in node && node.tag === 'PreviewFrame')
-  if (!frame || !('tag' in frame)) throw new Error(`${descriptor.filename}: missing PreviewFrame`)
-  const slot = frame.children.find(node => 'tag' in node && node.tag === 'template' && node.props.some(prop =>
-    'arg' in prop && prop.name === 'slot' && prop.arg?.loc.source === 'preview',
-  ))
-  if (!slot || !('tag' in slot) || !slot.children.length) throw new Error(`${descriptor.filename}: missing #preview`)
-  const first = slot.children[0].loc.start
-  const end = slot.children[slot.children.length - 1].loc.end.offset
-  const indent = new RegExp(`\\n[^\\S\\n]{0,${first.column - 1}}`, 'g')
-  return {
-    template: descriptor.source.slice(first.offset, end).replace(indent, '\n'),
-    framePropsOffset: frame.loc.start.offset + frame.tag.length + 1,
+function componentRoots(children: TemplateChildNode[]): ElementNode[] {
+  return elements(children).flatMap(node => node.tagType === ElementTypes.COMPONENT ? [node] : componentRoots(node.children))
+}
+
+function literal(node: Node) {
+  return node.type === 'StringLiteral' || node.type === 'NumericLiteral' || node.type === 'BooleanLiteral'
+    || node.type === 'NullLiteral' || (node.type === 'Identifier' && node.name === 'undefined')
+}
+
+// 只读取设置值、其字段或与常量的比较，不重复执行预览中的函数和事件。
+function settingName(node: Node): string | undefined {
+  switch (node.type) {
+    case 'Identifier': return node.name
+    case 'MemberExpression': return !node.computed ? settingName(node.object) : undefined
+    case 'BinaryExpression': return ['===', '!=='].includes(node.operator) && literal(node.right) ? settingName(node.left) : undefined
+    case 'ConditionalExpression': return literal(node.consequent) && literal(node.alternate) ? settingName(node.test) : undefined
   }
 }
 
-function scriptForPreview(descriptor: SFCDescriptor, template: string): ScriptPart[] {
-  const filename = `${descriptor.filename}.ts`
-  const content = descriptor.scriptSetup!.content
-  const file = ts.createSourceFile(filename, content, ts.ScriptTarget.Latest, true)
-  // 只在本文件解析符号，不加载类型库或依赖包。
-  const options = { noLib: true, noResolve: true }
-  const host = ts.createCompilerHost(options)
-  host.getSourceFile = path => path === filename ? file : undefined
-  const checker = ts.createProgram([filename], options, host).getTypeChecker()
-  const bindings = compileScript(descriptor, { id: filename }).bindings
-  const render = compileTemplate({ source: template, filename, id: filename, compilerOptions: { bindingMetadata: bindings } })
-  if (render.errors.length) throw new Error(`${filename}: ${render.errors.join('\n')}`)
+function previewTemplate(descriptor: SFCDescriptor) {
+  const frame = elements(descriptor.template?.ast?.children ?? []).find(node => node.tag === 'PreviewFrame')
+  const slot = frame && elements(frame.children).find(node => node.props.some(prop =>
+    'arg' in prop && prop.name === 'slot' && prop.arg?.loc.source === 'preview',
+  ))
+  if (!frame || !slot) throw new Error(`${descriptor.filename}: missing PreviewFrame #preview`)
+  const roots = componentRoots(slot.children)
+  if (!roots.length) throw new Error(`${descriptor.filename}: missing component in #preview`)
 
-  const symbols = new Map(checker.getSymbolsInScope(file, ts.SymbolFlags.Value | ts.SymbolFlags.Type | ts.SymbolFlags.Alias)
-    .filter(symbol => symbol.declarations?.[0]?.getSourceFile() === file)
-    .map(symbol => [symbol.name, symbol]))
-  const used = new Set<ts.Declaration>()
-  const initializers = new Map<ts.VariableDeclaration, ts.CallExpression>()
-
-  function include(symbol: ts.Symbol | undefined) {
-    const declaration = symbol?.declarations?.[0]
-    if (!symbol || symbols.get(symbol.name) !== symbol || !declaration || used.has(declaration)) return
-    used.add(declaration)
-    if (ts.isVariableDeclaration(declaration)) {
-      const call = declaration.initializer
-      if (call && ts.isCallExpression(call) && call.expression.getText(file) === 'ref') {
-        initializers.set(declaration, call)
-        visit(call.expression)
-        call.typeArguments?.forEach(visit)
-        if (declaration.type) visit(declaration.type)
-        return
-      }
+  const bindings = compileScript(descriptor, { id: descriptor.filename }).bindings
+  const settings = new Set(Object.entries(bindings ?? {}).filter(([, kind]) => kind === 'setup-ref').map(([name]) => name))
+  // 保留可写模型和作用域内的名字，复制后这些绑定仍应由模板上下文提供。
+  function preserveBindings(node: ElementNode) {
+    for (const prop of node.props) {
+      if (!('exp' in prop) || !['model', 'slot', 'for'].includes(prop.name)) continue
+      for (const name of prop.exp?.loc.source.match(/[$\w]+/g) ?? []) settings.delete(name)
     }
-    ts.forEachChild(declaration, visit)
+    elements(node.children).forEach(preserveBindings)
+  }
+  preserveBindings(slot)
+
+  const values: string[] = []
+  function indexOf(expression: string) {
+    const index = values.indexOf(expression)
+    return index === -1 ? values.push(expression) - 1 : index
   }
 
-  function visit(node: ts.Node) {
-    if (ts.isShorthandPropertyAssignment(node)) include(checker.getShorthandAssignmentValueSymbol(node))
-    if (ts.isIdentifier(node)) include(checker.getSymbolAtLocation(node))
-    ts.forEachChild(node, visit)
-  }
-
-  // Vue 已区分局部插槽变量、模板内置项以及 setup 中的组件别名。
-  for (const match of render.code.matchAll(/\$setup(?:\.(\w+)|\["([^"]+)"\])/g)) {
-    include(symbols.get(match[1] ?? match[2]))
-  }
-
-  const imports = new Map<string, Set<string>>([['ym-ui-vapor', new Set(['ConfigProvider'])]])
-  const body: ScriptPart[] = []
-  for (const statement of file.statements) {
-    if (ts.isImportDeclaration(statement)) {
-      const named = statement.importClause?.namedBindings
-      if (!named || !ts.isNamedImports(named)) continue
-      for (const item of named.elements.filter(item => used.has(item))) {
-        const path = (statement.moduleSpecifier as ts.StringLiteral).text
-        const module = path === '../../src' ? 'ym-ui-vapor' : path
-        if (module.startsWith('.') || module.startsWith('/')) throw new Error(`${filename}: preview depends on local module ${path}`)
-        const names = imports.get(module) ?? new Set<string>()
-        names.add((statement.importClause?.isTypeOnly ? 'type ' : '') + item.getText(file))
-        imports.set(module, names)
-      }
-    } else if (ts.isVariableStatement(statement)) {
-      for (const declaration of statement.declarationList.declarations.filter(item => used.has(item))) {
-        const kind = statement.declarationList.flags & ts.NodeFlags.Const ? 'const' : 'let'
-        const call = initializers.get(declaration)
-        if (call) {
-          body.push(`\n${kind} ${content.slice(declaration.getStart(file), call.arguments.pos)}`,
-            { binding: declaration.name.getText(file) }, content.slice(call.arguments.end, declaration.end))
-        } else {
-          body.push(`\n${kind} ${declaration.getText(file)}`)
-        }
-      }
-    } else if (ts.isDeclarationStatement(statement) && used.has(statement)) {
-      body.push(`\n${statement.getText(file)}`)
+  function render(node: ElementNode, indent: RegExp, hasElse = false): PreviewPart[] {
+    const parts: PreviewPart[] = []
+    let cursor = node.loc.start.offset
+    let condition: number | undefined
+    function advance(end: number, trim = false) {
+      const source = descriptor.source.slice(cursor, end).replace(indent, '\n')
+      parts.push(trim ? source.trimEnd() : source)
+      cursor = end
     }
+    for (const prop of node.props) {
+      if (!('exp' in prop) || !prop.exp || !('content' in prop.exp) || prop.modifiers.length) continue
+      const name = prop.name === 'bind' && prop.arg && 'isStatic' in prop.arg && prop.arg.isStatic ? prop.arg.content : undefined
+      if (!name && (prop.name !== 'if' || hasElse)) continue
+      const setting = prop.exp.ast ? settingName(prop.exp.ast) : prop.exp.content
+      if (!setting || !settings.has(setting)) continue
+      advance(prop.loc.start.offset, true)
+      const index = indexOf(prop.exp.content)
+      if (name) parts.push({ name, index })
+      else condition = index
+      cursor = prop.loc.end.offset
+    }
+    const children = elements(node.children)
+    children.forEach((child, index) => {
+      advance(child.loc.start.offset)
+      const next = children[index + 1]
+      parts.push(...render(child, indent, startsWithElse(next)))
+      cursor = child.loc.end.offset
+    })
+    advance(node.loc.end.offset)
+    return condition === undefined ? parts : [{ when: condition, parts }]
   }
-  const lines = Array.from(imports, ([module, names]) => `import { ${[...names].join(', ')} } from '${module}'`)
-  lines.push("import 'ym-ui-vapor/style.css'")
-  return [lines.join('\n') + (body.length ? '\n' : ''), ...body]
+
+  const parts: PreviewPart[] = []
+  function startsWithElse(node: ElementNode | undefined) {
+    return node?.props.some(prop => 'exp' in prop && ['else', 'else-if'].includes(prop.name))
+  }
+
+  for (const [index, root] of roots.entries()) {
+    if (parts.length) parts.push('\n')
+    const indent = new RegExp(`\\n[^\\S\\n]{0,${root.loc.start.column - 1}}`, 'g')
+    parts.push(...render(root, indent, startsWithElse(roots[index + 1])))
+  }
+  return { parts, values, frameOffset: frame.loc.start.offset + frame.tag.length + 1 }
 }
 
 export function previewSource(): Plugin {
@@ -110,19 +108,14 @@ export function previewSource(): Plugin {
       const { descriptor, errors } = parse(source, { filename })
       if (errors.length) this.error(errors.join('\n'))
       if (!descriptor.scriptSetup) this.error(`${filename}: missing <script setup>`)
-      const { template, framePropsOffset } = previewTemplate(descriptor)
-      const scriptParts = scriptForPreview(descriptor, template)
-      const style = descriptor.styles.map(block =>
-        `<style${block.scoped ? ' scoped' : ''}>\n${block.content.trim()}\n</style>`,
-      ).join('\n\n')
-
-      const bindings = scriptParts.flatMap(part => typeof part === 'string' ? [] : [part.binding])
-      const literal = JSON.stringify({ template, scriptParts, style }).replaceAll('<', '\\u003c')
+      const { parts, values, frameOffset } = previewTemplate(descriptor)
+      const literal = JSON.stringify(parts).replaceAll('<', '\\u003c')
       let name = 'ymPreviewSource'
       while (source.includes(name)) name += '_'
+      const valuesAttr = values.join(', ').replaceAll('&', '&amp;').replaceAll('"', '&quot;')
       const code = new MagicString(source)
       code.appendLeft(descriptor.scriptSetup.loc.end.offset, `\nconst ${name} = ${literal}\n`)
-      code.appendLeft(framePropsOffset, ` :source="${name}" :state="{ ${bindings.join(', ')} }"`)
+      code.appendLeft(frameOffset, ` :source="${name}" :values="[${valuesAttr}]"`)
       return { code: code.toString(), map: code.generateMap({ source: filename, hires: true }) }
     },
   }
