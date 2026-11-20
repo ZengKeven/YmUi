@@ -12,4 +12,5 @@
 :where(:has(> .ym-loading--attached)) { position: relative; }
 .ym-loading--fullscreen { position: fixed; inset: 0; z-index: 3500; }
 .ym-loading--overlay { background: color-mix(in srgb, var(--ym-color-surface) 78%, transparent); }
+.ym-loading--overlay:is(.ym-loading--covered, .ym-loading--attached) { border-radius: var(--ym-radius); }
 :is(html, body):has(.ym-loading--lock) { overflow: hidden; }

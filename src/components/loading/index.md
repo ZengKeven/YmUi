@@ -20,11 +20,11 @@ category: 反馈组件
 | delay | `number` | `0` | 显示提示前等待的毫秒数。 |
 | fullscreen | `boolean` | `false` | 使用覆盖视口的遮罩，默认挂载到 `body`。 |
 | indicator | `boolean / string` | `true` | 默认显示 YmIcon 的 `loading` 图标，传入字符串可替换为文本。 |
-| inheritColor | `boolean` | `true` | 指示器继承父元素的文字颜色。 |
+| inheritColor | `boolean` | `true` | 指示器继承源位置的文字颜色。设为 `false` 时使用当前主题的品牌色。 |
 | loading | `boolean` | `true` | 控制加载提示的可见性。 |
 | preventScrollThrough | `boolean` | `true` | 显示全屏遮罩时锁定页面滚动。 |
-| showOverlay | `boolean` | `true` | 为包裹的内容或指定的挂载元素显示遮罩背景。 |
-| size | `string` | `1em` | 图标大小，支持 `small / medium / large` 或 CSS 长度。 |
+| showOverlay | `boolean` | `true` | 为包裹的内容或指定的挂载元素显示遮罩背景。局部遮罩使用全局 `radius`，全屏遮罩覆盖整个视口。 |
+| size | `string` | 继承 | 图标默认跟随全局 `size`。可指定 `extra-small / small / medium / large` 或 CSS 长度，显式值优先。 |
 | text | `string` | — | 图标旁的提示文本。 |
 | zIndex | `number` | 由样式决定 | 自定义加载层的堆叠层级。 |
 
@@ -59,5 +59,7 @@ const busy = ref(false)
 ```
 
 需要覆盖指定区域时，可使用 `<YmLoading :loading="busy" attach="#orders" />`。使用 `fullscreen` 时，遮罩默认挂载到当前文档的 `body`，结束后自动解除滚动锁定。
+
+通过 `attach` 或 `fullscreen` 挂载到其他位置时，指示器尺寸、配色模式和主题色跟随声明 `YmLoading` 处的 `ConfigProvider`。局部遮罩的圆角也取自该配置，调整配置后会同步更新。
 
 通过 `YmButton` 的 `loadingProps` 也可以传入同一组属性。[YmButton 组件说明](../button/index.md#属性)

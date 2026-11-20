@@ -10,6 +10,7 @@ const disabled = ref(false)
 const customTag = ref(false)
 const showDefault = ref(true)
 const panelBusy = ref(false)
+const compactLoading = ref(false)
 const label = ref('保存')
 const fullscreen = ref(false)
 const mode = ref<'light' | 'dark'>('dark')
@@ -58,15 +59,19 @@ function record(event: MouseEvent) {
       <YmButton id="local-success" theme="success">Local success</YmButton>
       <ConfigProvider mode="light"><YmButton id="local-light">Light island</YmButton></ConfigProvider>
     </ConfigProvider>
-    <YmLoading :loading="busy" attach="#target" :fullscreen="fullscreen" :inherit-color="false"
-      :delay="60" :z-index="41" text="attached" />
+    <label><input v-model="compactLoading" type="checkbox" /> compact loading settings</label>
+    <ConfigProvider :size="compactLoading ? 'small' : 'large'" :radius="compactLoading ? 0 : 12">
+      <YmLoading :loading="busy" attach="#target" :fullscreen="fullscreen" :inherit-color="false"
+        :delay="60" :z-index="41" text="attached" />
+      <YmLoading id="inline-loading" />
+      <YmLoading id="fixed-loading" size="19px" />
+      <YmLoading id="panel-loading" :loading="panelBusy" :delay="300" text="Updating">
+        <input aria-label="panel content" />
+      </YmLoading>
+    </ConfigProvider>
   </ConfigProvider>
-  <div id="target"></div>
+  <ConfigProvider size="extra-small" :radius="21" mode="light"><div id="target"></div></ConfigProvider>
   <label><input v-model="panelBusy" type="checkbox" /> panel loading</label>
-  <YmLoading id="inline-loading" />
-  <YmLoading id="panel-loading" :loading="panelBusy" :delay="300" text="Updating">
-    <input aria-label="panel content" />
-  </YmLoading>
   <IconCases />
   <LayoutCases />
   <SpaceCases />

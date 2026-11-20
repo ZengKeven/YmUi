@@ -1,11 +1,12 @@
 <script setup lang="ts" vapor>
 import { ref } from 'vue'
-import { YmLoading } from '../../src'
+import { YmLoading, type ControlSize } from '../../src'
 import PreviewFrame from './PreviewFrame.vue'
+import { sizes } from './settings'
 
 const loading = ref(true)
 const indicator = ref(true)
-const size = ref('medium')
+const size = ref<ControlSize>()
 const text = ref('正在加载')
 const showOverlay = ref(false)
 </script>
@@ -18,7 +19,12 @@ const showOverlay = ref(false)
     <template #controls>
       <label>loading <input v-model="loading" type="checkbox" /></label>
       <label>indicator <input v-model="indicator" type="checkbox" /></label>
-      <label>size <select v-model="size"><option>small</option><option>medium</option><option>large</option></select></label>
+      <label>size
+        <select v-model="size">
+          <option :value="undefined">继承</option>
+          <option v-for="[value] in sizes" :key="value">{{ value }}</option>
+        </select>
+      </label>
       <label>text <input v-model="text" type="text" /></label>
     </template>
     <section class="example-section">

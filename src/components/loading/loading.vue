@@ -29,7 +29,7 @@ const target = computed(() => {
   return node instanceof Document ? node.body : node
 })
 
-// 挂载到外部元素时，从原位置同步继承的字体与主题色。
+// 外部挂载点可能位于另一个 Provider 下，使用源位置的字体、图标尺寸、圆角与配色。
 const portalStyle = shallowRef<CSSProperties>()
 watchPostEffect(onCleanup => {
   const source = origin.value
@@ -43,6 +43,9 @@ watchPostEffect(onCleanup => {
       colorScheme: style.colorScheme,
       fontFamily: style.fontFamily,
       fontSize: style.fontSize,
+      '--ym-loading-size': style.getPropertyValue('--ym-loading-size').trim() ||
+        style.getPropertyValue('--ym-icon-size').trim() || '1em',
+      '--ym-radius': style.getPropertyValue('--ym-radius'),
       '--ym-loading-parent-color': style.color,
       '--ym-color-primary': style.getPropertyValue('--ym-color-primary'),
       '--ym-color-surface': style.getPropertyValue('--ym-color-surface'),
@@ -87,7 +90,7 @@ watchPostEffect(onCleanup => {
         :aria-label="props.text ? undefined : '加载中'"
       >
         <YmIcon v-if="props.indicator === true" class="ym-loading__spinner" name="loading"
-          :size="props.size || 'var(--ym-loading-size, 1em)'" />
+          :size="props.size || 'var(--ym-loading-size, var(--ym-icon-size, 1em))'" />
         <template v-else-if="props.indicator">{{ props.indicator }}</template>
         <template v-if="props.text">{{ props.text }}</template>
       </span>
