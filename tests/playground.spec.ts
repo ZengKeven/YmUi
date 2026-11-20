@@ -132,6 +132,20 @@ test('the layout preview keeps its sidebar controls and brand in sync', async ({
   await expect(name).toBeVisible()
 })
 
+test('the menu preview selects pages from the collapsed layout sidebar', async ({ page }) => {
+  await page.goto('/button/')
+  await page.locator('#VPSidebarNav').getByRole('link', { name: 'YmMenu 导航菜单' }).click()
+  await expect(page).toHaveURL('/menu/')
+  const demo = page.locator('.demo-canvas')
+  await page.getByRole('checkbox', { name: '收起侧栏' }).check()
+  await expect(demo.locator('nav > ul')).toHaveCSS('padding-inline-start', '0px')
+  await demo.getByRole('button', { name: '采购管理' }).hover()
+  await demo.getByRole('button', { name: '采购订单' }).click()
+  await expect(demo.locator('output')).toHaveText('采购订单')
+  await demo.getByRole('button', { name: '展开侧栏' }).click()
+  await expect(demo.getByText('采购管理', { exact: true })).toBeVisible()
+})
+
 test('the space preview changes direction, gaps and separators from its controls', async ({ page }) => {
   await page.goto('/button/')
   await page.locator('#VPSidebarNav').getByRole('link', { name: 'YmSpace 间距' }).click()

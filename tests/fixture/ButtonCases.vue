@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import { ConfigProvider, YmButton, YmLoading } from 'ym-ui-vapor'
 import IconCases from './IconCases.vue'
 import LayoutCases from './LayoutCases.vue'
+import MenuCases from './MenuCases.vue'
 import SpaceCases from './SpaceCases.vue'
 
 const busy = ref(false)
@@ -75,4 +76,5 @@ function record(event: MouseEvent) {
   <IconCases />
   <LayoutCases />
   <SpaceCases />
+  <MenuCases />
 </template>
