@@ -23,11 +23,13 @@
   border: 0;
   border-inline-end: 1px solid var(--ym-tabs-line);
   border-bottom: 1px solid var(--ym-tabs-line);
-  border-radius: var(--ym-radius) var(--ym-radius) 0 0;
+  border-radius: 0;
   background: transparent;
   color: color-mix(in srgb, var(--ym-color-text) 76%, var(--ym-color-surface));
   font-weight: 400;
 }
+.ym-tabs__tab:first-child { border-start-start-radius: var(--ym-radius); }
+.ym-tabs__tab:last-child { border-start-end-radius: var(--ym-radius); }
 .ym-tabs__tab.ym-button[aria-selected='true'] {
   border-bottom-color: transparent;
   background: var(--ym-color-surface);
