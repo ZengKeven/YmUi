@@ -7,6 +7,7 @@ export {
 } from './components/checkbox'
 export { YmIcon, type IconName, type IconProps } from './components/icon'
 export { YmInput, type InputProps } from './components/input'
+export { YmInputNumber, type InputNumberProps } from './components/input-number'
 export { YmLayout, type LayoutProps } from './components/layout'
 export { YmLoading, type LoadingProps } from './components/loading'
 export { YmMenu, type MenuItem, type MenuLeaf, type MenuProps, type MenuValue } from './components/menu'

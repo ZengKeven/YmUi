@@ -1,0 +1,3 @@
+.ym-input-number--negative .ym-input__control {
+  color: var(--ym-color-danger);
+}

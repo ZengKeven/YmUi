@@ -273,6 +273,36 @@ test('the input preview switches text and password modes and copies the configur
   expect(source).not.toContain('playground-example')
 })
 
+test('the numeric input preview formats amounts and copies the selected precision and bounds', async ({ page, context }) => {
+  await context.grantPermissions(['clipboard-read', 'clipboard-write'])
+  await page.goto('/button/')
+  await page.locator('#VPSidebarNav').getByRole('link', { name: 'YmInputNumber 数字输入框' }).click()
+  await expect(page).toHaveURL('/input-number/')
+  const input = page.getByLabel('调整金额', { exact: true })
+  await expect(input).toHaveValue('-12.50')
+  await input.fill('0')
+  await input.blur()
+  await expect(input).toHaveValue('-')
+
+  await page.getByLabel('小数位数').selectOption('1')
+  await page.getByLabel('最小值').selectOption('-10')
+  await page.getByLabel('最大值').selectOption('10')
+  await page.getByLabel('输入框尺寸').selectOption('large')
+  await input.fill('-8.76')
+  await input.press('Enter')
+  await expect(input).toHaveValue('-8.8')
+  await input.fill('12')
+  await input.blur()
+  await expect(input).toHaveValue('10.0')
+
+  const source = await copyPreview(page)
+  expect(source).toContain('<YmInputNumber v-model="amount"')
+  expect(source).toContain(':decimal-places="1"')
+  expect(source).toContain(':min="-10"')
+  expect(source).toContain(':max="10"')
+  expect(source).toContain('size="large"')
+})
+
 test('the layout preview keeps its sidebar controls and brand in sync', async ({ page }) => {
   await page.goto('/button/')
   await page.locator('#VPSidebarNav').getByRole('link', { name: 'YmLayout 布局' }).click()

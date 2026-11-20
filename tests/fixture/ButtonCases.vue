@@ -4,6 +4,7 @@ import { ConfigProvider, YmButton, YmLoading } from 'ym-ui-vapor'
 import CheckboxCases from './CheckboxCases.vue'
 import IconCases from './IconCases.vue'
 import InputCases from './InputCases.vue'
+import InputNumberCases from './InputNumberCases.vue'
 import LayoutCases from './LayoutCases.vue'
 import MenuCases from './MenuCases.vue'
 import PaginationCases from './PaginationCases.vue'
@@ -82,6 +83,7 @@ function record(event: MouseEvent) {
   <CheckboxCases />
   <IconCases />
   <InputCases />
+  <InputNumberCases />
   <LayoutCases />
   <SpaceCases />
   <MenuCases />
