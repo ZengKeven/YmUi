@@ -1,3 +1,4 @@
+import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'vitepress'
 
 export default defineConfig({
@@ -7,7 +8,16 @@ export default defineConfig({
   srcDir: '../src/components',
   outDir: './dist',
   cleanUrls: true,
-  vite: { resolve: { dedupe: ['vue'] } },
+  vite: {
+    resolve: { dedupe: ['vue'] },
+    plugins: [{
+      name: 'watch-playground-examples',
+      configureServer(server) {
+        // 示例目录位于 srcDir 之外，新增示例时也要更新 ComponentDemo 的导入列表。
+        server.watcher.add(fileURLToPath(new URL('../examples', import.meta.url)))
+      },
+    }],
+  },
   themeConfig: {
     nav: [{ text: '组件文档', link: '/button/' }, { text: '全局配置', link: '/config-provider/' }],
     search: {
