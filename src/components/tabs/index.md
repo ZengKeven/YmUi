@@ -19,7 +19,7 @@ category: 导航组件
 | YmTabPanel.value | `string \| number` | 必填 | 当前面板的唯一标识。 |
 | YmTabPanel.label | `string` | 面板的 `value` | 标签标题，可通过 `#label` 插槽自定义。 |
 
-选项卡继承最近的 `ConfigProvider` 配置，嵌套时逐项覆盖。`size` 控制标签高度和字号，组件显式传入的尺寸优先。`mode` 和 `theme` 控制标签栏、面板、边框、文字及选中标签的强调色。`radius` 控制卡片圆角。
+选项卡继承最近的 `ConfigProvider` 配置，嵌套时逐项覆盖。`size` 控制标签高度、字号和面板内边距，组件显式传入的尺寸优先。默认中尺寸的标签高 44px，字号为 16px。`mode` 和 `theme` 控制标签栏、面板、边框、文字及选中标签的强调色。`radius` 控制卡片圆角。
 
 ## 事件
 

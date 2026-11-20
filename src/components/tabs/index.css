@@ -7,7 +7,7 @@
   border-radius: var(--ym-radius);
   background: var(--ym-color-surface);
   color: var(--ym-color-text);
-  font-size: var(--ym-control-font-size);
+  font-size: calc(var(--ym-control-font-size) + .125rem);
 }
 
 .ym-tabs__header {
@@ -35,7 +35,9 @@
 
 .ym-tabs__tab.ym-button {
   flex: none;
-  padding-inline: .75em;
+  height: calc(var(--ym-control-height) + .75rem);
+  padding-inline: calc(var(--ym-control-padding) + .375rem);
+  font-size: inherit;
   border: 0;
   border-inline-end: 1px solid var(--ym-tabs-line);
   border-bottom: 1px solid var(--ym-tabs-line);
@@ -52,9 +54,9 @@
   color: var(--ym-color-primary);
   font-weight: 500;
 }
-.ym-tabs__tab > .ym-button__text { gap: .3em; }
+.ym-tabs__tab > .ym-button__text { gap: .4em; }
 .ym-tabs__tab.ym-button:focus-visible { outline: 2px solid var(--ym-color-primary); outline-offset: -2px; }
 
-.ym-tabs__panel { padding: 1.5rem; }
+.ym-tabs__panel { padding: calc(1rem + var(--ym-control-height) / 2); }
 .ym-tabs__panel[hidden] { display: none; }
 .ym-tabs__panel:focus-visible { outline: 2px solid var(--ym-color-primary); outline-offset: -2px; }
