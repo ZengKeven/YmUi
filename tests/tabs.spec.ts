@@ -1,0 +1,83 @@
+import { expect, test } from '@playwright/test'
+
+test('each tab renders its own default slot and preserves input when revisited', async ({ page }) => {
+  await page.goto('/tests/fixture/')
+  const cases = page.locator('#tabs-cases')
+  const list = cases.getByRole('tablist')
+  const home = list.getByRole('tab', { name: '首页' })
+  const panel = cases.getByRole('tabpanel')
+  await expect(panel).toHaveCount(1)
+  await expect(home.locator('svg[data-name="home"]')).toBeVisible()
+  await expect(panel).toHaveAccessibleName('首页')
+  await expect(panel.getByRole('heading', { name: '工作台' })).toBeVisible()
+  await panel.getByRole('textbox', { name: '未保存草稿' }).fill('下次继续')
+  await list.getByRole('tab', { name: '日程' }).click()
+  await expect(panel.getByRole('listitem')).toHaveText('采购评审')
+  await expect(cases.getByText('工作台')).toBeHidden()
+  await list.getByRole('tab', { name: '事项' }).click()
+  await panel.getByRole('button', { name: '登记事项' }).click()
+  await expect(panel.locator('output')).toHaveText('1')
+  await home.click()
+  await expect(panel.getByRole('textbox')).toHaveValue('下次继续')
+  await home.click()
+  const expected = '["calendar","notes",0]'
+  await expect(cases.locator('#tabs-updates')).toHaveText(expected)
+  await expect(cases.locator('#tabs-changes')).toHaveText(expected)
+  await cases.getByRole('button', { name: '外部切换事项' }).click()
+  await expect(panel.locator('output')).toHaveText('1')
+  await expect(cases.locator('#tabs-changes')).toHaveText(expected)
+})
+
+test('keyboard selection moves focus and exposes the selected panel relationship', async ({ page }) => {
+  await page.goto('/tests/fixture/')
+  const cases = page.locator('#tabs-cases')
+  const list = cases.getByRole('tablist')
+  const home = list.getByRole('tab', { name: '首页' })
+  await expect(home).toHaveAttribute('tabindex', '0')
+  await home.focus()
+  for (const [key, name] of [
+    ['ArrowRight', '日程'], ['End', '事项'], ['ArrowRight', '首页'],
+    ['ArrowLeft', '事项'], ['Home', '首页'],
+  ]) {
+    await page.keyboard.press(key)
+    const active = list.getByRole('tab', { selected: true })
+    const panel = cases.getByRole('tabpanel', { name })
+    await expect(active).toHaveAccessibleName(name)
+    await expect(active).toBeFocused()
+    await expect(active).toHaveAttribute('aria-controls', (await panel.getAttribute('id'))!)
+    await expect(panel).toHaveAttribute('aria-labelledby', (await active.getAttribute('id'))!)
+  }
+  await expect(cases.locator('#tabs-model')).toHaveText('0')
+})
+
+test('nested tab panels keep independent selection even with the same values', async ({ page }) => {
+  await page.goto('/tests/fixture/')
+  const cases = page.locator('#tabs-nested')
+  const outer = cases.getByRole('tabpanel', { name: '概览', exact: true })
+  await expect(outer.getByRole('tabpanel', { name: '本周' })).toHaveText('本周统计')
+  await outer.getByRole('tab', { name: '上周' }).click()
+  await expect(outer.getByRole('tabpanel', { name: '上周' })).toHaveText('上周统计')
+  await cases.getByRole('tab', { name: '操作记录' }).click()
+  await expect(cases.getByRole('tabpanel', { name: '操作记录' })).toHaveText('编辑记录')
+  await expect(cases.getByRole('tablist')).toHaveCount(1)
+  await cases.getByRole('tab', { name: '概览' }).click()
+  await expect(outer.getByRole('tab', { selected: true })).toHaveAccessibleName('上周')
+})
+
+test('tab headers inherit live provider palette, mode, radius and size with a local size override', async ({ page }) => {
+  await page.goto('/tests/fixture/')
+  const cases = page.locator('#tabs-cases')
+  const active = cases.getByRole('tab', { selected: true })
+  await expect(active).toHaveCSS('height', '40px')
+  await expect(active).toHaveCSS('border-top-left-radius', '13px')
+  await expect(active).toHaveCSS('color', 'rgb(35, 101, 71)')
+  await cases.getByLabel('选项卡浅色主色').fill('#773355')
+  await expect(active).toHaveCSS('color', 'rgb(119, 51, 85)')
+  await cases.getByLabel('选项卡深色模式').check()
+  await expect(active).toHaveCSS('color', 'rgb(153, 187, 221)')
+  await cases.getByLabel('选项卡紧凑配置').check()
+  await expect(active).toHaveCSS('height', '24px')
+  await expect(active).toHaveCSS('border-top-left-radius', '0px')
+  await cases.getByLabel('选项卡局部尺寸').check()
+  await expect(active).toHaveCSS('height', '20px')
+})

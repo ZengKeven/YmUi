@@ -200,6 +200,23 @@ test('the steps demo selects a stage and switches to a readonly vertical workflo
   await expect(steps.locator('[data-status="finish"]')).toHaveCount(3)
 })
 
+test('the tabs demo switches between distinct slotted content and retains a draft', async ({ page }) => {
+  await page.goto('/steps/')
+  await page.locator('#VPSidebarNav').getByRole('link', { name: 'YmTabs 选项卡' }).click()
+  await expect(page).toHaveURL('/tabs/')
+  const demo = page.locator('.demo-canvas')
+  const panel = demo.getByRole('tabpanel')
+  await expect(panel).toHaveText('今天有 2 项日程。')
+  await demo.getByRole('tab', { name: '日程' }).click()
+  await expect(panel).toContainText('库存盘点')
+  const tasks = demo.getByRole('tab', { name: '事项' })
+  await tasks.click()
+  await panel.getByRole('textbox', { name: '事项备注' }).fill('核对订单')
+  await demo.getByRole('tab', { name: '首页' }).click()
+  await tasks.click()
+  await expect(panel.getByRole('textbox')).toHaveValue('核对订单')
+})
+
 test('the icon gallery previews the user icon and switches glyphs, size and color', async ({ page }) => {
   await page.goto('/button/')
   await page.locator('#VPSidebarNav').getByRole('link', { name: 'YmIcon 图标' }).click()

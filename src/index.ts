@@ -8,6 +8,7 @@ export { YmMenu, type MenuItem, type MenuLeaf, type MenuProps, type MenuValue } 
 export { YmPagination, type PageInfo, type PaginationProps } from './components/pagination'
 export { YmSpace, type SpaceProps, type SpaceSize } from './components/space'
 export { YmSteps, type StepOption, type StepsProps, type StepStatus, type StepValue } from './components/steps'
+export { YmTabs, YmTabPanel, type TabPanelProps, type TabsProps, type TabValue } from './components/tabs'
 export { default as ConfigProvider } from './components/config-provider/ConfigProvider.vue'
 export type { ConfigProviderProps, ControlSize, ThemeColors, ThemeMode } from './components/config-provider/types'
 

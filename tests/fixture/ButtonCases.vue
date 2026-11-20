@@ -7,6 +7,7 @@ import MenuCases from './MenuCases.vue'
 import PaginationCases from './PaginationCases.vue'
 import SpaceCases from './SpaceCases.vue'
 import StepsCases from './StepsCases.vue'
+import TabsCases from './TabsCases.vue'
 
 const busy = ref(false)
 const disabled = ref(false)
@@ -81,4 +82,5 @@ function record(event: MouseEvent) {
   <MenuCases />
   <PaginationCases />
   <StepsCases />
+  <TabsCases />
 </template>
