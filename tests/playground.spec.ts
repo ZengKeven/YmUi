@@ -110,6 +110,25 @@ test('desktop navigation opens Markdown pages, section links and working Vapor d
   expect(errors).toEqual([])
 })
 
+test('the layout preview keeps its sidebar controls and brand in sync', async ({ page }) => {
+  await page.goto('/button/')
+  await page.locator('#VPSidebarNav').getByRole('link', { name: 'YmLayout 布局' }).click()
+  await expect(page).toHaveURL('/layout/')
+  const preview = page.locator('.demo-canvas')
+  const collapsed = page.getByRole('checkbox', { name: '收起侧栏' })
+  const name = preview.getByText('采购管理', { exact: true })
+  await page.getByRole('textbox', { name: '系统名称' }).fill('采购管理')
+  await expect(name).toBeVisible()
+  await preview.getByRole('button', { name: '收起侧栏' }).click()
+  await expect(collapsed).toBeChecked()
+  await expect(name).toBeHidden()
+  await page.getByRole('combobox', { name: '顶栏高度' }).selectOption({ label: '64 px' })
+  await expect(preview.locator('aside')).toHaveCSS('width', '64px')
+  await expect(preview.locator('header')).toHaveCSS('height', '64px')
+  await collapsed.uncheck()
+  await expect(name).toBeVisible()
+})
+
 test('the icon gallery previews the user icon and switches glyphs, size and color', async ({ page }) => {
   await page.goto('/button/')
   await page.locator('#VPSidebarNav').getByRole('link', { name: 'YmIcon 图标' }).click()

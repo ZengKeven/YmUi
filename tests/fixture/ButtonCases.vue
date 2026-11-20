@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import { ConfigProvider, YmButton, YmLoading } from 'ym-ui-vapor'
 import IconCases from './IconCases.vue'
+import LayoutCases from './LayoutCases.vue'
 
 const busy = ref(false)
 const disabled = ref(false)
@@ -66,4 +67,5 @@ function record(event: MouseEvent) {
     <input aria-label="panel content" />
   </YmLoading>
   <IconCases />
+  <LayoutCases />
 </template>
