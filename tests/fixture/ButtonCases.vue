@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import { ConfigProvider, YmButton, YmLoading } from 'ym-ui-vapor'
 import CheckboxCases from './CheckboxCases.vue'
 import IconCases from './IconCases.vue'
+import InputCases from './InputCases.vue'
 import LayoutCases from './LayoutCases.vue'
 import MenuCases from './MenuCases.vue'
 import PaginationCases from './PaginationCases.vue'
@@ -80,6 +81,7 @@ function record(event: MouseEvent) {
   <label><input v-model="panelBusy" type="checkbox" /> panel loading</label>
   <CheckboxCases />
   <IconCases />
+  <InputCases />
   <LayoutCases />
   <SpaceCases />
   <MenuCases />
