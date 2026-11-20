@@ -146,6 +146,22 @@ test('the menu preview selects pages from the collapsed layout sidebar', async (
   await expect(demo.getByText('采购管理', { exact: true })).toBeVisible()
 })
 
+test('the pagination demo updates its record range when navigating and resizing pages', async ({ page }) => {
+  await page.goto('/button/')
+  await page.locator('#VPSidebarNav').getByRole('link', { name: 'YmPagination 分页' }).click()
+  await expect(page).toHaveURL('/pagination/')
+  const demo = page.locator('.demo-canvas')
+  const range = demo.locator('output')
+  await expect(range).toHaveText('显示第 1–10 条')
+  await demo.getByRole('button', { name: '尾页' }).click()
+  await expect(range).toHaveText('显示第 131–137 条')
+  await demo.getByRole('combobox', { name: '每页条数' }).selectOption('50')
+  await expect(range).toHaveText('显示第 101–137 条')
+  await page.getByRole('combobox', { name: '总条数' }).selectOption('0')
+  await expect(range).toHaveText('暂无记录')
+  await expect(demo.getByRole('button', { name: '下一页' })).toBeDisabled()
+})
+
 test('the space preview changes direction, gaps and separators from its controls', async ({ page }) => {
   await page.goto('/button/')
   await page.locator('#VPSidebarNav').getByRole('link', { name: 'YmSpace 间距' }).click()

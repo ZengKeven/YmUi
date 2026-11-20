@@ -4,6 +4,7 @@ import { ConfigProvider, YmButton, YmLoading } from 'ym-ui-vapor'
 import IconCases from './IconCases.vue'
 import LayoutCases from './LayoutCases.vue'
 import MenuCases from './MenuCases.vue'
+import PaginationCases from './PaginationCases.vue'
 import SpaceCases from './SpaceCases.vue'
 
 const busy = ref(false)
@@ -77,4 +78,5 @@ function record(event: MouseEvent) {
   <LayoutCases />
   <SpaceCases />
   <MenuCases />
+  <PaginationCases />
 </template>
