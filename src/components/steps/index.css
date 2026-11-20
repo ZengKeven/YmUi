@@ -1,0 +1,111 @@
+ol.ym-steps[role='list'] {
+  box-sizing: border-box;
+  display: flex;
+  width: 100%;
+  margin: 0;
+  padding: 4px;
+  overflow-x: auto;
+  list-style: none;
+  color: var(--ym-color-text);
+  font-size: var(--ym-control-font-size);
+  line-height: 1.4;
+}
+
+.ym-steps > .ym-steps__item {
+  --ym-steps-line: var(--ym-color-border);
+  --ym-steps-accent: var(--ym-color-border);
+  position: relative;
+  flex: 1 0 4.5em;
+  min-width: 0;
+  margin: 0;
+  list-style: none;
+  overflow-wrap: anywhere;
+}
+.ym-steps__item[data-status='process'] { --ym-steps-accent: var(--ym-color-primary); }
+.ym-steps__item[data-status='finish'] { --ym-steps-accent: var(--ym-color-success); }
+.ym-steps__item[data-status='error'] { --ym-steps-accent: var(--ym-color-danger); }
+.ym-steps[data-sequence='positive'] > [data-status='finish'],
+.ym-steps[data-sequence='reverse'] > li:has(+ [data-status='finish']) { --ym-steps-line: var(--ym-color-success); }
+
+.ym-steps .ym-steps__heading {
+  display: inline-grid;
+  justify-items: start;
+  align-items: center;
+  gap: .45em;
+  max-width: 100%;
+  height: auto;
+  padding: 0;
+  border: 0;
+  border-radius: var(--ym-radius);
+  background: transparent;
+  color: var(--ym-color-text);
+  font: inherit;
+  font-weight: 600;
+  text-align: start;
+  white-space: normal;
+}
+.ym-steps__heading > .ym-button__text { display: contents; }
+.ym-steps__heading:focus-visible { outline: 2px solid var(--ym-color-primary); outline-offset: 2px; }
+.ym-steps button.ym-steps__heading:is(:hover, :active) { background: transparent; }
+.ym-steps button.ym-steps__heading:hover .ym-steps__title { text-decoration: underline; }
+
+.ym-steps__anchor, .ym-steps__marker {
+  box-sizing: border-box;
+  display: grid;
+  place-items: center;
+  width: var(--ym-control-height);
+  height: var(--ym-control-height);
+}
+.ym-steps__marker {
+  --ym-icon-size: 1.15em;
+  border: 1px solid var(--ym-steps-accent);
+  border-radius: var(--ym-radius);
+  background: var(--ym-steps-accent);
+  color: var(--ym-color-on-accent);
+  font-variant-numeric: tabular-nums;
+}
+[data-status='default'] > .ym-steps__heading .ym-steps__marker:not(.ym-steps__marker--dot) {
+  background: var(--ym-color-surface);
+  color: var(--ym-color-text);
+}
+.ym-steps__marker--dot { width: .7em; height: .7em; border-radius: 50%; }
+.ym-steps__title, .ym-steps__content, .ym-steps__extra { padding-inline-end: .75em; }
+.ym-steps__content, .ym-steps__extra { margin-block-start: .3em; }
+
+.ym-steps__connector {
+  position: absolute;
+  inset-inline: calc(var(--ym-control-height) + .4em) .4em;
+  inset-block-start: calc(var(--ym-control-height) / 2);
+  height: 0;
+  border-block-start: 1px solid var(--ym-steps-line);
+  color: var(--ym-steps-line);
+  pointer-events: none;
+}
+.ym-steps[data-separator='dashed'] .ym-steps__connector { border-style: dashed; border-width: 1px 0 0; }
+.ym-steps__connector .ym-icon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  translate: -50% -50%;
+  font-size: 1em;
+}
+.ym-steps[data-separator='arrow'] .ym-steps__connector { border: 0; }
+.ym-steps[data-sequence='reverse'] .ym-steps__connector .ym-icon { rotate: 180deg; }
+
+.ym-steps[data-layout='vertical'] { flex-direction: column; }
+.ym-steps[data-layout='vertical'] > li { flex: none; }
+.ym-steps[data-layout='vertical'] > li:not(:last-child) { padding-block-end: 1.5em; }
+.ym-steps[data-layout='vertical'] .ym-steps__heading { grid-template-columns: var(--ym-control-height) minmax(0, 1fr); }
+.ym-steps[data-layout='vertical'] :is(.ym-steps__content, .ym-steps__extra) {
+  margin-inline-start: calc(var(--ym-control-height) + .45em);
+}
+.ym-steps[data-layout='vertical'] .ym-steps__connector {
+  inset-block: calc(var(--ym-control-height) + .3em) .3em;
+  inset-inline: calc(var(--ym-control-height) / 2) auto;
+  width: 0;
+  height: auto;
+  border-width: 0;
+  border-inline-start: 1px solid var(--ym-steps-line);
+}
+.ym-steps[data-layout='vertical'][data-separator='dashed'] .ym-steps__connector { border-inline-start-style: dashed; }
+.ym-steps[data-layout='vertical'][data-separator='arrow'] .ym-steps__connector { border: 0; }

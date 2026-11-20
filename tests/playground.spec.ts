@@ -178,6 +178,28 @@ test('the space preview changes direction, gaps and separators from its controls
   await expect(space.locator('.ym-space__separator')).toHaveCount(0)
 })
 
+test('the steps demo selects a stage and switches to a readonly vertical workflow', async ({ page }) => {
+  await page.goto('/button/')
+  await page.locator('#VPSidebarNav').getByRole('link', { name: 'YmSteps 步骤条' }).click()
+  await expect(page).toHaveURL('/steps/')
+  const steps = page.locator('.demo-canvas').getByRole('list', { name: '步骤条' })
+  const current = steps.locator('[aria-current="step"]')
+  await expect(current).toContainText('审核申请')
+  await steps.getByRole('button', { name: '确认入库' }).click()
+  await expect(page.getByLabel('当前步骤')).toHaveValue('receive')
+  await page.getByLabel('排列方向').selectOption('vertical')
+  await expect(steps).toHaveCSS('flex-direction', 'column')
+  await page.getByLabel('连接线').selectOption('arrow')
+  await expect(steps.locator('svg[data-name="chevron-down"]')).toHaveCount(2)
+  await page.getByLabel('步骤标记').selectOption('dot')
+  await expect(current.locator('.ym-steps__marker')).toBeEmpty()
+  await page.getByLabel('只读').check()
+  await expect(steps.getByRole('button')).toHaveCount(0)
+  await page.getByLabel('当前步骤').selectOption('FINISH')
+  await expect(current).toHaveCount(0)
+  await expect(steps.locator('[data-status="finish"]')).toHaveCount(3)
+})
+
 test('the icon gallery previews the user icon and switches glyphs, size and color', async ({ page }) => {
   await page.goto('/button/')
   await page.locator('#VPSidebarNav').getByRole('link', { name: 'YmIcon 图标' }).click()
