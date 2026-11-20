@@ -3,6 +3,7 @@
   box-sizing: border-box;
   width: 100%;
   min-width: 0;
+  border: 1px solid var(--ym-color-border);
   border-radius: var(--ym-radius);
   background: var(--ym-color-surface);
   color: var(--ym-color-text);

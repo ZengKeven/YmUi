@@ -67,6 +67,10 @@ test('nested tab panels keep independent selection even with the same values', a
 test('tab headers inherit live provider palette, mode, radius and size with a local size override', async ({ page }) => {
   await page.goto('/tests/fixture/')
   const cases = page.locator('#tabs-cases')
+  const card = cases.locator('.ym-tabs')
+  await expect(card).toHaveCSS('border-width', '1px')
+  await expect(card).toHaveCSS('border-style', 'solid')
+  await expect(card).toHaveCSS('border-color', 'rgb(187, 195, 206)')
   const active = cases.getByRole('tab', { selected: true })
   await expect(active).toHaveCSS('height', '40px')
   await expect(active).toHaveCSS('border-top-left-radius', '13px')
@@ -74,6 +78,7 @@ test('tab headers inherit live provider palette, mode, radius and size with a lo
   await cases.getByLabel('选项卡浅色主色').fill('#773355')
   await expect(active).toHaveCSS('color', 'rgb(119, 51, 85)')
   await cases.getByLabel('选项卡深色模式').check()
+  await expect(card).toHaveCSS('border-color', 'rgb(89, 99, 113)')
   await expect(active).toHaveCSS('color', 'rgb(153, 187, 221)')
   await cases.getByLabel('选项卡紧凑配置').check()
   await expect(active).toHaveCSS('height', '24px')
