@@ -17,6 +17,7 @@ const items: MenuItem[] = [
 ]
 const pages = items.flatMap(item => item.children?.length ? item.children : [item])
 const selected = ref<MenuValue>('dashboard')
+const expanded = ref<MenuValue[]>([])
 const currentPage = computed(() => pages.find(page => page.value === selected.value)?.label)
 const collapsed = ref(false)
 const size = ref<ControlSize>()
@@ -33,7 +34,7 @@ const logo = 'data:image/svg+xml,' + encodeURIComponent(
       <YmLayout v-model:collapsed="collapsed" class="menu-demo" system-name="采购工作台" :logo="logo"
         :aside-width="152" :collapsed-width="48" :header-height="40">
         <template #aside="{ collapsed: compact }">
-          <YmMenu v-model="selected" :items="items" :collapsed="compact" :size="size" />
+          <YmMenu v-model="selected" v-model:expanded="expanded" :items="items" :collapsed="compact" :size="size" />
         </template>
         <template #header>当前页面</template>
         <template #content><output aria-live="polite">{{ currentPage }}</output></template>
@@ -53,22 +54,23 @@ const logo = 'data:image/svg+xml,' + encodeURIComponent(
 
 <style scoped>
 .menu-demo {
+  --menu-line: color-mix(in srgb, var(--ym-color-text) 14%, var(--ym-color-surface));
   box-sizing: border-box;
   width: 100%;
   height: 19rem;
-  border: 1px solid var(--demo-rule);
+  border: 1px solid var(--menu-line);
   color: var(--ym-color-text);
 }
 .menu-demo :deep(.ym-layout__aside) {
   box-sizing: border-box;
-  border-inline-end: 1px solid var(--demo-rule);
+  border-inline-end: 1px solid var(--menu-line);
   background: var(--ym-color-surface);
 }
 .menu-demo :deep(.ym-layout__header) {
   padding-inline: .75rem;
-  border-bottom: 1px solid var(--demo-rule);
+  border-bottom: 1px solid var(--menu-line);
   background: var(--ym-color-surface);
-  color: var(--demo-muted);
+  color: color-mix(in srgb, var(--ym-color-text) 72%, var(--ym-color-surface));
   font-size: .8rem;
 }
 .menu-demo :deep(.ym-layout__content) {

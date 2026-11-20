@@ -6,8 +6,10 @@ import PreviewFrame from './PreviewFrame.vue'
 <template>
   <PreviewFrame name="ConfigProvider" global-only>
     <template #preview>
-      <YmButton>保存</YmButton>
-      <YmButton variant="outline">取消</YmButton>
+      <div class="config-demo">
+        <YmButton>保存</YmButton>
+        <YmButton variant="outline">取消</YmButton>
+      </div>
     </template>
     <section class="example-section">
       <h3>局部覆盖</h3>
@@ -19,3 +21,7 @@ import PreviewFrame from './PreviewFrame.vue'
     </section>
   </PreviewFrame>
 </template>
+
+<style scoped>
+.config-demo { display: flex; flex-wrap: wrap; gap: .75rem; }
+</style>

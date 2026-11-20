@@ -21,7 +21,12 @@ html:not(.dark) .playground[data-theme='auto'] { color-scheme: light; }
   font-size: .83rem;
   font-weight: 600;
 }
-.demo-name { color: var(--ym-color-primary); font-family: var(--vp-font-family-mono); }
+.demo-name { display: flex; align-items: center; justify-content: space-between; gap: .5rem; color: var(--ym-color-primary); font-family: var(--vp-font-family-mono); }
+.demo-copy-tools, .demo-copy { display: inline-flex; align-items: center; gap: .35rem; }
+.demo-copy-tools { color: var(--demo-muted); font: 400 .8rem var(--vp-font-family-base); }
+.demo-copy { padding: .1rem .35rem; border-radius: var(--ym-radius); color: var(--ym-color-text); cursor: pointer; }
+.demo-copy:hover { background: var(--demo-rule); }
+.demo-copy:focus-visible { outline: 2px solid var(--ym-color-primary); outline-offset: 2px; }
 .demo-canvas {
   display: flex;
   flex: 1;

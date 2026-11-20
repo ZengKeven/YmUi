@@ -5,7 +5,11 @@ import { iconGroups, iconLabels } from './icon-catalog'
 import PreviewFrame from './PreviewFrame.vue'
 import { sizes } from './settings'
 
-const name = ref<IconName>('user')
+const selectedIcon = ref<{ name: IconName; label: string }>({ name: 'user', label: iconLabels.user })
+const name = computed({
+  get: () => selectedIcon.value.name,
+  set: (value: IconName) => { selectedIcon.value = { name: value, label: iconLabels[value] } },
+})
 const size = ref<string | undefined>('30px')
 const color = ref<string>()
 const query = ref('')
@@ -22,7 +26,7 @@ const visibleGroups = computed(() => {
 <template>
   <PreviewFrame name="YmIcon">
     <template #preview>
-      <YmIcon :name="name" :size="size" :color="color" :aria-label="iconLabels[name]" />
+      <YmIcon :name="selectedIcon.name" :size="size" :color="color" :aria-label="selectedIcon.label" />
     </template>
     <template #controls>
       <label>name

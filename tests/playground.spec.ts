@@ -1,4 +1,73 @@
-import { expect, test } from '@playwright/test'
+import { mkdir, writeFile } from 'node:fs/promises'
+import { join, relative } from 'node:path'
+import { expect, test, type Page } from '@playwright/test'
+import { compileScript, parse } from '@vue/compiler-sfc'
+
+async function copyPreview(page: Page) {
+  const header = page.locator('.demo-name')
+  await header.getByRole('button', { name: '复制代码' }).click()
+  await expect(header.getByText('已复制', { exact: true })).toBeVisible()
+  return page.evaluate(() => navigator.clipboard.readText())
+}
+
+test('every component preview copies a standalone Vue example', async ({ page, context }) => {
+  await context.grantPermissions(['clipboard-read', 'clipboard-write'])
+  await page.goto('/button/')
+  const links = page.locator('#VPSidebarNav').getByRole('link')
+  await expect(links.first()).toBeVisible()
+  const pages = await links.evaluateAll(links => links.map(link => ({
+    name: link.textContent!.trim().split(/\s+/)[0],
+    path: (link as HTMLAnchorElement).pathname,
+  })))
+  for (const { name, path } of pages) {
+    await page.goto(path)
+    const source = await copyPreview(page)
+    const { descriptor, errors } = parse(source, { filename: 'CopiedDemo.vue' })
+    expect(errors, name).toEqual([])
+    expect(descriptor.scriptSetup?.content).toMatch(/from\s*['"]ym-ui-vapor['"]/)
+    expect(descriptor.scriptSetup?.content).toMatch(/import\s*['"]ym-ui-vapor\/style\.css['"]/)
+    expect(source).toContain(name)
+    expect(source).not.toMatch(/PreviewFrame|GlobalControls|\.\.\/\.\.\/src|#controls/)
+    expect(descriptor.template?.content.trim()).toBeTruthy()
+    expect(() => compileScript(descriptor, { id: 'copied-demo', inlineTemplate: true }), name).not.toThrow()
+  }
+})
+
+test('pasting a copied Tabs preview restores its current inputs, configuration and slots', async ({ page, context }, testInfo) => {
+  await context.grantPermissions(['clipboard-read', 'clipboard-write'])
+  await page.goto('/tabs/')
+  await page.getByText('全局设置', { exact: true }).click()
+  await page.getByRole('combobox', { name: '显示模式' }).selectOption('dark')
+  await page.getByLabel('深色品牌色').fill('#ad7856')
+  await page.getByRole('slider').fill('13')
+  await page.getByLabel('选项卡尺寸').selectOption('large')
+  await page.getByLabel('显示图标').uncheck()
+  await page.getByRole('tab', { name: '事项' }).click()
+  const note = '采购 </script> & "备注"'
+  await page.getByRole('textbox', { name: '事项备注' }).fill(note)
+  const source = await copyPreview(page)
+
+  // Use the component fixture's Vite server to compile the pasted file against the package entry.
+  const dir = testInfo.outputPath('pasted')
+  await mkdir(dir, { recursive: true })
+  await writeFile(join(dir, 'App.vue'), source)
+  await writeFile(join(dir, 'index.html'), `<div id="app"></div><script type="module">
+    import { createVaporApp } from 'vue'
+    import App from './App.vue'
+    createVaporApp(App).mount('#app')
+  </script>`)
+  const fixture = testInfo.config.projects.find(project => project.name === 'components')!
+  await page.goto(new URL(relative(process.cwd(), join(dir, 'index.html')), fixture.use.baseURL).href)
+  const active = page.getByRole('tab', { name: '事项', selected: true })
+  await expect(active).toHaveCSS('height', '52px')
+  await expect(active).toHaveCSS('color', 'rgb(173, 120, 86)')
+  await expect(active).toHaveCSS('border-top-right-radius', '13px')
+  await expect(page.getByRole('tablist').locator('svg')).toHaveCount(0)
+  const input = page.getByRole('tabpanel', { name: '事项' }).getByRole('textbox', { name: '事项备注' })
+  await expect(input).toHaveValue(note)
+  await page.getByRole('button', { name: '清空备注' }).click()
+  await expect(input).toHaveValue('')
+})
 
 test('every component page lists the five documentation sections in order', async ({ page }) => {
   await page.goto('/button/')
