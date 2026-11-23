@@ -7,7 +7,7 @@
   align-items: center;
   max-width: 100%;
   min-width: 0;
-  height: calc(var(--ym-control-height) * .5 + .25rem);
+  height: calc(var(--ym-control-height) * .75);
   padding-inline: max(.25rem, calc(var(--ym-control-padding) - .25rem));
   border: 1px solid transparent;
   border-radius: 0;

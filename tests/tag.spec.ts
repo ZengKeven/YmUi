@@ -7,7 +7,7 @@ test.beforeEach(async ({ page }) => {
 test('a tag renders its label and icon and names the close button after the visible slot', async ({ page }) => {
   const plain = page.locator('#tag-plain')
   await expect(plain).toHaveText('草稿')
-  await expect(plain).toHaveCSS('height', '20px')
+  await expect(plain).toHaveCSS('height', '24px')
   await expect(plain).toHaveCSS('font-size', '12px')
   await expect(plain).toHaveCSS('border-radius', '0px')
   await expect(plain.getByRole('button')).toHaveCount(0)
