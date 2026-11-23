@@ -41,7 +41,7 @@ async function remoteSearch(query: string): Promise<SelectOption[]> {
     <output id="select-changes">{{ JSON.stringify(changes) }}</output>
     <button @click="selected = 3">切换默认仓库</button>
     <YmSelect aria-label="锁定仓库" :model-value="0" :options="options" />
-    <YmSelect aria-label="禁用仓库" disabled :options="options" />
+    <YmSelect aria-label="禁用仓库" disabled multiple :options="options" :default-value="[3]" />
 
     <YmSelect v-model="many" aria-label="多选仓库" multiple :max="2" :options="options">
       <template #option="{ option }"><strong>{{ option.label }}</strong> <small>{{ option.code }}</small></template>
@@ -62,8 +62,8 @@ async function remoteSearch(query: string): Promise<SelectOption[]> {
     <ConfigProvider :size="compact ? 'extra-small' : 'large'" :mode="dark ? 'dark' : 'light'"
       :theme="{ light: { surface }, dark: { surface: '#294059', text: '#ccddee' } }">
       <ConfigProvider :radius="compact ? 0 : 12">
-        <YmSelect aria-label="继承配置的仓库" :options="options" />
-        <YmSelect aria-label="局部尺寸的仓库" size="small" :options="options" />
+        <YmSelect aria-label="继承配置的仓库" multiple :options="options" :default-value="['paused']" />
+        <YmSelect aria-label="局部尺寸的仓库" size="small" multiple :options="options" :default-value="[0]" />
       </ConfigProvider>
     </ConfigProvider>
   </section>

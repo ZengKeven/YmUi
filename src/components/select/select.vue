@@ -4,6 +4,7 @@ import { YmIcon } from '../icon'
 import { YmInput } from '../input'
 import { YmLoading } from '../loading'
 import { YmPopup } from '../popup'
+import { YmTag } from '../tag'
 import { useSelectOptions } from './options'
 import selectProps from './props'
 import type { SelectKey, SelectOption, SelectValue } from './types'
@@ -160,11 +161,9 @@ function keydown(e: KeyboardEvent) {
       @click="activate(!searchable)">
       <div class="ym-select__values">
         <template v-if="props.multiple">
-          <span v-for="item in selectedItems" :key="item.value" class="ym-select__tag">
-            <span>{{ item.label }}</span>
-            <button type="button" :aria-label="`移除 ${item.label}`" :disabled="props.disabled || item.disabled"
-              @mousedown.prevent @click.stop="choose(item)"><YmIcon name="close" /></button>
-          </span>
+          <YmTag v-for="item in selectedItems" :key="item.value" :content="item.label"
+            theme="primary" variant="light" closable :disabled="props.disabled || item.disabled"
+            @mousedown.prevent @close="choose(item)" />
         </template>
         <YmInput ref="editor" v-bind="$attrs" type="text" class="ym-select__field" role="combobox" autocomplete="off"
           :model-value="inputText" :placeholder="placeholder" :disabled="props.disabled" :readonly="!searchable" :form="props.form"

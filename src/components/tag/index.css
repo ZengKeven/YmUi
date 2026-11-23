@@ -1,0 +1,55 @@
+.ym-tag {
+  --ym-tag-accent: var(--ym-color-text);
+  --ym-tag-border: var(--ym-color-border);
+  --ym-icon-size: 1em;
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  gap: .3em;
+  max-width: 100%;
+  min-width: 0;
+  height: calc(var(--ym-control-height) * .75);
+  padding-inline: calc(var(--ym-control-padding) * .5);
+  border: 1px solid transparent;
+  border-radius: var(--ym-radius);
+  background-color: color-mix(in srgb, var(--ym-tag-accent) 14%, var(--ym-color-surface));
+  color: var(--ym-color-text);
+  font-size: var(--ym-control-font-size);
+  line-height: 1.2;
+  vertical-align: middle;
+}
+.ym-tag[data-theme='primary'] { --ym-tag-accent: var(--ym-color-primary); }
+.ym-tag[data-theme='success'] { --ym-tag-accent: var(--ym-color-success); }
+.ym-tag[data-theme='warning'] { --ym-tag-accent: var(--ym-color-warning); }
+.ym-tag[data-theme='danger'] { --ym-tag-accent: var(--ym-color-danger); }
+.ym-tag:not([data-theme='default']) {
+  --ym-tag-border: var(--ym-tag-accent);
+  color: color-mix(in srgb, var(--ym-tag-accent) 65%, var(--ym-color-text));
+}
+.ym-tag:not([data-theme='default'])[data-variant='dark'] {
+  background-color: var(--ym-tag-accent);
+  color: var(--ym-color-on-accent);
+}
+.ym-tag:is([data-variant='light'], [data-variant='light-outline']) {
+  background-color: color-mix(in srgb, var(--ym-tag-accent) 10%, var(--ym-color-surface));
+}
+.ym-tag:is([data-variant='outline'], [data-variant='light-outline']) { border-color: var(--ym-tag-border); }
+.ym-tag[data-variant='outline'] { background-color: transparent; }
+.ym-tag[aria-disabled='true'] { opacity: .55; }
+
+.ym-tag__text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ym-tag__icon { display: inline-flex; flex: none; align-items: center; }
+.ym-tag .ym-tag__close {
+  flex: none;
+  width: 1.15em;
+  height: 1.15em;
+  padding: 0;
+  border: 0;
+  font: inherit;
+  color: inherit;
+}
+.ym-tag .ym-tag__close:not(:disabled):is(:hover, :active) {
+  background: color-mix(in srgb, currentColor 16%, transparent);
+}
+.ym-tag .ym-tag__close:focus-visible { outline: 2px solid currentColor; outline-offset: 0; }
+.ym-tag .ym-tag__close:disabled { opacity: 1; }

@@ -19,7 +19,7 @@ category: 表单组件
 | options | `readonly SelectOption[]` | `[]` | 选项列表，每项包含唯一的 `value` 和显示文本 `label`，可用 `disabled` 禁选某项。 |
 | modelValue | `SelectValue` | — | 当前选中值，支持 `v-model`。单选使用字符串或数字，多选使用值数组。 |
 | defaultValue | `SelectValue` | 单选为空，多选为空数组 | 省略 `modelValue` 时的初始值。 |
-| multiple | `boolean` | `false` | 开启多选，已选项显示在输入框内。 |
+| multiple | `boolean` | `false` | 开启多选，每个已选项在输入框内显示为一个 `YmTag` 标签。点击标签的移除按钮可取消选择，禁用项会保留。 |
 | max | `number` | `0` | 多选数量上限，`0` 表示不限。达到上限后可以移除已选项，再选其他项。 |
 | placeholder | `string` | `请选择` | 空值时的提示文字。 |
 | filterable | `boolean` | `false` | 启用本地搜索，按 `label` 进行忽略大小写的包含匹配。 |
@@ -32,7 +32,7 @@ category: 表单组件
 
 `SelectOption.value` 可以是字符串或数字，数字 `0` 是有效的选项值。可在选项对象上添加仓库代码等业务字段，供过滤函数和选项插槽读取。使用 `v-model` 时，可以用 `null` 清空单选，用 `[]` 清空多选。
 
-输入框和下拉面板继承最近的 `ConfigProvider` 配置，嵌套时逐项覆盖。显式传入的 `size` 优先。 `mode` 和 `theme` 控制背景、文字、边框与选中项强调色，`radius` 控制输入框和面板的圆角。
+输入框、多选标签和下拉面板继承最近的 `ConfigProvider` 配置，嵌套时逐项覆盖。选择器显式传入的 `size` 优先。 `mode` 和 `theme` 控制背景、文字、边框与选中项强调色，`radius` 控制输入框、标签和面板的圆角。
 
 ## 事件
 

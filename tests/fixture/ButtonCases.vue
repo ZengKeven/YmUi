@@ -14,6 +14,7 @@ import SelectCases from './SelectCases.vue'
 import SpaceCases from './SpaceCases.vue'
 import StepsCases from './StepsCases.vue'
 import TabsCases from './TabsCases.vue'
+import TagCases from './TagCases.vue'
 
 const busy = ref(false)
 const disabled = ref(false)
@@ -95,4 +96,5 @@ function record(event: MouseEvent) {
   <SelectCases />
   <StepsCases />
   <TabsCases />
+  <TagCases />
 </template>
