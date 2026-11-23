@@ -162,7 +162,7 @@ function keydown(e: KeyboardEvent) {
       <div class="ym-select__values">
         <template v-if="props.multiple">
           <YmTag v-for="item in selectedItems" :key="item.value" :content="item.label"
-            theme="primary" variant="light" closable :disabled="props.disabled || item.disabled"
+            variant="light" closable :disabled="props.disabled || item.disabled"
             @mousedown.prevent @close="choose(item)" />
         </template>
         <YmInput ref="editor" v-bind="$attrs" type="text" class="ym-select__field" role="combobox" autocomplete="off"

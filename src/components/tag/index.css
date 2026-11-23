@@ -1,7 +1,7 @@
 .ym-tag {
   --ym-tag-accent: var(--ym-color-text);
   --ym-tag-border: var(--ym-color-border);
-  --ym-tag-neutral-fill: color-mix(in srgb, var(--ym-color-border) 38%, var(--ym-color-surface));
+  --ym-tag-neutral-fill: color-mix(in srgb, var(--ym-color-border) 35%, var(--ym-color-surface));
   box-sizing: border-box;
   display: inline-flex;
   align-items: center;
@@ -31,7 +31,7 @@
   background-color: var(--ym-tag-accent);
   color: var(--ym-color-on-accent);
 }
-.ym-tag:is([data-variant='light'], [data-variant='light-outline']) {
+.ym-tag:not([data-theme='default']):is([data-variant='light'], [data-variant='light-outline']) {
   background-color: color-mix(in srgb, var(--ym-tag-accent) 16%, var(--ym-color-surface));
 }
 .ym-tag:is([data-variant='outline'], [data-variant='light-outline']) { border-color: var(--ym-tag-border); }

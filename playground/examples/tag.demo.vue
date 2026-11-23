@@ -6,7 +6,7 @@ import { sizes } from './settings'
 
 const initialWarehouses = ['上海仓', '杭州仓']
 const warehouses = ref([...initialWarehouses])
-const theme = ref<TagProps['theme']>('primary')
+const theme = ref<TagProps['theme']>('default')
 const variant = ref<TagProps['variant']>('light')
 const shape = ref<TagProps['shape']>('square')
 const size = ref<TagProps['size']>()
