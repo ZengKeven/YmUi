@@ -7,6 +7,7 @@ test.beforeEach(async ({ page }) => {
 test('text editing syncs the model, forwards input attributes and supports native form behavior', async ({ page }) => {
   const alias = page.getByLabel('账户别名', { exact: true })
   await expect(alias).toHaveValue('')
+  await expect(alias).toHaveCSS('text-align', 'left')
   await expect(alias).toHaveJSProperty('type', 'text')
   await expect(alias).toHaveAttribute('placeholder', '输入别名')
   await expect(alias).toHaveAttribute('autocomplete', 'nickname')

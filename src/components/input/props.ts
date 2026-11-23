@@ -7,6 +7,11 @@ export default {
     type: String as PropType<InputProps['type']>, default: 'text',
     validator: (type: string) => type === 'text' || type === 'password',
   },
+  /** 文本对齐方式，默认靠左。 */
+  align: {
+    type: String as PropType<InputProps['align']>, default: 'left',
+    validator: (align: string) => ['left', 'center', 'right'].includes(align),
+  },
   /** 双向绑定的字符串。 */
   modelValue: String,
   /** 外部控制的字符串，modelValue 优先。 */

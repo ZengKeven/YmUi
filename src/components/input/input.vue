@@ -93,7 +93,7 @@ defineExpose({
 <template>
   <span class="ym-input" :class="props.class" :style="props.style" :data-size="props.size"
     :data-disabled="props.disabled || undefined" @mousedown="keepInputFocus">
-    <input ref="field" v-bind="$attrs" class="ym-input__control"
+    <input ref="field" v-bind="$attrs" class="ym-input__control" :style="{ textAlign: props.align }"
       :type="props.type === 'password' && !revealed ? 'password' : 'text'"
       :value.attr="initialValue" :placeholder="props.placeholder" :name="props.name" :form="props.form"
       :disabled="props.disabled" :readonly="props.readonly"

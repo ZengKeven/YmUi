@@ -261,6 +261,10 @@ test('the input preview switches text and password modes and copies the configur
   await expect(input).toHaveValue('playground-example')
   await preview.getByRole('button', { name: '隐藏密码' }).click()
   await expect(input).toHaveAttribute('type', 'password')
+  for (const align of ['center', 'right']) {
+    await page.getByLabel('文本对齐').selectOption(align)
+    await expect(input).toHaveCSS('text-align', align)
+  }
   await page.getByLabel('输入框尺寸').selectOption('large')
   await page.getByLabel('只读', { exact: true }).check()
   await expect(input).toHaveJSProperty('readOnly', true)
@@ -269,6 +273,7 @@ test('the input preview switches text and password modes and copies the configur
   const source = await copyPreview(page)
   expect(source).toContain('<YmInput v-model="value"')
   expect(source).toContain('type="password"')
+  expect(source).toContain('align="right"')
   expect(source).toContain('size="large"')
   expect(source).not.toContain('playground-example')
 })
@@ -284,6 +289,10 @@ test('the numeric input preview formats amounts and copies the selected precisio
   await input.blur()
   await expect(input).toHaveValue('-')
 
+  for (const align of ['center', 'left']) {
+    await page.getByLabel('文本对齐').selectOption(align)
+    await expect(input).toHaveCSS('text-align', align)
+  }
   await page.getByLabel('小数位数').selectOption('1')
   await page.getByLabel('最小值').selectOption('-10')
   await page.getByLabel('最大值').selectOption('10')
@@ -297,6 +306,7 @@ test('the numeric input preview formats amounts and copies the selected precisio
 
   const source = await copyPreview(page)
   expect(source).toContain('<YmInputNumber v-model="amount"')
+  expect(source).toContain('align="left"')
   expect(source).toContain(':decimal-places="1"')
   expect(source).toContain(':min="-10"')
   expect(source).toContain(':max="10"')

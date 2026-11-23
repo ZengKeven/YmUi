@@ -20,6 +20,7 @@ category: 表单组件
 | decimalPlaces | `number` | 保留有效小数位 | 小数位数，取 0 到 20 的整数。确认时四舍五入，显示时补足末尾的零。 |
 | min | `number` | 无下限 | 可输入的最小值，含边界。 |
 | max | `number` | 无上限 | 可输入的最大值，含边界。 |
+| align | `left / center / right` | `right` | 设置数值、零值符号和占位文字的水平对齐方式。 |
 | size | `extra-small / small / medium / large` | 继承全局尺寸，初始为 `medium` | 控制输入框的高度、字号和内边距。 |
 | placeholder | `string` | — | 空值时的提示文字。 |
 | readonly | `boolean` | `false` | 只读时可聚焦并复制数值。 |

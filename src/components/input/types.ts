@@ -4,6 +4,8 @@ import type { ControlSize } from '../config-provider/types'
 export interface InputProps {
   /** 输入类型，默认使用普通文本。 */
   type?: 'text' | 'password'
+  /** 输入内容和占位文字的水平对齐方式。 */
+  align?: 'left' | 'center' | 'right'
   /** 当前字符串，支持 v-model。 */
   modelValue?: string
   /** 受控文本，modelValue 优先。 */

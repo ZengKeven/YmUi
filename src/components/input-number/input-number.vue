@@ -87,7 +87,7 @@ defineExpose({ focus: () => editor.value?.focus(), blur: () => editor.value?.blu
 <template>
   <YmInput ref="editor" v-bind="$attrs" type="text" inputmode="decimal" :model-value="text"
     :class="['ym-input-number', props.class, { 'ym-input-number--negative': negative }]" :style="props.style"
-    :size="props.size" :placeholder="props.placeholder" :form="props.form"
+    :align="props.align" :size="props.size" :placeholder="props.placeholder" :form="props.form"
     :disabled="props.disabled" :readonly="props.readonly"
     @update:model-value="draft = $event" @focus="onFocus" @blur="onBlur" @keydown="onEnter" />
   <input ref="formField" type="hidden" :name="props.name" :form="props.form"

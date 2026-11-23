@@ -8,6 +8,7 @@ test('zero displays as a dash, submits as zero, and can be edited without step c
   const field = page.getByRole('textbox', { name: '记账金额' })
   const form = page.locator('form#amount-form')
   await expect(field).toHaveValue('-')
+  await expect(field).toHaveCSS('text-align', 'right')
   await expect(field).toHaveAttribute('inputmode', 'decimal')
   await expect(field).toHaveAttribute('placeholder', '输入金额')
   await expect(page.locator('.ym-input').filter({ has: field }).getByRole('button')).toHaveCount(0)

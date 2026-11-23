@@ -17,6 +17,8 @@ export default {
   min: { type: Number, validator: Number.isFinite },
   /** 数值上限。 */
   max: { type: Number, validator: Number.isFinite },
+  /** 数字对齐方式，默认靠右。 */
+  align: { ...inputProps.align, default: 'right' },
   /** 空值时的提示文字。 */
   placeholder: inputProps.placeholder,
   /** 表单字段名。 */
