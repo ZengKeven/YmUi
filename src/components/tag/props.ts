@@ -12,6 +12,13 @@ export default {
     type: String as PropType<TagProps['variant']>, default: 'dark',
     validator: (value: string) => ['dark', 'light', 'outline', 'light-outline'].includes(value),
   },
+  /** 标签轮廓，默认直角。 */
+  shape: {
+    type: String as PropType<TagProps['shape']>, default: 'square',
+    validator: (value: string) => ['square', 'round', 'mark'].includes(value),
+  },
+  /** 包含图标和关闭按钮在内的最大宽度。 */
+  maxWidth: [String, Number] as PropType<TagProps['maxWidth']>,
   /** 标签尺寸，默认继承最近的 ConfigProvider。 */
   size: buttonProps.size,
   /** 是否显示移除按钮。 */

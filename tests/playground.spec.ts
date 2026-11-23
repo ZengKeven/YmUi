@@ -93,6 +93,7 @@ test('the tag preview restores removed warehouses and copies the active appearan
   const remove = preview.getByRole('button', { name: '移除 上海仓' })
   await page.getByLabel('标签主题').selectOption('success')
   await page.getByLabel('标签样式').selectOption('outline')
+  await page.getByRole('combobox', { name: '标签形状' }).selectOption('mark')
   await page.getByLabel('标签尺寸').selectOption('small')
   await page.getByLabel('显示图标').uncheck()
   await page.getByLabel('禁用', { exact: true }).check()
@@ -110,9 +111,37 @@ test('the tag preview restores removed warehouses and copies the active appearan
   expect(source).toContain('<YmTag v-for="warehouse in warehouses"')
   expect(source).toContain('theme="success"')
   expect(source).toContain('variant="outline"')
+  expect(source).toContain('shape="mark"')
   expect(source).toContain('size="small"')
   expect(source).toContain(':closable="false"')
   expect(source).not.toContain('<YmIcon')
+})
+
+test('the tag gallery shows all three shapes and lets users add and remove a tag', async ({ page }) => {
+  await page.goto('/tag/')
+  const shapes = page.getByRole('region', { name: '标签形状' })
+  for (const label of ['直角', '两端圆角', '右端圆角']) {
+    await expect(shapes.getByRole('group', { name: label, exact: true }).getByText('标签一')).toHaveCount(2)
+  }
+  const gallery = page.getByRole('region', { name: '移除与添加' })
+  await expect(gallery.getByRole('button', { name: '移除 标签二', exact: true })).toHaveCount(3)
+  await gallery.getByRole('button', { name: '移除 标签二', exact: true }).first().click()
+  await expect(gallery.getByRole('button', { name: '移除 标签二', exact: true })).toHaveCount(2)
+
+  const add = gallery.getByRole('button', { name: '添加标签' })
+  await add.press('Space')
+  const editor = gallery.getByRole('textbox', { name: '新标签名称' })
+  await expect(editor).toBeFocused()
+  await editor.fill('待复核')
+  await editor.press('Enter')
+  await expect(add).toBeFocused()
+  const remove = gallery.getByRole('button', { name: '移除 待复核' })
+  await remove.click()
+  await expect(remove).toHaveCount(0)
+  await add.click()
+  await editor.fill('草稿')
+  await editor.press('Escape')
+  await expect(gallery.getByRole('button', { name: '移除 草稿' })).toHaveCount(0)
 })
 
 test('copied Tabs markup reflects the selected size and preserves slots and bindings', async ({ page, context }) => {

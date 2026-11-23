@@ -13,6 +13,7 @@ const size = ref<ControlSize>('large')
 const flat = ref(false)
 const dark = ref(false)
 const primary = ref('#126547')
+const maxWidth = ref<number | string>()
 
 function close(event: MouseEvent) {
   if (event instanceof MouseEvent && event.type === 'click') closes.value++
@@ -29,9 +30,18 @@ function close(event: MouseEvent) {
     </YmTag>
     <label>标签文案 <input v-model="label" /></label>
 
-    <form @click="bubbles++" @submit.prevent="submits++">
-      <YmTag v-if="visible" content="已入库" closable :disabled="disabled"
-        close-label="移除库存状态" @close="close" />
+    <label>标签限宽
+      <select v-model="maxWidth">
+        <option :value="undefined">容器宽度</option>
+        <option :value="96">像素</option>
+        <option value="75%">百分比</option>
+      </select>
+    </label>
+    <form style="width: 120px" @click="bubbles++" @submit.prevent="submits++">
+      <YmTag v-if="visible" id="tag-limited" content="已入库的配送订单和库存状态" closable
+        :max-width="maxWidth" :disabled="disabled" close-label="移除库存状态" @close="close">
+        <template #icon><YmIcon name="warehouse" /></template>
+      </YmTag>
     </form>
     <output id="tag-events">{{ closes }}/{{ bubbles }}/{{ submits }}</output>
     <label><input v-model="disabled" type="checkbox" /> 禁用库存标签</label>
@@ -42,12 +52,13 @@ function close(event: MouseEvent) {
     </label>
     <label>标签浅色主色 <input v-model="primary" type="color" /></label>
     <label><input v-model="dark" type="checkbox" /> 标签深色模式</label>
-    <label><input v-model="flat" type="checkbox" /> 标签直角</label>
+    <label><input v-model="flat" type="checkbox" /> 全局直角</label>
     <ConfigProvider :size="size" :mode="dark ? 'dark' : 'light'"
       :theme="{ light: { primary, onAccent: '#f9f3ee' }, dark: { primary: '#9abeef', onAccent: '#102030' } }">
       <ConfigProvider :radius="flat ? 0 : 9">
-        <YmTag id="tag-inherited" theme="primary">继承配置</YmTag>
-        <YmTag id="tag-explicit" size="small" theme="primary">局部尺寸</YmTag>
+        <YmTag id="tag-inherited" theme="primary" closable>继承配置</YmTag>
+        <YmTag id="tag-explicit" size="small" theme="primary" shape="mark">局部尺寸</YmTag>
+        <YmTag id="tag-round" shape="round">两端圆角</YmTag>
       </ConfigProvider>
     </ConfigProvider>
   </section>

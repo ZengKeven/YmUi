@@ -1,6 +1,6 @@
 <!-- @fallthroughAttributes true -->
 <script setup lang="ts" vapor>
-import { useId } from 'vue'
+import { computed, useId } from 'vue'
 import { YmButton } from '../button'
 import { YmIcon } from '../icon'
 import tagProps from './props'
@@ -11,10 +11,18 @@ const emit = defineEmits<{ close: [event: MouseEvent] }>()
 defineSlots<{ default?: () => unknown; icon?: () => unknown }>()
 
 const id = useId()
+const maxWidth = computed(() => {
+  const width = props.maxWidth
+  if (width == null || width === '') return undefined
+  const pixels = Number(width)
+  const length = Number.isFinite(pixels) ? `${pixels}px` : width
+  return `min(100%, ${length})`
+})
 </script>
 
 <template>
   <span class="ym-tag" :data-theme="props.theme" :data-variant="props.variant" :data-size="props.size"
+    :data-shape="props.shape" :style="{ maxWidth }"
     :aria-disabled="props.disabled || undefined">
     <span v-if="$slots.icon" class="ym-tag__icon"><slot name="icon" /></span>
     <span :id="`${id}-text`" class="ym-tag__text"><slot>{{ props.content }}</slot></span>

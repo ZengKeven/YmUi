@@ -140,8 +140,8 @@ test('control and open list inherit live provider settings while a local size wi
   const panel = page.locator('.ym-select__panel:popover-open')
   await expect(control).toHaveCSS('height', '40px')
   await expect(control).toHaveCSS('border-radius', '12px')
-  await expect(tag).toHaveCSS('border-radius', '12px')
-  await expect(tag).toHaveCSS('font-size', '16px')
+  await expect(tag).toHaveCSS('border-radius', '0px')
+  await expect(tag).toHaveCSS('font-size', '14px')
   await expect(control).toHaveCSS('background-color', 'rgb(245, 240, 224)')
   await field.click()
   await expect(panel).toHaveCSS('background-color', 'rgb(245, 240, 224)')
@@ -153,7 +153,7 @@ test('control and open list inherit live provider settings while a local size wi
   await expect(control).toHaveCSS('height', '20px')
   await expect(control).toHaveCSS('border-radius', '0px')
   await expect(tag).toHaveCSS('border-radius', '0px')
-  await expect(tag).toHaveCSS('font-size', '11px')
+  await expect(tag).toHaveCSS('font-size', '10px')
   await field.click()
   await expect(panel).toHaveCSS('background-color', 'rgb(41, 64, 89)')
   await expect(panel).toHaveCSS('color', 'rgb(204, 221, 238)')
@@ -162,7 +162,7 @@ test('control and open list inherit live provider settings while a local size wi
   const local = page.getByRole('combobox', { name: '局部尺寸的仓库' })
   const localControl = page.locator('.ym-select__control').filter({ has: local })
   await expect(localControl).toHaveCSS('height', '24px')
-  await expect(localControl.locator('.ym-tag')).toHaveCSS('font-size', '12px')
+  await expect(localControl.locator('.ym-tag')).toHaveCSS('font-size', '11px')
 })
 
 test('the current option opens in view and forms submit selected keys throughout a search', async ({ page }) => {
