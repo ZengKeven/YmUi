@@ -19,6 +19,7 @@ export { YmSpace, type SpaceProps, type SpaceSize } from './components/space'
 export { YmSteps, type StepOption, type StepsProps, type StepStatus, type StepValue } from './components/steps'
 export { YmTabs, YmTabPanel, type TabPanelProps, type TabsProps, type TabValue } from './components/tabs'
 export { YmTag, type TagProps } from './components/tag'
+export { YmTreeSelect, type TreeSelectOption, type TreeSelectProps, type TreeSelectValue } from './components/tree-select'
 export { default as ConfigProvider } from './components/config-provider/ConfigProvider.vue'
 export type { ConfigProviderProps, ControlSize, ThemeColors, ThemeMode } from './components/config-provider/types'
 
