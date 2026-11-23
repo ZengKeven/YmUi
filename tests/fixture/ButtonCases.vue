@@ -13,6 +13,7 @@ import RadioCases from './RadioCases.vue'
 import SelectCases from './SelectCases.vue'
 import SpaceCases from './SpaceCases.vue'
 import StepsCases from './StepsCases.vue'
+import SwitchCases from './SwitchCases.vue'
 import TabsCases from './TabsCases.vue'
 import TagCases from './TagCases.vue'
 import TreeSelectCases from './TreeSelectCases.vue'
@@ -96,6 +97,7 @@ function record(event: MouseEvent) {
   <RadioCases />
   <SelectCases />
   <StepsCases />
+  <SwitchCases />
   <TabsCases />
   <TagCases />
   <TreeSelectCases />

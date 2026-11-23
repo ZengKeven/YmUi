@@ -17,6 +17,7 @@ export { YmRadio, YmRadioGroup, type RadioGroupProps, type RadioOption, type Rad
 export { YmSelect, type SelectKey, type SelectOption, type SelectProps, type SelectValue } from './components/select'
 export { YmSpace, type SpaceProps, type SpaceSize } from './components/space'
 export { YmSteps, type StepOption, type StepsProps, type StepStatus, type StepValue } from './components/steps'
+export { YmSwitch, type SwitchProps, type SwitchValue } from './components/switch'
 export { YmTabs, YmTabPanel, type TabPanelProps, type TabsProps, type TabValue } from './components/tabs'
 export { YmTag, type TagProps } from './components/tag'
 export { YmTreeSelect, type TreeSelectOption, type TreeSelectProps, type TreeSelectValue } from './components/tree-select'

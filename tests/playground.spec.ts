@@ -361,6 +361,26 @@ test('the checkbox preview keeps select-all and notification channels in sync', 
   expect(source).toMatch(/<YmCheckboxGroup\b[^>]*size="large"[^>]*disabled/)
 })
 
+test('the switch preview toggles notifications and copies its current labels and size', async ({ page, context }) => {
+  await context.grantPermissions(['clipboard-read', 'clipboard-write'])
+  await page.goto('/button/')
+  await page.locator('#VPSidebarNav').getByRole('link', { name: 'YmSwitch 开关' }).click()
+  await expect(page).toHaveURL('/switch/')
+  const toggle = page.getByRole('switch', { name: '邮件通知' })
+  await expect(toggle).toBeChecked()
+  await page.getByLabel('显示开关文字').check()
+  await expect(toggle).toHaveText('开')
+  await toggle.press('Space')
+  await expect(toggle).toHaveText('关')
+  await page.getByLabel('开关尺寸').selectOption('large')
+  await page.getByLabel('加载中', { exact: true }).check()
+  await expect(toggle).toBeDisabled()
+  const source = await copyPreview(page)
+  expect(source).toContain('<YmSwitch v-model="notifications"')
+  expect(source).toContain('size="large"')
+  expect(source).toContain('["开","关"]')
+})
+
 test('the radio preview selects one delivery method and copies the configured group', async ({ page, context }) => {
   await context.grantPermissions(['clipboard-read', 'clipboard-write'])
   await page.goto('/button/')
