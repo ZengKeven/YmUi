@@ -16,18 +16,4 @@
 .ym-pagination__number { min-width: var(--ym-control-height); padding-inline: 0.35em; }
 .ym-pagination__ellipsis { min-width: 1.25em; text-align: center; }
 
-.ym-pagination__size {
-  box-sizing: border-box;
-  height: var(--ym-control-height);
-  padding-inline: 0.5em;
-  border: 1px solid var(--ym-color-border);
-  border-radius: var(--ym-radius);
-  background-color: var(--ym-color-surface);
-  color: var(--ym-color-text);
-  font: inherit;
-  appearance: auto;
-  cursor: pointer;
-}
-
-.ym-pagination__size:disabled { opacity: 0.5; cursor: not-allowed; }
-.ym-pagination__size:focus-visible { outline: 2px solid var(--ym-color-primary); outline-offset: 2px; }
+.ym-pagination .ym-pagination__size { width: 8.5em; }

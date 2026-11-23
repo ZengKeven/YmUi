@@ -17,7 +17,7 @@ category: 导航组件
 | total | `number` | `0` | 记录总条数，用于计算总页数。 |
 | current | `number` | `1` | 从 1 开始的当前页码，支持 `v-model:current`。 |
 | pageSize | `number` | `10` | 每页显示的记录数，支持 `v-model:page-size`。 |
-| pageSizeOptions | `number[]` | `[5, 10, 20, 50]` | 每页条数下拉框的可选值。 |
+| pageSizeOptions | `number[]` | `[5, 10, 20, 50]` | 每页条数的可选值，由 `YmSelect` 单选展示。 |
 | disabled | `boolean` | `false` | 禁用所有翻页按钮和每页条数下拉框。 |
 | size | `extra-small / small / medium / large` | 继承全局尺寸，初始为 `medium` | 设置分页控件的尺寸。 |
 
