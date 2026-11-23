@@ -3,6 +3,7 @@ import { ref, useTemplateRef } from 'vue'
 import { ConfigProvider, YmInputNumber } from 'ym-ui-vapor'
 
 const amount = ref<number | null>(0)
+const initialFocusAmount = ref<number>()
 const updates = ref<(number | null)[]>([])
 const changes = ref<(number | null)[]>([])
 const disabled = ref(false)
@@ -36,6 +37,11 @@ function recordChange(value: number | null, { e }: { e: Event }) {
       <button type="reset">重置自管数值</button>
     </form>
     <YmInputNumber aria-label="锁定数值" :value="4" />
+
+    <button @click="initialFocusAmount = -12.5">打开负数编辑框</button>
+    <button @click="initialFocusAmount = 0">打开零值编辑框</button>
+    <YmInputNumber v-if="initialFocusAmount !== undefined" :key="initialFocusAmount" :default-value="initialFocusAmount"
+      :decimal-places="2" autofocus :disabled="disabled" aria-label="自动聚焦金额" />
 
     <button @click="themedValue = -themedValue">切换数值正负</button>
     <button @click="dark = !dark">切换数值模式</button>

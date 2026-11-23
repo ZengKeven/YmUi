@@ -4,6 +4,31 @@ test.beforeEach(async ({ page }) => {
   await page.goto('/tests/fixture/')
 })
 
+test('autofocus selects existing text and passwords for replacement on mount', async ({ page }) => {
+  await expect(page.getByLabel('账户别名', { exact: true })).not.toBeFocused()
+  for (const [button, label, original] of [
+    ['打开别名编辑框', '自动聚焦别名', '原有别名'],
+    ['打开密码编辑框', '自动聚焦密码', 'old-password'],
+  ]) {
+    await page.getByRole('button', { name: button }).click()
+    const field = page.getByLabel(label)
+    await expect(field).toBeFocused()
+    await expect(field).toHaveValue(original)
+    await expect(field).toHaveJSProperty('selectionStart', 0)
+    await expect(field).toHaveJSProperty('selectionEnd', original.length)
+    await page.keyboard.type('next')
+    await expect(field).toHaveValue('next')
+  }
+})
+
+test('a disabled input with autofocus leaves focus on the opener', async ({ page }) => {
+  await page.getByRole('button', { name: '切换输入框禁用' }).click()
+  const opener = page.getByRole('button', { name: '打开别名编辑框' })
+  await opener.click()
+  await expect(page.getByLabel('自动聚焦别名')).toBeDisabled()
+  await expect(opener).toBeFocused()
+})
+
 test('text editing syncs the model, forwards input attributes and supports native form behavior', async ({ page }) => {
   const alias = page.getByLabel('账户别名', { exact: true })
   await expect(alias).toHaveValue('')

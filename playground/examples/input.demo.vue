@@ -4,10 +4,11 @@ import { YmInput, type ControlSize, type InputProps } from '../../src'
 import PreviewFrame from './PreviewFrame.vue'
 import { sizes } from './settings'
 
-const value = ref('')
+const value = ref('示例文本')
 const type = ref<InputProps['type']>('text')
 const align = ref<InputProps['align']>('left')
 const size = ref<ControlSize>()
+const autofocus = ref(false)
 const readOnly = ref(false)
 const disabled = ref(false)
 </script>
@@ -16,7 +17,7 @@ const disabled = ref(false)
   <PreviewFrame name="YmInput">
     <template #preview>
       <YmInput v-model="value" :type="type" :align="align" :size="size" :readonly="readOnly" :disabled="disabled"
-        aria-label="示例输入框" placeholder="请输入内容" />
+        :autofocus="autofocus" aria-label="示例输入框" placeholder="请输入内容" />
     </template>
     <template #controls>
       <label>输入类型
@@ -35,6 +36,7 @@ const disabled = ref(false)
           <option v-for="[value, label] in sizes" :key="value" :value="value">{{ label }}</option>
         </select>
       </label>
+      <label>自动聚焦 <input v-model="autofocus" type="checkbox" /></label>
       <label>只读 <input v-model="readOnly" type="checkbox" /></label>
       <label>禁用 <input v-model="disabled" type="checkbox" /></label>
     </template>

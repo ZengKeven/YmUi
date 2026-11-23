@@ -4,6 +4,29 @@ test.beforeEach(async ({ page }) => {
   await page.goto('/tests/fixture/')
 })
 
+test('autofocus selects formatted negative values and editable zero for replacement', async ({ page }) => {
+  await expect(page.getByRole('textbox', { name: '记账金额' })).not.toBeFocused()
+  const field = page.getByRole('textbox', { name: '自动聚焦金额' })
+  for (const [button, original] of [['打开负数编辑框', '-12.50'], ['打开零值编辑框', '0']]) {
+    await page.getByRole('button', { name: button }).click()
+    await expect(field).toBeFocused()
+    await expect(field).toHaveValue(original)
+    await expect(field).toHaveJSProperty('selectionStart', 0)
+    await expect(field).toHaveJSProperty('selectionEnd', original.length)
+    await page.keyboard.type('3.25')
+    await page.keyboard.press('Tab')
+    await expect(field).toHaveValue('3.25')
+  }
+})
+
+test('a disabled number input with autofocus leaves focus on the opener', async ({ page }) => {
+  await page.getByRole('button', { name: '切换金额禁用' }).click()
+  const opener = page.getByRole('button', { name: '打开负数编辑框' })
+  await opener.click()
+  await expect(page.getByRole('textbox', { name: '自动聚焦金额' })).toBeDisabled()
+  await expect(opener).toBeFocused()
+})
+
 test('zero displays as a dash, submits as zero, and can be edited without step controls', async ({ page }) => {
   const field = page.getByRole('textbox', { name: '记账金额' })
   const form = page.locator('form#amount-form')

@@ -25,8 +25,15 @@ function setText(input: HTMLInputElement, value: string) {
   if (input.value !== value) input.value = value
 }
 
-watch([field, controlled], ([input, value]) => {
-  if (input && compositionStartValue === undefined) setText(input, value ?? initialValue)
+watch([field, controlled, () => props.autofocus], ([input, value, autofocus], [previousInput, previousValue, wasAutofocus]) => {
+  if (!input) return
+  if (compositionStartValue === undefined && (input !== previousInput || value !== previousValue)) {
+    setText(input, value ?? initialValue)
+  }
+  if (autofocus && !input.disabled && (input !== previousInput || !wasAutofocus)) {
+    input.focus()
+    if (input.matches(':focus')) input.select()
+  }
 }, { flush: 'post' })
 
 watch([field, () => props.form], ([input], _, onCleanup) => {
@@ -96,7 +103,7 @@ defineExpose({
     <input ref="field" v-bind="$attrs" class="ym-input__control" :style="{ textAlign: props.align }"
       :type="props.type === 'password' && !revealed ? 'password' : 'text'"
       :value.attr="initialValue" :placeholder="props.placeholder" :name="props.name" :form="props.form"
-      :disabled="props.disabled" :readonly="props.readonly"
+      :autofocus="props.autofocus" :disabled="props.disabled" :readonly="props.readonly"
       @input="onInput" @compositionstart="startComposition" @compositionend="finishComposition"
       @change="finishComposition" />
     <YmButton v-if="props.type === 'password'" class="ym-input__visibility" type="button" variant="text"

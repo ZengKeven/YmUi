@@ -20,6 +20,7 @@ category: 表单组件
 | value | `string` | — | 可选的受控值，可配合 `change` 事件管理文本。 |
 | defaultValue | `string` | 空字符串 | 省略 `modelValue` 和 `value` 时使用的初始内容。 |
 | placeholder | `string` | — | 输入框为空时显示的提示。 |
+| autofocus | `boolean` | `false` | 为 `true` 时，挂载后自动聚焦并全选已有文本，直接键入即可替换。运行时从 `false` 切换为 `true` 会再次执行。 |
 | name | `string` | — | 原生表单提交时使用的字段名。 |
 | readonly | `boolean` | `false` | 只读时可聚焦、选择和复制文本。 |
 | disabled | `boolean` | `false` | 禁用输入框及密码显示按钮。 |

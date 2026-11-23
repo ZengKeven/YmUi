@@ -19,6 +19,8 @@ export default {
   max: { type: Number, validator: Number.isFinite },
   /** 数字对齐方式，默认靠右。 */
   align: { ...inputProps.align, default: 'right' },
+  /** 启用时自动聚焦并全选当前数值。 */
+  autofocus: inputProps.autofocus,
   /** 空值时的提示文字。 */
   placeholder: inputProps.placeholder,
   /** 表单字段名。 */

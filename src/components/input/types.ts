@@ -6,6 +6,8 @@ export interface InputProps {
   type?: 'text' | 'password'
   /** 输入内容和占位文字的水平对齐方式。 */
   align?: 'left' | 'center' | 'right'
+  /** 自动聚焦并选中当前输入内容。 */
+  autofocus?: boolean
   /** 当前字符串，支持 v-model。 */
   modelValue?: string
   /** 受控文本，modelValue 优先。 */

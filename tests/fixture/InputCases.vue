@@ -3,6 +3,8 @@ import { ref, useTemplateRef } from 'vue'
 import { ConfigProvider, YmInput } from 'ym-ui-vapor'
 
 const text = ref('')
+const autofocusType = ref<'text' | 'password'>()
+const autofocusText = ref('原有别名')
 const field = useTemplateRef<{ focus(): void; blur(): void }>('field')
 const updates = ref<string[]>([])
 const changes = ref<string[]>([])
@@ -58,6 +60,11 @@ function setUnsupportedType() {
     <output id="input-password-changes">{{ passwordChanges }}</output>
     <YmInput value="审核中" aria-label="受控别名" @update:model-value="rejected = $event" />
     <output id="input-rejected">{{ rejected }}</output>
+
+    <button @click="autofocusType = 'text'">打开别名编辑框</button>
+    <button @click="autofocusType = 'password'">打开密码编辑框</button>
+    <YmInput v-if="autofocusType === 'text'" v-model="autofocusText" autofocus :disabled="disabled" aria-label="自动聚焦别名" />
+    <YmInput v-if="autofocusType === 'password'" type="password" default-value="old-password" autofocus aria-label="自动聚焦密码" />
 
     <button @click="dark = !dark">切换输入框模式</button>
     <button @click="compact = !compact">切换输入框大小和圆角</button>

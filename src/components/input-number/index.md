@@ -23,6 +23,7 @@ category: 表单组件
 | align | `left / center / right` | `right` | 设置数值、零值符号和占位文字的水平对齐方式。 |
 | size | `extra-small / small / medium / large` | 继承全局尺寸，初始为 `medium` | 控制输入框的高度、字号和内边距。 |
 | placeholder | `string` | — | 空值时的提示文字。 |
+| autofocus | `boolean` | `false` | 为 `true` 时，挂载后自动聚焦并全选当前数值，直接键入即可替换。运行时从 `false` 切换为 `true` 会再次执行。 |
 | readonly | `boolean` | `false` | 只读时可聚焦并复制数值。 |
 | disabled | `boolean` | `false` | 禁用输入框。 |
 | name | `string` | — | 原生表单使用的字段名。 |

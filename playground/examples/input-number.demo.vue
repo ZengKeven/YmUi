@@ -10,13 +10,14 @@ const min = ref<number | undefined>(-100)
 const max = ref<number | undefined>(100)
 const align = ref<InputNumberProps['align']>('right')
 const size = ref<ControlSize>()
+const autofocus = ref(false)
 </script>
 
 <template>
   <PreviewFrame name="YmInputNumber">
     <template #preview>
       <YmInputNumber v-model="amount" :decimal-places="decimalPlaces" :min="min" :max="max"
-        :align="align" :size="size" aria-label="调整金额" placeholder="请输入调整金额" />
+        :align="align" :size="size" :autofocus="autofocus" aria-label="调整金额" placeholder="请输入调整金额" />
     </template>
     <template #controls>
       <label>小数位数
@@ -48,6 +49,7 @@ const size = ref<ControlSize>()
           <option v-for="[value, label] in sizes" :key="value" :value="value">{{ label }}</option>
         </select>
       </label>
+      <label>自动聚焦 <input v-model="autofocus" type="checkbox" /></label>
     </template>
   </PreviewFrame>
 </template>
