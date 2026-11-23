@@ -1,0 +1,26 @@
+.ym-popup {
+  display: inline-grid;
+  max-width: 100%;
+  vertical-align: middle;
+}
+.ym-popup__trigger { display: grid; min-width: 0; }
+.ym-popup__panel:not(:popover-open) { display: none; }
+.ym-popup__panel {
+  position: fixed;
+  inset: auto;
+  box-sizing: border-box;
+  width: max-content;
+  max-width: 100vw;
+  max-height: 100dvh;
+  overflow: auto;
+  margin: 0;
+  padding: calc(var(--ym-control-height) / 4) var(--ym-control-padding);
+  border: 1px solid var(--ym-color-border);
+  border-radius: var(--ym-radius);
+  background: var(--ym-color-surface);
+  color: var(--ym-color-text);
+  font: inherit;
+  font-size: var(--ym-control-font-size);
+  overflow-wrap: anywhere;
+  box-shadow: 0 .25rem 1rem color-mix(in srgb, var(--ym-color-text) 15%, transparent);
+}

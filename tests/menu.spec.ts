@@ -10,6 +10,7 @@ test('expanded navigation mixes links, leaf buttons and inline groups', async ({
   await expect(child).toBeHidden()
   await group.click()
   await expect(group).toHaveAttribute('aria-expanded', 'true')
+  await expect(group).toHaveAttribute('aria-controls', (await menu.locator('.ym-menu__inline').getAttribute('id'))!)
   await expect(page.locator('#menu-expanded')).toHaveText('warehouse')
   await expect(page.locator('#menu-changes')).toBeEmpty()
   await expect(child.locator('svg[data-name="inventory"]')).toBeVisible()
@@ -40,6 +41,7 @@ test('a collapsed group opens beyond the layout sidebar and allows pointer selec
   await expect(popup).toHaveText('营运总览')
   await group.hover()
   await expect(popup.getByText('仓储作业', { exact: true })).toBeVisible()
+  await expect(group).toHaveAttribute('aria-controls', (await popup.getAttribute('id'))!)
   const link = popup.getByRole('link', { name: '出库记录' })
   const sidebar = (await cases.locator('aside').boundingBox())!
   const item = (await link.boundingBox())!
@@ -69,6 +71,8 @@ test('keyboard focus opens the flyout and Escape returns to the group', async ({
   await expect(child).toBeFocused()
   await child.press('Enter')
   await expect(page.locator('#menu-selection')).toHaveText('0')
+  await expect(child).toBeHidden()
+  await expect(group).toBeFocused()
 })
 
 test('menu rows and flyouts inherit nested provider settings and respect local size', async ({ page }) => {
