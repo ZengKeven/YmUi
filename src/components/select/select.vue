@@ -1,5 +1,7 @@
 <script setup lang="ts" vapor generic="Option extends SelectOption = SelectOption, Multiple extends boolean = false">
-import { computed, nextTick, ref, shallowRef, useId, useTemplateRef, watch } from 'vue'
+import { computed, nextTick, provide, ref, shallowRef, useId, useTemplateRef, watch } from 'vue'
+import { YmCheckbox } from '../checkbox'
+import { checkboxGroupKey } from '../checkbox/context'
 import { YmIcon } from '../icon'
 import { YmInput } from '../input'
 import { YmLoading } from '../loading'
@@ -11,6 +13,8 @@ import type { SelectKey, SelectOption, SelectValue } from './types'
 
 defineOptions({ name: 'YmSelect', inheritAttrs: false })
 const props = defineProps(selectProps)
+// 下拉选项由 Select 管理，即使它位于外部复选框组内。
+provide(checkboxGroupKey, undefined)
 type Choice = Multiple extends true ? Option['value'][] : Option['value']
 const emit = defineEmits<{
   'update:modelValue': [value: Choice]
@@ -186,12 +190,17 @@ function keydown(e: KeyboardEvent) {
         :aria-busy="status === 'loading' || undefined" :aria-label="props.placeholder">
         <div v-for="(item, index) in options" :id="`${listId}-${index}`" :key="item.value" role="option"
           class="ym-select__option" :data-active="active === item.value || undefined"
+          :aria-labelledby="`${listId}-${index}-label`"
           :aria-selected="selected.has(item.value)" :aria-disabled="blocked(item) || undefined"
           @pointermove="!blocked(item) && (active = item.value)" @mousedown.prevent @click="choose(item)">
-          <span class="ym-select__option-label">
+          <span v-if="props.multiple" class="ym-select__option-check" @click.stop>
+            <YmCheckbox :model-value="selected.has(item.value)" :disabled="blocked(item)" :tabindex="-1"
+              :aria-labelledby="`${listId}-${index}-label`" @update:model-value="choose(item)" />
+          </span>
+          <span :id="`${listId}-${index}-label`" class="ym-select__option-label">
             <slot name="option" :option="item as Option" :index="index" :selected="selected.has(item.value)" :disabled="blocked(item)">{{ item.label }}</slot>
           </span>
-          <YmIcon v-if="selected.has(item.value)" name="success" />
+          <YmIcon v-if="!props.multiple && selected.has(item.value)" name="success" />
         </div>
       </div>
       <div v-if="!options.length" class="ym-select__status" role="status">

@@ -1,6 +1,6 @@
 <script setup lang="ts" vapor>
 import { ref } from 'vue'
-import { ConfigProvider, YmSelect, type SelectOption, type SelectValue } from 'ym-ui-vapor'
+import { ConfigProvider, YmCheckboxGroup, YmSelect, type SelectOption, type SelectValue } from 'ym-ui-vapor'
 
 const options = [
   { value: 0, label: 'Alpha 总仓', code: 'WH01' },
@@ -43,9 +43,12 @@ async function remoteSearch(query: string): Promise<SelectOption[]> {
     <YmSelect aria-label="锁定仓库" :model-value="0" :options="options" />
     <YmSelect aria-label="禁用仓库" disabled multiple :options="options" :default-value="[3]" />
 
-    <YmSelect v-model="many" aria-label="多选仓库" multiple :max="2" :options="options">
-      <template #option="{ option }"><strong>{{ option.label }}</strong> <small>{{ option.code }}</small></template>
-    </YmSelect>
+    <YmCheckboxGroup name="notification-settings" :model-value="[3]">
+      <YmSelect v-model="many" aria-label="多选仓库" multiple :max="2" :options="options"
+        @update:model-value="updates.push($event)" @change="changes.push($event)">
+        <template #option="{ option }"><strong>{{ option.label }}</strong> <small>{{ option.code }}</small></template>
+      </YmSelect>
+    </YmCheckboxGroup>
     <output id="select-many">{{ JSON.stringify(many) }}</output>
     <YmSelect aria-label="按名称筛选" filterable :options="options" @search="searches.push($event)" />
     <output id="select-searches">{{ JSON.stringify(searches) }}</output>

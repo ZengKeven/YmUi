@@ -6,4 +6,4 @@ export const checkboxGroupKey: InjectionKey<{
   readonly disabled: boolean
   readonly name?: string
   toggle(value: CheckboxValue, checked: boolean, e: Event): void
-}> = Symbol('YmCheckboxGroup')
+} | undefined> = Symbol('YmCheckboxGroup')
