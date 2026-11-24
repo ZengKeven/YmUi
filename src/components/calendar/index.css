@@ -14,10 +14,10 @@
 }
 
 .ym-calendar[data-theme='card'] {
-  width: 21rem;
+  width: 20.5em;
   max-width: 100%;
   padding-block: calc(var(--ym-control-padding) * .7);
-  padding-inline: calc(var(--ym-control-padding) * .75);
+  padding-inline: calc(var(--ym-control-padding) * .375);
 }
 
 .ym-calendar__toolbar {
@@ -30,6 +30,7 @@
 .ym-calendar__year { flex: 0 1 6.1em; }
 .ym-calendar__month { flex: 0 1 4.8em; }
 .ym-calendar__toolbar .ym-select__control { gap: .2em; padding-inline: .35em; }
+.ym-calendar[data-theme='card'] .ym-calendar__toolbar .ym-select__control { padding-inline: .2em; }
 .ym-calendar__today { margin-inline-start: auto; padding-inline: .3em; }
 
 .ym-calendar__week {
