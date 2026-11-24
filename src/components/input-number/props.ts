@@ -21,6 +21,8 @@ export default {
   align: { ...inputProps.align, default: 'right' },
   /** 启用时自动聚焦并全选当前数值。 */
   autofocus: inputProps.autofocus,
+  /** 开启无边框模式。 */
+  borderless: inputProps.borderless,
   /** 空值时的提示文字。 */
   placeholder: inputProps.placeholder,
   /** 表单字段名。 */

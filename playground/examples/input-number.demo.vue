@@ -10,6 +10,7 @@ const min = ref<number | undefined>(-100)
 const max = ref<number | undefined>(100)
 const align = ref<InputNumberProps['align']>('right')
 const size = ref<ControlSize>()
+const borderless = ref(false)
 const autofocus = ref(false)
 </script>
 
@@ -17,7 +18,7 @@ const autofocus = ref(false)
   <PreviewFrame name="YmInputNumber">
     <template #preview>
       <YmInputNumber v-model="amount" :decimal-places="decimalPlaces" :min="min" :max="max"
-        :align="align" :size="size" :autofocus="autofocus" aria-label="调整金额" placeholder="请输入调整金额" />
+        :align="align" :size="size" :borderless="borderless" :autofocus="autofocus" aria-label="调整金额" placeholder="请输入调整金额" />
     </template>
     <template #controls>
       <label>小数位数
@@ -49,6 +50,7 @@ const autofocus = ref(false)
           <option v-for="[value, label] in sizes" :key="value" :value="value">{{ label }}</option>
         </select>
       </label>
+      <label>无边框 <YmSwitch v-model="borderless" /></label>
       <label>自动聚焦 <YmSwitch v-model="autofocus" /></label>
     </template>
   </PreviewFrame>

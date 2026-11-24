@@ -13,6 +13,7 @@ const rejected = ref('')
 const type = ref<'text' | 'password'>('password')
 const passwordChanges = ref(0)
 const disabled = ref(false)
+const borderless = ref(false)
 const readOnly = ref(false)
 const compact = ref(false)
 const dark = ref(false)
@@ -38,7 +39,7 @@ function setUnsupportedType() {
       <label for="input-alias">账户别名</label>
       <YmInput id="input-alias" ref="field" v-model="text" value="旧别名" name="alias" required maxlength="12"
         class="alias-field" style="width: 240px"
-        placeholder="输入别名" autocomplete="nickname" :readonly="readOnly" :disabled="disabled"
+        placeholder="输入别名" autocomplete="nickname" :readonly="readOnly" :disabled="disabled" :borderless="borderless"
         @update:model-value="updates.push($event)"
         @change="recordChange"
         @focus="recordEvent" @blur="recordEvent" @input="recordEvent" @keydown="recordEvent" />
@@ -51,6 +52,7 @@ function setUnsupportedType() {
     <button @mousedown.prevent @click="field?.blur()">移开别名焦点</button>
     <button @click="readOnly = !readOnly">切换别名只读</button>
     <button @click="disabled = !disabled">切换输入框禁用</button>
+    <button @click="borderless = !borderless">切换输入框边框</button>
     <button @click="type = type === 'password' ? 'text' : 'password'">切换口令类型</button>
     <button @click="setUnsupportedType">传入其他输入类型</button>
     <output id="input-model">{{ text }}</output>

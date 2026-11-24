@@ -14,6 +14,8 @@ export default {
   },
   /** 启用时自动聚焦并全选输入内容。 */
   autofocus: Boolean,
+  /** 开启无边框模式。 */
+  borderless: Boolean,
   /** 双向绑定的字符串。 */
   modelValue: String,
   /** 外部控制的字符串，modelValue 优先。 */

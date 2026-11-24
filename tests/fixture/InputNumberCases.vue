@@ -7,6 +7,7 @@ const initialFocusAmount = ref<number>()
 const updates = ref<(number | null)[]>([])
 const changes = ref<(number | null)[]>([])
 const disabled = ref(false)
+const borderless = ref(false)
 const readOnly = ref(false)
 const field = useTemplateRef<{ focus(): void; blur(): void }>('field')
 const compact = ref(false)
@@ -23,7 +24,7 @@ function recordChange(value: number | null, { e }: { e: Event }) {
   <section id="input-number-cases">
     <form id="amount-form" @submit.prevent></form>
     <YmInputNumber id="amount" ref="field" v-model="amount" form="amount-form" name="amount" aria-label="记账金额"
-      placeholder="输入金额" :min="-5" :max="5" :decimal-places="2" :disabled="disabled" :readonly="readOnly"
+      placeholder="输入金额" :min="-5" :max="5" :decimal-places="2" :disabled="disabled" :readonly="readOnly" :borderless="borderless"
       @update:model-value="updates.push($event)" @change="recordChange" />
     <output id="amount-model">{{ JSON.stringify(amount) }}</output>
     <output id="amount-updates">{{ JSON.stringify(updates) }}</output>
@@ -32,6 +33,7 @@ function recordChange(value: number | null, { e }: { e: Event }) {
     <button @mousedown.prevent @click="field?.blur()">移开金额焦点</button>
     <button @click="readOnly = !readOnly">切换金额只读</button>
     <button @click="disabled = !disabled">切换金额禁用</button>
+    <button @click="borderless = !borderless">切换金额边框</button>
     <form id="uncontrolled-number-form">
       <YmInputNumber aria-label="自管数值" :default-value="12.5" />
       <button type="reset">重置自管数值</button>

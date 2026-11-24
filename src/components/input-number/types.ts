@@ -1,6 +1,6 @@
 import type { InputProps } from '../input'
 
-export interface InputNumberProps extends Pick<InputProps, 'align' | 'autofocus' | 'placeholder' | 'name' | 'form' | 'disabled' | 'readonly' | 'size' | 'class' | 'style'> {
+export interface InputNumberProps extends Pick<InputProps, 'align' | 'autofocus' | 'borderless' | 'placeholder' | 'name' | 'form' | 'disabled' | 'readonly' | 'size' | 'class' | 'style'> {
   /** 当前数值，支持 v-model，null 表示空值。 */
   modelValue?: number | null
   /** 受控数值，modelValue 优先。 */

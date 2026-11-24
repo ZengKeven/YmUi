@@ -4,6 +4,36 @@ test.beforeEach(async ({ page }) => {
   await page.goto('/tests/fixture/')
 })
 
+for (const [component, label, border, disable] of [
+  ['YmInput', '账户别名', '切换输入框边框', '切换输入框禁用'],
+  ['YmInputNumber', '记账金额', '切换金额边框', '切换金额禁用'],
+]) {
+  test(`${component} stays borderless while hovered, focused and disabled`, async ({ page }) => {
+    const field = page.getByRole('textbox', { name: label, exact: true })
+    const box = page.locator('.ym-input').filter({ has: field })
+    const toggle = page.getByRole('button', { name: border })
+    const hasVisibleBorder = () => box.evaluate(el => {
+      const style = getComputedStyle(el)
+      return style.borderTopWidth !== '0px' && style.borderTopColor !== 'rgba(0, 0, 0, 0)'
+    })
+
+    expect(await hasVisibleBorder()).toBe(true)
+    await toggle.click()
+    expect(await hasVisibleBorder()).toBe(false)
+    await field.hover()
+    expect(await hasVisibleBorder()).toBe(false)
+    await field.focus()
+    await expect(field).toBeFocused()
+    expect(await hasVisibleBorder()).toBe(false)
+    await expect(box).toHaveCSS('box-shadow', 'none')
+    await page.getByRole('button', { name: disable }).click()
+    await expect(field).toBeDisabled()
+    expect(await hasVisibleBorder()).toBe(false)
+    await toggle.click()
+    expect(await hasVisibleBorder()).toBe(true)
+  })
+}
+
 test('autofocus selects existing text and passwords for replacement on mount', async ({ page }) => {
   await expect(page.getByLabel('账户别名', { exact: true })).not.toBeFocused()
   for (const [button, label, original] of [

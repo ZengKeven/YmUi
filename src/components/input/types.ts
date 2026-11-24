@@ -8,6 +8,8 @@ export interface InputProps {
   align?: 'left' | 'center' | 'right'
   /** 自动聚焦并选中当前输入内容。 */
   autofocus?: boolean
+  /** 隐藏输入框边框。 */
+  borderless?: boolean
   /** 当前字符串，支持 v-model。 */
   modelValue?: string
   /** 受控文本，modelValue 优先。 */

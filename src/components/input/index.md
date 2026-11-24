@@ -16,6 +16,7 @@ category: 表单组件
 | --- | --- | --- | --- |
 | type | `text / password` | `text` | 设置输入类型。 |
 | align | `left / center / right` | `left` | 设置输入文本和占位文字的水平对齐方式。 |
+| borderless | `boolean` | `false` | 开启无边框模式，隐藏输入框边框。 |
 | modelValue | `string` | — | 当前内容，支持 `v-model`。同时传入 `value` 时，以 `modelValue` 为准。 |
 | value | `string` | — | 可选的受控值，可配合 `change` 事件管理文本。 |
 | defaultValue | `string` | 空字符串 | 省略 `modelValue` 和 `value` 时使用的初始内容。 |
