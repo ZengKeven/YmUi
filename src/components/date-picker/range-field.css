@@ -1,0 +1,19 @@
+.ym-date-picker__trigger > .ym-input.ym-date-picker__range-field {
+  gap: .5em;
+  padding-inline: max(.25rem, calc(var(--ym-control-padding) - .25rem));
+  background: var(--ym-color-surface);
+  cursor: pointer;
+}
+.ym-date-picker__range-field[data-open]:not([data-borderless]) { border-color: var(--ym-color-primary); }
+.ym-date-picker__range-field .ym-input__control {
+  height: 1.5em;
+  padding-inline: .25em;
+  border-radius: 0;
+  cursor: inherit;
+}
+.ym-date-picker__range-field .ym-input__control:is([data-active], :focus-visible) {
+  background: color-mix(in srgb, var(--ym-color-text) 9%, var(--ym-color-surface));
+}
+.ym-date-picker__range-field[data-open] > .ym-icon { color: var(--ym-color-primary); }
+.ym-date-picker__trigger > .ym-date-picker__range-field[data-disabled] { cursor: not-allowed; }
+.ym-date-picker__separator { flex: none; }

@@ -6,7 +6,7 @@ import { YmSelect } from '../select'
 import { addDays, dateKey, inMonth, localDate, lunarLabel, parseDate } from './dates'
 import { holidayFor } from './holidays'
 import calendarProps from './props'
-import { calendarRangeKey } from './range'
+import { calendarPairKey, calendarRangeKey } from './range'
 import type { CalendarCell } from './types'
 
 defineOptions({ name: 'YmCalendar' })
@@ -20,8 +20,10 @@ const emit = defineEmits<{
 defineSlots<{ cell?: (cell: CalendarCell) => unknown }>()
 
 const range = inject(calendarRangeKey, undefined)
+const pair = inject(calendarPairKey, undefined)
 // 日期格插槽中嵌套的其他日历拥有各自的选区。
 if (range) provide(calendarRangeKey, undefined)
+if (pair) provide(calendarPairKey, undefined)
 const local = ref(props.defaultValue)
 const selected = computed(() => props.modelValue === undefined ? local.value : props.modelValue)
 const today = ref(dateKey(new Date()))
@@ -47,8 +49,14 @@ const toolbarOrder = computed(() => isCard.value
 const grid = useTemplateRef<HTMLElement>('grid')
 const calendarId = `ym-calendar-${useId()}`
 
-function focus() {
-  grid.value?.querySelector<HTMLButtonElement>('button[tabindex="0"]')?.focus()
+function focus(date?: string) {
+  const day = parseDate(date)
+  if (day && date !== cursorKey.value) {
+    placeCursor(day, true)
+    return
+  }
+  const button = grid.value?.querySelector<HTMLButtonElement>('button[tabindex="0"]')
+  button?.focus()
 }
 defineExpose({ focus })
 
@@ -56,6 +64,18 @@ function placeCursor(date: Date, moveFocus = false) {
   if (date.getFullYear() < 1 || date.getFullYear() > 9999) return
   cursor.value = date
   if (moveFocus) nextTick(focus)
+}
+function navigate(date: Date, moveFocus = false) {
+  if (date.getFullYear() < 1 || date.getFullYear() > 9999) return
+  if (pair && dateKey(date).slice(0, 7) !== shownMonth.value) {
+    pair.navigate(shownMonth.value, date, moveFocus)
+  } else {
+    placeCursor(date, moveFocus)
+  }
+}
+function monthAllowed(targetYear: number, targetMonth: number) {
+  const date = localDate(targetYear, targetMonth, 1)
+  return date.getFullYear() >= 1 && date.getFullYear() <= 9999 && (pair?.allowsMonth(shownMonth.value, dateKey(date).slice(0, 7)) ?? true)
 }
 watch(selected, value => {
   const date = parseDate(value)
@@ -71,7 +91,9 @@ const years = computed(() => {
   const last = Math.min(9999, year.value + 10)
   return Array.from({ length: last - first + 1 }, (_, i) => ({ value: first + i, label: `${first + i}${isCard.value ? '' : '年'}` }))
 })
-const months = computed(() => Array.from({ length: 12 }, (_, i) => ({ value: i + 1, label: `${i + 1}${isCard.value ? ' 月' : '月'}` })))
+const months = computed(() => Array.from({ length: 12 }, (_, i) => ({
+  value: i + 1, label: `${i + 1}${isCard.value ? ' 月' : '月'}`, disabled: !monthAllowed(year.value, i),
+})))
 const weekdayNames = ['日', '一', '二', '三', '四', '五', '六']
 const weekdays = computed(() => Array.from({ length: 7 }, (_, i) => weekdayNames[(props.firstDayOfWeek + i) % 7]))
 const weeks = computed(() => {
@@ -81,20 +103,22 @@ const weeks = computed(() => {
     const date = addDays(first, row * 7 + column - offset)
     const value = dateKey(date)
     const outsideRange = date.getFullYear() < 1 || date.getFullYear() > 9999
+    const inMonth = date.getMonth() === month.value
+    const spillover = !!pair && !inMonth
     const holiday = props.showHoliday ? holidayFor(value) : undefined
     const note = holiday?.firstDay ? holiday.name : props.showLunar && !outsideRange ? lunarLabel(date) : undefined
     const id = `${calendarId}-${value}`
     const descriptionIds = [note && `${id}-note`, holiday && `${id}-badge`].filter(Boolean).join(' ')
     return {
-      date, value, note, holiday, id, descriptionIds, inMonth: date.getMonth() === month.value,
-      today: value === today.value, selected: range?.value?.selected(value) ?? (value === selected.value),
-      blocked: outsideRange || !!props.disabledDate?.(date), outsideRange,
+      date, value, note, holiday, id, descriptionIds, inMonth, spillover,
+      today: !spillover && value === today.value, selected: !spillover && (range?.value?.selected(value) ?? (value === selected.value)),
+      blocked: spillover || outsideRange || !!props.disabledDate?.(date), outsideRange,
     }
   }))
 })
 
 function browse(targetYear: number, targetMonth: number) {
-  if (!props.disabled) placeCursor(inMonth(cursor.value, targetYear, targetMonth))
+  if (!props.disabled) navigate(inMonth(cursor.value, targetYear, targetMonth))
 }
 
 function choose(cell: CalendarCell & { blocked: boolean }) {
@@ -124,7 +148,7 @@ function keydown(event: KeyboardEvent, date: Date) {
     default: return
   }
   event.preventDefault()
-  placeCursor(target, true)
+  navigate(target, true)
 }
 </script>
 
@@ -138,15 +162,15 @@ function keydown(event: KeyboardEvent, date: Date) {
         <YmSelect v-else-if="control === 'year'" class="ym-calendar__year" aria-label="年份" :options="years"
           :model-value="year" :disabled="props.disabled" @update:model-value="browse($event, month)" />
         <YmButton v-else-if="control === 'previous'" variant="text" shape="square" aria-label="上个月" title="上个月"
-          :disabled="props.disabled || (year === 1 && month === 0)" @click="browse(year, month - 1)">
+          :disabled="props.disabled || !monthAllowed(year, month - 1)" @click="browse(year, month - 1)">
           <template #icon><YmIcon name="chevron-left" /></template>
         </YmButton>
         <YmButton v-else-if="control === 'next'" variant="text" shape="square" aria-label="下个月" title="下个月"
-          :disabled="props.disabled || (year === 9999 && month === 11)" @click="browse(year, month + 1)">
+          :disabled="props.disabled || !monthAllowed(year, month + 1)" @click="browse(year, month + 1)">
           <template #icon><YmIcon name="chevron-right" /></template>
         </YmButton>
         <YmButton v-else class="ym-calendar__today" variant="text" :shape="isCard ? 'square' : 'rectangle'"
-          aria-label="今天" title="今天" :disabled="props.disabled" @click="placeCursor(new Date())">
+          aria-label="今天" title="今天" :disabled="props.disabled" @click="navigate(new Date())">
           <template v-if="isCard" #icon>
             <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false">
               <circle cx="12" cy="12" r="7" stroke="currentColor" stroke-width="2" />
@@ -165,11 +189,11 @@ function keydown(event: KeyboardEvent, date: Date) {
       <div v-for="week in weeks" :key="week[0].value" class="ym-calendar__week" role="row">
         <div v-for="cell in week" :key="cell.value" class="ym-calendar__cell" role="gridcell" :aria-selected="cell.selected">
           <button class="ym-calendar__day" type="button" :aria-label="cell.value" :aria-pressed="cell.selected"
-            :data-range="range?.position(cell.value)"
+            :data-range="cell.spillover ? undefined : range?.position(cell.value)" :aria-hidden="cell.spillover || undefined"
             @pointerenter="range?.preview(cell.blocked ? null : cell.value)" @focus="range?.preview(cell.blocked ? null : cell.value)"
             :aria-describedby="cell.descriptionIds || undefined"
             :data-outside="!cell.inMonth || undefined" :aria-current="cell.today ? 'date' : undefined"
-            :disabled="props.disabled || cell.outsideRange" :aria-disabled="cell.blocked || undefined"
+            :disabled="props.disabled || cell.outsideRange || cell.spillover" :aria-disabled="cell.blocked || undefined"
             :tabindex="cell.value === cursorKey ? 0 : -1" @keydown="keydown($event, cell.date)" @click="choose(cell)">
             <span class="ym-calendar__day-heading">
               <span class="ym-calendar__day-content">

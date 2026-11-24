@@ -1,5 +1,7 @@
+@import './range-field.css';
+
 .ym-date-picker { width: 11.25rem; }
-.ym-date-picker[data-mode='range'] { width: 19em; font-size: var(--ym-control-font-size); }
+.ym-date-picker[data-mode='range'] { width: 25.5em; font-size: var(--ym-control-font-size); }
 .ym-date-picker__trigger {
   position: relative;
   display: block;
@@ -30,8 +32,22 @@
 .ym-date-picker__trigger[data-open] .ym-date-picker__suffix { color: var(--ym-color-primary); }
 .ym-popup__panel.ym-date-picker__panel { padding: 0; }
 .ym-date-picker__panel .ym-calendar { border: 0; }
+.ym-date-picker__calendars {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  width: 40em;
+  max-width: calc(100vw - 2px);
+}
+.ym-date-picker__calendars > .ym-calendar { width: 100%; }
+@media (max-width: 35rem) {
+  .ym-date-picker__calendars { grid-template-columns: minmax(0, 1fr); width: 20em; }
+}
 .ym-date-picker__panel {
   --ym-date-picker-range-fill: color-mix(in srgb, var(--ym-color-primary) 14%, var(--ym-color-surface));
+}
+.ym-date-picker__calendars .ym-calendar__day[aria-current='date']:not([data-range]) {
+  border-color: transparent;
+  background: var(--ym-date-picker-range-fill);
 }
 .ym-date-picker__panel .ym-calendar__cell:has(> [data-range='inside']) { background: var(--ym-date-picker-range-fill); }
 .ym-date-picker__panel .ym-calendar__cell:has(> [data-range='start']) {
@@ -52,8 +68,12 @@
 }
 .ym-date-picker__panel .ym-calendar__day[data-range='inside']:focus-visible { outline-color: var(--ym-color-primary); }
 .ym-date-picker__range-hint {
-  padding: .5em var(--ym-control-padding);
-  border-top: 1px solid var(--ym-color-border);
-  color: var(--ym-color-text);
-  font-size: var(--ym-control-font-size);
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: 0;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }

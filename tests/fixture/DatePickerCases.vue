@@ -36,7 +36,7 @@ const disableSunday = (date: Date) => date.getDay() === 0
   <YmDatePicker aria-label="禁用日期" disabled />
   <button type="button">外部操作</button>
   <section>
-    <YmDatePicker v-model="range" mode="range" aria-label="配送范围" :disabled="rangeDisabled"
+    <YmDatePicker v-model="range" mode="range" aria-label="配送范围" :disabled="rangeDisabled" name="window" form="order"
       :disabled-date="disableSunday" show-lunar show-holiday
       @update:model-value="rangeUpdates.push($event)" @change="rangeChanges.push($event)" />
     <output id="range-model">{{ JSON.stringify(range) }}</output>
