@@ -30,8 +30,25 @@
 .ym-calendar__year { flex: 0 1 6.1em; }
 .ym-calendar__month { flex: 0 1 4.8em; }
 .ym-calendar__toolbar .ym-select__control { gap: .2em; padding-inline: .35em; }
-.ym-calendar[data-theme='card'] .ym-calendar__toolbar .ym-select__control { padding-inline: .2em; }
-.ym-calendar__today { margin-inline-start: auto; padding-inline: .3em; }
+.ym-calendar[data-theme='full'] .ym-calendar__today { margin-inline-start: auto; padding-inline: .3em; }
+
+.ym-calendar[data-theme='card'] .ym-calendar__toolbar {
+  flex-wrap: nowrap;
+  gap: 0;
+  padding-inline: .4em;
+}
+.ym-calendar[data-theme='card'] :is(.ym-calendar__month, .ym-calendar__year) { flex-basis: 5.7em; }
+.ym-calendar[data-theme='card'] .ym-calendar__year { margin-inline: .65em auto; }
+.ym-calendar[data-theme='card'] .ym-calendar__toolbar .ym-select__control {
+  --ym-icon-size: 1em;
+  padding-inline: .6em;
+  border-radius: 0;
+}
+.ym-calendar[data-theme='card'] .ym-calendar__toolbar .ym-select__arrow {
+  color: color-mix(in srgb, var(--ym-color-text) 55%, var(--ym-color-surface));
+}
+.ym-calendar[data-theme='card'] .ym-calendar__toolbar .ym-button { flex: 0 0 1.8em; }
+.ym-calendar[data-theme='card'] .ym-calendar__toolbar .ym-button__icon { font-size: .85em; }
 
 .ym-calendar__week {
   display: grid;

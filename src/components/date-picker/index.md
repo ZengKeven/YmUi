@@ -10,20 +10,19 @@ category: 表单组件
 
 <ComponentDemo name="date-picker" />
 
-打开示例中的收货日期，可以看到国庆假期的「休」角标和补班日期的「班」角标。选择某一天后，面板收起，日期回填到输入框。
+打开收货日期，面板左上角可以选择月份和年份。右上角的左右箭头用于翻月，中间的圆圈按钮可定位到今天。示例中「休」表示放假，「班」表示调休补班。选择某一天后，面板收起，日期回填到输入框。
 
 ## 属性
 
 | 名称 | 类型 | 默认值 | 说明 |
 | --- | --- | --- | --- |
-| modelValue | `string \| null` | — | 选中的本地日期，格式为 `YYYY-MM-DD`，支持 `v-model`。传入 `null` 清空日期。 |
+| modelValue | `string \| null` | — | 选中的本地日期，格式为 `YYYY-MM-DD`，支持 `v-model`。`null` 表示未选择日期。 |
 | defaultValue | `string` | — | 非受控模式下的初始日期。未选择日期时，打开面板展示本月。 |
 | placeholder | `string` | `请选择日期` | 日期为空时显示的提示文字。 |
 | showLunar | `boolean` | `false` | 在公历日号下方显示农历，农历初一显示月名。 |
 | showHoliday | `boolean` | `false` | 使用日历内置的中国大陆节假日安排，标记休假和补班日期。假期首日优先显示节名，其他日期按 `showLunar` 设置显示农历。 |
 | firstDayOfWeek | `1 / 2 / 3 / 4 / 5 / 6 / 7` | `1` | 每周的第一天，`1` 为周一，`7` 为周日。 |
 | disabledDate | `(date: Date) => boolean` | — | 根据本地日期判断是否禁选，返回 `true` 时该日不可选。 |
-| clearable | `boolean` | `false` | 允许通过清空按钮移除已选日期。 |
 | disabled | `boolean` | `false` | 禁用选择器。 |
 | borderless | `boolean` | `false` | 隐藏日期输入框的边框。 |
 | size | `extra-small / small / medium / large` | 继承全局尺寸，初始为 `medium` | 设置输入框和日历面板中控件的尺寸。 |
@@ -37,9 +36,8 @@ category: 表单组件
 
 | 名称 | 参数 | 触发时机 |
 | --- | --- | --- |
-| update:modelValue | `value: string \| null` | 用户选中新日期或清空时同步绑定值，清空时传出 `null`。 |
-| change | `value: string \| null` | 用户操作使选中值发生变化时触发。 |
-| clear | — | 用户点击清空按钮时触发。 |
+| update:modelValue | `value: string` | 选择新日期时同步 `v-model`，格式为 `YYYY-MM-DD`。 |
+| change | `value: string` | 用户选择的日期发生变化时触发，传入新日期。 |
 
 ## 插槽
 
@@ -59,7 +57,7 @@ const deliveryDate = ref<string | null>(null)
 </script>
 
 <template>
-  <YmDatePicker v-model="deliveryDate" aria-label="收货日期" clearable show-lunar show-holiday />
+  <YmDatePicker v-model="deliveryDate" aria-label="收货日期" show-lunar show-holiday />
 </template>
 ```
 

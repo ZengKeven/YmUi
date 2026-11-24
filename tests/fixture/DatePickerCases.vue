@@ -3,9 +3,8 @@ import { ref } from 'vue'
 import { ConfigProvider, YmDatePicker } from 'ym-ui-vapor'
 
 const selected = ref<string | null>('2026-10-01')
-const updates = ref<(string | null)[]>([])
-const changes = ref<(string | null)[]>([])
-const clears = ref(0)
+const updates = ref<string[]>([])
+const changes = ref<string[]>([])
 const compact = ref(false)
 const dark = ref(false)
 const surface = ref('#f5f0e0')
@@ -16,14 +15,14 @@ const disableSunday = (date: Date) => date.getDay() === 0
   <form id="order"></form>
   <section id="controlled">
     <YmDatePicker v-model="selected" name="delivery" form="order" aria-label="收货日期"
-      clearable show-lunar show-holiday :disabled-date="disableSunday" :first-day-of-week="7"
-      @update:model-value="updates.push($event)" @change="changes.push($event)" @clear="clears++">
+      show-lunar show-holiday :disabled-date="disableSunday" :first-day-of-week="7"
+      @update:model-value="updates.push($event)" @change="changes.push($event)">
       <template #cell="{ value, date }"><span>{{ value === '2026-10-03' ? '盘点日' : date.getDate() }}</span></template>
     </YmDatePicker>
     <output id="model">{{ selected ?? '空' }}</output>
     <output id="updates">{{ JSON.stringify(updates) }}</output>
     <output id="changes">{{ JSON.stringify(changes) }}</output>
-    <output id="clears">{{ clears }}</output>
+    <button @click="selected = null">重置收货日期</button>
     <button @click="selected = '2027-01-02'">变更收货日期</button>
   </section>
   <YmDatePicker aria-label="固定日期" model-value="2026-10-01" />

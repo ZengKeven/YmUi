@@ -36,6 +36,10 @@ const cursorKey = computed(() => dateKey(cursor.value))
 const year = computed(() => cursor.value.getFullYear())
 const month = computed(() => cursor.value.getMonth())
 const shownMonth = computed(() => cursorKey.value.slice(0, 7))
+const isCard = computed(() => props.theme === 'card')
+const toolbarOrder = computed(() => isCard.value
+  ? ['month', 'year', 'previous', 'today', 'next']
+  : ['previous', 'year', 'month', 'next', 'today'])
 const grid = useTemplateRef<HTMLElement>('grid')
 const calendarId = `ym-calendar-${useId()}`
 
@@ -61,10 +65,10 @@ watch(shownMonth, value => emit('monthChange', value))
 const years = computed(() => {
   const first = Math.max(1, year.value - 10)
   const last = Math.min(9999, year.value + 10)
-  return Array.from({ length: last - first + 1 }, (_, i) => ({ value: first + i, label: `${first + i}年` }))
+  return Array.from({ length: last - first + 1 }, (_, i) => ({ value: first + i, label: `${first + i}${isCard.value ? '' : '年'}` }))
 })
-const months = Array.from({ length: 12 }, (_, i) => ({ value: i + 1, label: `${i + 1}月` }))
-const weekdayNames = ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
+const months = computed(() => Array.from({ length: 12 }, (_, i) => ({ value: i + 1, label: `${i + 1}${isCard.value ? ' 月' : '月'}` })))
+const weekdayNames = ['日', '一', '二', '三', '四', '五', '六']
 const weekdays = computed(() => Array.from({ length: 7 }, (_, i) => weekdayNames[(props.firstDayOfWeek + i) % 7]))
 const weeks = computed(() => {
   const first = localDate(year.value, month.value, 1)
@@ -124,23 +128,34 @@ function keydown(event: KeyboardEvent, date: Date) {
   <section class="ym-calendar" :data-theme="props.theme" :data-size="props.size"
     :data-show-lunar="props.showLunar || undefined" :data-show-holiday="props.showHoliday || undefined">
     <div class="ym-calendar__toolbar">
-      <YmButton variant="text" shape="square" aria-label="上个月" :disabled="props.disabled || (year === 1 && month === 0)"
-        @click="browse(year, month - 1)">
-        <template #icon><YmIcon name="chevron-left" /></template>
-      </YmButton>
-      <YmSelect class="ym-calendar__year" aria-label="年份" :options="years" :model-value="year" :disabled="props.disabled"
-        @update:model-value="browse($event, month)" />
-      <YmSelect class="ym-calendar__month" aria-label="月份" :options="months" :model-value="month + 1" :disabled="props.disabled"
-        @update:model-value="browse(year, $event - 1)" />
-      <YmButton variant="text" shape="square" aria-label="下个月" :disabled="props.disabled || (year === 9999 && month === 11)"
-        @click="browse(year, month + 1)">
-        <template #icon><YmIcon name="chevron-right" /></template>
-      </YmButton>
-      <YmButton class="ym-calendar__today" variant="text" :disabled="props.disabled" @click="placeCursor(new Date())">今天</YmButton>
+      <template v-for="control in toolbarOrder" :key="control">
+        <YmSelect v-if="control === 'month'" class="ym-calendar__month" aria-label="月份" :options="months"
+          :model-value="month + 1" :disabled="props.disabled" @update:model-value="browse(year, $event - 1)" />
+        <YmSelect v-else-if="control === 'year'" class="ym-calendar__year" aria-label="年份" :options="years"
+          :model-value="year" :disabled="props.disabled" @update:model-value="browse($event, month)" />
+        <YmButton v-else-if="control === 'previous'" variant="text" shape="square" aria-label="上个月" title="上个月"
+          :disabled="props.disabled || (year === 1 && month === 0)" @click="browse(year, month - 1)">
+          <template #icon><YmIcon name="chevron-left" /></template>
+        </YmButton>
+        <YmButton v-else-if="control === 'next'" variant="text" shape="square" aria-label="下个月" title="下个月"
+          :disabled="props.disabled || (year === 9999 && month === 11)" @click="browse(year, month + 1)">
+          <template #icon><YmIcon name="chevron-right" /></template>
+        </YmButton>
+        <YmButton v-else class="ym-calendar__today" variant="text" :shape="isCard ? 'square' : 'rectangle'"
+          aria-label="今天" title="今天" :disabled="props.disabled" @click="placeCursor(new Date())">
+          <template v-if="isCard" #icon>
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false">
+              <circle cx="12" cy="12" r="7" stroke="currentColor" stroke-width="2" />
+            </svg>
+          </template>
+          <template v-if="!isCard">今天</template>
+        </YmButton>
+      </template>
     </div>
     <div ref="grid" class="ym-calendar__grid" role="grid" :aria-label="`${year}年${month + 1}月`">
       <div class="ym-calendar__week" role="row">
-        <span v-for="label in weekdays" :key="label" class="ym-calendar__weekday" role="columnheader">{{ label }}</span>
+        <span v-for="label in weekdays" :key="label" class="ym-calendar__weekday" role="columnheader"
+          :aria-label="`周${label}`">{{ isCard ? label : `周${label}` }}</span>
       </div>
       <div v-for="week in weeks" :key="week[0].value" class="ym-calendar__week" role="row">
         <div v-for="cell in week" :key="cell.value" class="ym-calendar__cell" role="gridcell" :aria-selected="cell.selected">

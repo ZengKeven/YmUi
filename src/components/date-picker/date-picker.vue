@@ -1,6 +1,5 @@
 <script setup lang="ts" vapor>
 import { computed, nextTick, ref, useId, useTemplateRef, watch } from 'vue'
-import { YmButton } from '../button'
 import { YmCalendar, type CalendarCell } from '../calendar'
 import { YmIcon } from '../icon'
 import { YmInput } from '../input'
@@ -10,9 +9,8 @@ import pickerProps from './props'
 defineOptions({ name: 'YmDatePicker', inheritAttrs: false })
 const props = defineProps(pickerProps)
 const emit = defineEmits<{
-  'update:modelValue': [value: string | null]
-  change: [value: string | null]
-  clear: []
+  'update:modelValue': [value: string]
+  change: [value: string]
 }>()
 defineSlots<{ cell?: (cell: CalendarCell) => unknown }>()
 
@@ -23,27 +21,16 @@ const open = ref(false)
 const dialogId = `ym-date-picker-${useId()}`
 const trigger = useTemplateRef<HTMLElement>('trigger')
 const dialog = useTemplateRef<HTMLElement>('dialog')
-const editor = useTemplateRef<{ focus(): void }>('editor')
 const calendar = useTemplateRef<{ focus(): void }>('calendar')
 
-function update(next: string | null) {
-  if (props.disabled || next === value.value) return
-  if (props.modelValue === undefined) local.value = next
-  emit('update:modelValue', next)
-  emit('change', next)
-}
-
 function select(date: string, close: () => void) {
-  update(date)
+  if (props.disabled) return
+  if (value.value !== date) {
+    if (props.modelValue === undefined) local.value = date
+    emit('update:modelValue', date)
+    emit('change', date)
+  }
   close()
-}
-
-function clear() {
-  if (props.disabled || !value.value) return
-  update(null)
-  open.value = false
-  editor.value?.focus()
-  emit('clear')
 }
 
 function openFromKeyboard(event: KeyboardEvent) {
@@ -78,15 +65,11 @@ watch([trigger, () => props.form], ([element], _, onCleanup) => {
     :overlay-class-name="['ym-date-picker__panel', props.popupProps?.overlayClassName]">
     <template #default>
       <span ref="trigger" class="ym-date-picker__trigger" :data-open="open || undefined" @focusout="dismissOnLeave">
-        <YmInput ref="editor" v-bind="$attrs" class="ym-date-picker__field" type="text" role="combobox" readonly
+        <YmInput v-bind="$attrs" class="ym-date-picker__field" type="text" role="combobox" readonly
           :model-value="value ?? ''" :placeholder="props.placeholder" :borderless="props.borderless" :disabled="props.disabled"
           :name="props.name" :form="props.form" aria-haspopup="dialog" :aria-expanded="open"
           :aria-controls="open ? dialogId : undefined" @keydown="openFromKeyboard" />
         <span class="ym-date-picker__suffix">
-          <YmButton v-if="props.clearable && value && !props.disabled" class="ym-date-picker__clear" shape="square"
-            variant="text" aria-label="清空日期" @click.stop="clear">
-            <template #icon><YmIcon name="close" /></template>
-          </YmButton>
           <YmIcon name="calendar" />
         </span>
       </span>

@@ -9,7 +9,6 @@ const size = ref<ControlSize>()
 const firstDayOfWeek = ref<1 | 7>(1)
 const showLunar = ref(true)
 const showHoliday = ref(true)
-const clearable = ref(true)
 const disableWeekends = ref(false)
 const borderless = ref(false)
 const disabled = ref(false)
@@ -23,7 +22,7 @@ function isWeekend(date: Date) {
   <PreviewFrame name="YmDatePicker">
     <template #preview>
       <YmDatePicker v-model="deliveryDate" aria-label="收货日期" :size="size" :first-day-of-week="firstDayOfWeek"
-        :show-lunar="showLunar" :show-holiday="showHoliday" :clearable="clearable"
+        :show-lunar="showLunar" :show-holiday="showHoliday"
         :disabled-date="disableWeekends ? isWeekend : undefined" :borderless="borderless" :disabled="disabled" />
     </template>
     <template #controls>
@@ -38,7 +37,6 @@ function isWeekend(date: Date) {
       </label>
       <label>显示农历 <YmSwitch v-model="showLunar" /></label>
       <label>显示节假日 <YmSwitch v-model="showHoliday" /></label>
-      <label>允许清空 <YmSwitch v-model="clearable" /></label>
       <label>禁选周末 <YmSwitch v-model="disableWeekends" /></label>
       <label>无边框 <YmSwitch v-model="borderless" /></label>
       <label>禁用 <YmSwitch v-model="disabled" /></label>

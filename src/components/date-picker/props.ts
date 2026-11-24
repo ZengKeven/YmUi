@@ -20,8 +20,6 @@ export default {
   disabledDate: calendarProps.disabledDate,
   /** 禁用选择器。 */
   disabled: calendarProps.disabled,
-  /** 允许清空已选日期。 */
-  clearable: Boolean,
   /** 以无边框样式显示输入框。 */
   borderless: inputProps.borderless,
   /** 输入框和日历的尺寸，默认继承全局配置。 */
