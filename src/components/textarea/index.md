@@ -20,7 +20,7 @@ category: 表单组件
 | placeholder | `string` | — | 内容为空时显示的占位文字。 |
 | rows | `number` | `3` | 固定高度模式下的可见行数。 |
 | autosize | `boolean` 或 `{ minRows?: number, maxRows?: number }` | `false` | 开启后随文本换行增减高度，默认至少一行。传入对象可限制行数，达到上限后在框内滚动。 |
-| maxlength | `number \| string` | — | 按 UTF-16 编码单元限制长度并显示计数。常用汉字占 1，许多 emoji 占 2。 |
+| maxlength | `number \| string` | — | 按 UTF-16 编码单元限制长度。常用汉字占 1，许多 emoji 占 2。 |
 | maxcharacter | `number` | — | 按权重计数，每个 ASCII 字符计 1，其他 Unicode 码点计 2。与 `maxlength` 同时设置时优先。 |
 | allowInputOverMax | `boolean` | `false` | 开启后允许继续输入超限内容，并以错误状态提示。 |
 | status | `default / success / warning / error` | `default` | 设置边框和提示文字的校验状态。 |
@@ -32,6 +32,8 @@ category: 表单组件
 | readonly | `boolean` | `false` | 只读时仍可聚焦、选择和复制文本。 |
 | disabled | `boolean` | `false` | 禁用文本框。 |
 | size | `extra-small / small / medium / large` | 继承，初始为 `medium` | 控制输入文字大小和内边距，显式设置优先。 |
+
+设置 `maxlength` 或 `maxcharacter` 后，字数统计显示在编辑区内的右下角，滚动文本时仍然可见。
 
 传入的 `class` 作用于整个组件。`style`、`id`、`aria-*`、`required` 等属性作用于原生 `<textarea>`。需要指定编辑区宽度或固定高度时，可通过 `style` 设置。
 

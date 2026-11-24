@@ -82,6 +82,31 @@ test('limits count UTF-16 or weighted characters and report overflow and recover
   await expect(page.locator('#textarea-validations')).toHaveText('exceed-maximum ok')
 })
 
+test('the counter stays inside the lower-right corner as the text scrolls, with tips below the field', async ({ page }) => {
+  const box = page.locator('#textarea-limit')
+  const field = box.getByRole('textbox', { name: '限长备注' })
+  const counter = box.locator('.ym-textarea__count')
+  const tips = box.getByText('请填写配送要求')
+  const unlimited = page.locator('.ym-textarea').filter({ has: page.getByRole('textbox', { name: '草稿', exact: true }) })
+  await expect(unlimited.locator('.ym-textarea__count')).toHaveCount(0)
+
+  await page.getByRole('button', { name: '允许备注超长' }).click()
+  await field.fill('配送备注\n'.repeat(20))
+  await expect(counter).toHaveText('100/4')
+  await field.evaluate(el => { el.scrollTop = 0 })
+  const editor = (await field.boundingBox())!
+  const count = (await counter.boundingBox())!
+  expect(count.x).toBeGreaterThan(editor.x + editor.width / 2)
+  expect(count.x + count.width).toBeLessThan(editor.x + editor.width)
+  expect(count.y).toBeGreaterThan(editor.y + editor.height / 2)
+  expect(count.y + count.height).toBeLessThan(editor.y + editor.height)
+  expect((await tips.boundingBox())!.y).toBeGreaterThanOrEqual(editor.y + editor.height)
+
+  await field.evaluate(el => { el.scrollTop = el.scrollHeight })
+  await expect.poll(() => field.evaluate(el => el.scrollTop)).toBeGreaterThan(0)
+  expect(await counter.boundingBox()).toEqual(count)
+})
+
 test('autosize follows wrapped lines, stops at maxRows, and shrinks when text is removed', async ({ page }) => {
   const field = page.getByLabel('自适应备注')
   const height = () => field.evaluate(el => el.clientHeight)

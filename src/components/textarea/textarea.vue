@@ -29,9 +29,10 @@ const limit = computed(() => {
 })
 const weighted = computed(() => props.maxcharacter !== undefined)
 const length = computed(() => measureText(controlled.value ?? text.value, weighted.value).length)
+const countText = computed(() => limit.value === undefined ? '' : `${length.value}/${limit.value}`)
 const over = computed(() => limit.value !== undefined && length.value > limit.value)
 const status = computed(() => over.value ? 'error' : props.status)
-const hasFooter = computed(() => Boolean(props.tips || slots.tips || limit.value !== undefined))
+const hasTips = computed(() => Boolean(props.tips || slots.tips))
 const bounds = computed(() => typeof props.autosize === 'object' ? props.autosize : undefined)
 let composing = false
 
@@ -100,16 +101,18 @@ defineExpose({ focus: () => field.value?.focus(), blur: () => field.value?.blur(
   <div class="ym-textarea" :class="props.class" :data-size="props.size" :data-status="status"
     :data-disabled="props.disabled || undefined" :data-autosize="bounds ? 'bounded' : props.autosize ? 'auto' : undefined"
     :style="{ '--ym-textarea-min-rows': bounds?.minRows, '--ym-textarea-max-rows': bounds?.maxRows }">
-    <textarea ref="field" v-bind="$attrs" class="ym-textarea__control" :style="[props.style, { textAlign: props.align }]"
-      :rows="props.rows" :placeholder="props.placeholder" :name="props.name" :form="props.form"
-      :disabled="props.disabled" :readonly="props.readonly" :autofocus="props.autofocus"
-      :maxlength="!weighted && !props.allowInputOverMax ? limit : undefined"
-      :aria-invalid="status === 'error' ? true : $attrs['aria-invalid'] as AriaAttributes['aria-invalid']"
-      :aria-describedby="[$attrs['aria-describedby'], hasFooter ? infoId : undefined].filter(Boolean).join(' ') || undefined"
-      @input="commit" @compositionstart="composing = true" @compositionend="finishComposition" @change="finishComposition" />
-    <div v-if="hasFooter" :id="infoId" class="ym-textarea__footer">
-      <span v-if="props.tips || slots.tips" class="ym-textarea__tips"><slot name="tips">{{ props.tips }}</slot></span>
-      <span v-if="limit !== undefined" class="ym-textarea__count">{{ length }}/{{ limit }}</span>
+    <div class="ym-textarea__field" :style="countText ? { '--ym-textarea-count-width': countText.length + 'ch' } : undefined">
+      <textarea ref="field" v-bind="$attrs" class="ym-textarea__control" :style="[props.style, { textAlign: props.align }]"
+        :rows="props.rows" :placeholder="props.placeholder" :name="props.name" :form="props.form"
+        :disabled="props.disabled" :readonly="props.readonly" :autofocus="props.autofocus"
+        :maxlength="!weighted && !props.allowInputOverMax ? limit : undefined"
+        :aria-invalid="status === 'error' ? true : $attrs['aria-invalid'] as AriaAttributes['aria-invalid']"
+        :aria-describedby="[$attrs['aria-describedby'], hasTips && infoId, countText && infoId + '-count'].filter(Boolean).join(' ') || undefined"
+        @input="commit" @compositionstart="composing = true" @compositionend="finishComposition" @change="finishComposition" />
+      <span v-if="countText" class="ym-textarea__count-anchor">
+        <span :id="infoId + '-count'" class="ym-textarea__count">{{ countText }}</span>
+      </span>
     </div>
+    <div v-if="hasTips" :id="infoId" class="ym-textarea__tips"><slot name="tips">{{ props.tips }}</slot></div>
   </div>
 </template>
