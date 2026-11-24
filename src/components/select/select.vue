@@ -200,7 +200,6 @@ function keydown(e: KeyboardEvent) {
           <span :id="`${listId}-${index}-label`" class="ym-select__option-label">
             <slot name="option" :option="item as Option" :index="index" :selected="selected.has(item.value)" :disabled="blocked(item)">{{ item.label }}</slot>
           </span>
-          <YmIcon v-if="!props.multiple && selected.has(item.value)" class="ym-select__selected-icon" name="success" />
         </div>
       </div>
       <div v-if="!options.length" class="ym-select__status" role="status">
