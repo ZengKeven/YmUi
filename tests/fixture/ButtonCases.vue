@@ -16,6 +16,7 @@ import StepsCases from './StepsCases.vue'
 import SwitchCases from './SwitchCases.vue'
 import TabsCases from './TabsCases.vue'
 import TagCases from './TagCases.vue'
+import TextareaCases from './TextareaCases.vue'
 import TreeSelectCases from './TreeSelectCases.vue'
 
 const busy = ref(false)
@@ -100,5 +101,6 @@ function record(event: MouseEvent) {
   <SwitchCases />
   <TabsCases />
   <TagCases />
+  <TextareaCases />
   <TreeSelectCases />
 </template>

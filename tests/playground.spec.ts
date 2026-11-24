@@ -459,6 +459,27 @@ test('the input preview switches text and password modes and copies the configur
   expect(source).not.toContain('playground-example')
 })
 
+test('the textarea preview counts multiline notes and copies the current height and limit settings', async ({ page, context }) => {
+  await context.grantPermissions(['clipboard-read', 'clipboard-write'])
+  await page.goto('/button/')
+  await page.locator('#VPSidebarNav').getByRole('link', { name: 'YmTextarea 多行文本框' }).click()
+  await expect(page).toHaveURL('/textarea/')
+  const preview = page.locator('.demo-canvas')
+  const field = preview.getByRole('textbox', { name: '收货备注' })
+  await page.getByRole('combobox', { name: '文本框高度' }).selectOption('bounded')
+  await page.getByRole('combobox', { name: '字数限制' }).selectOption('weighted')
+  await field.fill('北门\nA')
+  await expect(preview.getByText(/^6\s*\/\s*40$/)).toBeVisible()
+  await page.getByRole('switch', { name: '只读' }).check()
+  await expect(field).toHaveJSProperty('readOnly', true)
+
+  const source = await copyPreview(page)
+  expect(source).toContain('<YmTextarea v-model="note"')
+  expect(source).toContain(`:autosize='{"minRows":2,"maxRows":5}'`)
+  expect(source).toContain(':maxcharacter="40"')
+  expect(source).toContain(' readonly')
+})
+
 test('the numeric input preview formats amounts and copies the selected precision and bounds', async ({ page, context }) => {
   await context.grantPermissions(['clipboard-read', 'clipboard-write'])
   await page.goto('/button/')

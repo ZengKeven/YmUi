@@ -20,6 +20,7 @@ export { YmSteps, type StepOption, type StepsProps, type StepStatus, type StepVa
 export { YmSwitch, type SwitchProps, type SwitchValue } from './components/switch'
 export { YmTabs, YmTabPanel, type TabPanelProps, type TabsProps, type TabValue } from './components/tabs'
 export { YmTag, type TagProps } from './components/tag'
+export { YmTextarea, type TextareaAutosize, type TextareaProps } from './components/textarea'
 export { YmTreeSelect, type TreeSelectOption, type TreeSelectProps, type TreeSelectValue } from './components/tree-select'
 export { default as ConfigProvider } from './components/config-provider/ConfigProvider.vue'
 export type { ConfigProviderProps, ControlSize, ThemeColors, ThemeMode } from './components/config-provider/types'
