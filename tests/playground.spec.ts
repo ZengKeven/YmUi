@@ -111,7 +111,7 @@ test('the calendar preview switches between card and full layout and copies its 
   expect(source).toMatch(/\sshow-holiday(?=\s|\/?>)/)
 })
 
-test('the date picker preview selects from the calendar and copies the enabled annotations', async ({ page, context }) => {
+test('the date picker preview switches selection modes and copies the active example', async ({ page, context }) => {
   await context.grantPermissions(['clipboard-read', 'clipboard-write'])
   await page.goto('/calendar/')
   await page.locator('#VPSidebarNav').getByRole('link', { name: 'YmDatePicker 日期选择器' }).click()
@@ -131,6 +131,25 @@ test('the date picker preview selects from the calendar and copies the enabled a
   expect(source).toContain('<YmDatePicker ')
   expect(source).toContain(':show-lunar="false"')
   expect(source).toMatch(/\sshow-holiday(?=\s|\/?>)/)
+  expect(source).not.toContain('disabled-date')
+
+  await page.getByRole('combobox', { name: '选择模式' }).selectOption('range')
+  const rangeField = page.getByRole('combobox', { name: '收货日期范围' })
+  await expect(rangeField).toHaveValue('2026-10-01 至 2026-10-07')
+  await rangeField.click()
+  const rangePanel = page.getByRole('dialog', { name: '选择日期范围' })
+  await rangePanel.getByRole('button', { name: '2026-10-09' }).click()
+  await rangePanel.getByRole('button', { name: '2026-10-05' }).click()
+  await expect(rangeField).toHaveValue('2026-10-05 至 2026-10-09')
+  await expect(rangePanel).toBeHidden()
+  await page.getByRole('switch', { name: '禁选周末' }).check()
+  const rangeSource = await copyPreview(page)
+  expect(rangeSource.match(/<YmDatePicker\b/g)).toHaveLength(1)
+  expect(rangeSource).toContain('mode="range"')
+  expect(rangeSource).toContain(':disabled-date="date => [0, 6].includes(date.getDay())"')
+  expect(rangeSource).not.toContain('disableWeekends')
+  await page.getByRole('combobox', { name: '选择模式' }).selectOption('single')
+  await expect(field).toHaveValue('2026-10-02')
 })
 
 test('the select preview limits warehouse choices and searches remotely by code', async ({ page, context }) => {

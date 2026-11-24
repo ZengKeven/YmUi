@@ -1,10 +1,15 @@
 <script setup lang="ts" vapor>
 import { ref } from 'vue'
-import { ConfigProvider, YmDatePicker } from 'ym-ui-vapor'
+import { ConfigProvider, YmDatePicker, type DateRangeValue } from 'ym-ui-vapor'
 
 const selected = ref<string | null>('2026-10-01')
 const updates = ref<string[]>([])
 const changes = ref<string[]>([])
+const range = ref<DateRangeValue | null>(null)
+const rangeUpdates = ref<DateRangeValue[]>([])
+const rangeChanges = ref<DateRangeValue[]>([])
+const rangeDisabled = ref(false)
+const switchMode = ref<'single' | 'range'>('range')
 const compact = ref(false)
 const dark = ref(false)
 const surface = ref('#f5f0e0')
@@ -30,6 +35,21 @@ const disableSunday = (date: Date) => date.getDay() === 0
   <YmDatePicker aria-label="空日期" />
   <YmDatePicker aria-label="禁用日期" disabled />
   <button type="button">外部操作</button>
+  <section>
+    <YmDatePicker v-model="range" mode="range" aria-label="配送范围" :disabled="rangeDisabled"
+      :disabled-date="disableSunday" show-lunar show-holiday
+      @update:model-value="rangeUpdates.push($event)" @change="rangeChanges.push($event)" />
+    <output id="range-model">{{ JSON.stringify(range) }}</output>
+    <output id="range-updates">{{ JSON.stringify(rangeUpdates) }}</output>
+    <output id="range-changes">{{ JSON.stringify(rangeChanges) }}</output>
+    <button @click="range = ['2027-01-05', '2027-01-09']">外部设置范围</button>
+    <button @click="range = null">外部重置范围</button>
+    <label><input v-model="rangeDisabled" type="checkbox" />禁用范围</label>
+    <YmDatePicker mode="range" aria-label="默认范围" :default-value="['2026-10-01', '2026-10-03']" form="order" />
+    <YmDatePicker mode="range" aria-label="固定范围" :model-value="['2026-10-01', '2026-10-03']" />
+    <YmDatePicker :mode="switchMode" aria-label="切换模式的日期" />
+    <button @click="switchMode = switchMode === 'single' ? 'range' : 'single'">切换选择模式</button>
+  </section>
   <label><input v-model="compact" type="checkbox" />紧凑尺寸和直角</label>
   <label><input v-model="dark" type="checkbox" />深色模式</label>
   <label>浅色背景<input v-model="surface" type="color" /></label>
@@ -38,6 +58,8 @@ const disableSunday = (date: Date) => date.getDay() === 0
     <ConfigProvider :radius="compact ? 0 : 12">
       <YmDatePicker aria-label="继承配置" default-value="2026-10-01" :popup-props="{ attach: '#date-overlays' }" />
       <YmDatePicker aria-label="局部尺寸" size="extra-small" />
+      <YmDatePicker aria-label="配置范围" mode="range" :default-value="['2026-10-07', '2026-10-09']"
+        :popup-props="{ attach: '#date-overlays' }" />
     </ConfigProvider>
   </ConfigProvider>
   <ConfigProvider size="extra-small" mode="dark" :radius="28">

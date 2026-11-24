@@ -4,12 +4,17 @@ import inputProps from '../input/props'
 import type { DatePickerProps } from './types'
 
 export default {
-  /** 选中的本地日期，格式为 YYYY-MM-DD。 */
-  modelValue: calendarProps.modelValue,
-  /** 非受控选择器的初始日期。 */
-  defaultValue: calendarProps.defaultValue,
+  /** 选择模式，默认为单个日期。 */
+  mode: {
+    type: String as PropType<NonNullable<DatePickerProps['mode']>>, default: 'single',
+    validator: (value: string) => value === 'single' || value === 'range',
+  },
+  /** 选中的本地日期或按起止顺序排列的日期对。 */
+  modelValue: [String, Array] as PropType<DatePickerProps['modelValue']>,
+  /** 非受控选择器的初始日期或日期对。 */
+  defaultValue: [String, Array] as PropType<DatePickerProps['defaultValue']>,
   /** 空值时的提示文字。 */
-  placeholder: { type: String, default: '请选择日期' },
+  placeholder: String,
   /** 在日期下方显示农历。 */
   showLunar: calendarProps.showLunar,
   /** 在卡片日历中显示节名和休班角标。 */

@@ -1,4 +1,5 @@
 .ym-date-picker { width: 11.25rem; }
+.ym-date-picker[data-mode='range'] { width: 19em; font-size: var(--ym-control-font-size); }
 .ym-date-picker__trigger {
   position: relative;
   display: block;
@@ -29,3 +30,30 @@
 .ym-date-picker__trigger[data-open] .ym-date-picker__suffix { color: var(--ym-color-primary); }
 .ym-popup__panel.ym-date-picker__panel { padding: 0; }
 .ym-date-picker__panel .ym-calendar { border: 0; }
+.ym-date-picker__panel {
+  --ym-date-picker-range-fill: color-mix(in srgb, var(--ym-color-primary) 14%, var(--ym-color-surface));
+}
+.ym-date-picker__panel .ym-calendar__cell:has(> [data-range='inside']) { background: var(--ym-date-picker-range-fill); }
+.ym-date-picker__panel .ym-calendar__cell:has(> [data-range='start']) {
+  background: linear-gradient(to right, transparent 50%, var(--ym-date-picker-range-fill) 50%);
+}
+.ym-date-picker__panel .ym-calendar__cell:has(> [data-range='end']) {
+  background: linear-gradient(to right, var(--ym-date-picker-range-fill) 50%, transparent 50%);
+}
+.ym-date-picker__panel .ym-calendar__day[data-range='inside'] {
+  background: transparent;
+  color: var(--ym-color-text);
+  font-weight: inherit;
+}
+.ym-date-picker__panel .ym-calendar__day:is([data-range='start'], [data-range='end'], [data-range='single']) {
+  background: var(--ym-color-primary);
+  color: var(--ym-color-on-accent);
+  font-weight: 600;
+}
+.ym-date-picker__panel .ym-calendar__day[data-range='inside']:focus-visible { outline-color: var(--ym-color-primary); }
+.ym-date-picker__range-hint {
+  padding: .5em var(--ym-control-padding);
+  border-top: 1px solid var(--ym-color-border);
+  color: var(--ym-color-text);
+  font-size: var(--ym-control-font-size);
+}

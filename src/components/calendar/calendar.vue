@@ -1,11 +1,12 @@
 <script setup lang="ts" vapor>
-import { computed, nextTick, onMounted, onScopeDispose, ref, useId, useTemplateRef, watch } from 'vue'
+import { computed, inject, nextTick, onMounted, onScopeDispose, provide, ref, useId, useTemplateRef, watch } from 'vue'
 import { YmButton } from '../button'
 import { YmIcon } from '../icon'
 import { YmSelect } from '../select'
 import { addDays, dateKey, inMonth, localDate, lunarLabel, parseDate } from './dates'
 import { holidayFor } from './holidays'
 import calendarProps from './props'
+import { calendarRangeKey } from './range'
 import type { CalendarCell } from './types'
 
 defineOptions({ name: 'YmCalendar' })
@@ -18,6 +19,9 @@ const emit = defineEmits<{
 }>()
 defineSlots<{ cell?: (cell: CalendarCell) => unknown }>()
 
+const range = inject(calendarRangeKey, undefined)
+// 日期格插槽中嵌套的其他日历拥有各自的选区。
+if (range) provide(calendarRangeKey, undefined)
 const local = ref(props.defaultValue)
 const selected = computed(() => props.modelValue === undefined ? local.value : props.modelValue)
 const today = ref(dateKey(new Date()))
@@ -83,7 +87,7 @@ const weeks = computed(() => {
     const descriptionIds = [note && `${id}-note`, holiday && `${id}-badge`].filter(Boolean).join(' ')
     return {
       date, value, note, holiday, id, descriptionIds, inMonth: date.getMonth() === month.value,
-      today: value === today.value, selected: value === selected.value,
+      today: value === today.value, selected: range?.value?.selected(value) ?? (value === selected.value),
       blocked: outsideRange || !!props.disabledDate?.(date), outsideRange,
     }
   }))
@@ -152,7 +156,8 @@ function keydown(event: KeyboardEvent, date: Date) {
         </YmButton>
       </template>
     </div>
-    <div ref="grid" class="ym-calendar__grid" role="grid" :aria-label="`${year}年${month + 1}月`">
+    <div ref="grid" class="ym-calendar__grid" role="grid" :aria-label="`${year}年${month + 1}月`"
+      :aria-multiselectable="range ? true : undefined" @pointerleave="range?.preview(null)">
       <div class="ym-calendar__week" role="row">
         <span v-for="label in weekdays" :key="label" class="ym-calendar__weekday" role="columnheader"
           :aria-label="`周${label}`">{{ isCard ? label : `周${label}` }}</span>
@@ -160,6 +165,8 @@ function keydown(event: KeyboardEvent, date: Date) {
       <div v-for="week in weeks" :key="week[0].value" class="ym-calendar__week" role="row">
         <div v-for="cell in week" :key="cell.value" class="ym-calendar__cell" role="gridcell" :aria-selected="cell.selected">
           <button class="ym-calendar__day" type="button" :aria-label="cell.value" :aria-pressed="cell.selected"
+            :data-range="range?.position(cell.value)"
+            @pointerenter="range?.preview(cell.blocked ? null : cell.value)" @focus="range?.preview(cell.blocked ? null : cell.value)"
             :aria-describedby="cell.descriptionIds || undefined"
             :data-outside="!cell.inMonth || undefined" :aria-current="cell.today ? 'date' : undefined"
             :disabled="props.disabled || cell.outsideRange" :aria-disabled="cell.blocked || undefined"
