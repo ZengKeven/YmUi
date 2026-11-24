@@ -1,4 +1,5 @@
 import type { InputProps } from '../input'
+import type { PopupProps } from '../popup'
 
 export type SelectKey = string | number
 export type SelectValue = SelectKey | SelectKey[] | null
@@ -31,4 +32,6 @@ export interface SelectProps<Option extends SelectOption = SelectOption> extends
   filter?(query: string, option: Option): boolean
   /** 按关键词加载远程选项，可使用 signal 取消过期请求。 */
   remoteMethod?: (query: string, signal: AbortSignal) => readonly Option[] | Promise<readonly Option[]>
+  /** 设置选项浮层的位置、尺寸、面板样式及类名。 */
+  popupProps?: Omit<PopupProps, 'visible' | 'defaultVisible' | 'trigger' | 'disabled' | 'content'>
 }

@@ -11,6 +11,9 @@ const showGeometry = ref(false)
 const dark = ref(false)
 const compact = ref(false)
 const surface = ref('#f0f2f4')
+const detached = ref<HTMLElement | null>(null)
+const movePanel = ref(false)
+const mountChild = () => detached.value
 </script>
 
 <template>
@@ -28,6 +31,13 @@ const surface = ref('#f0f2f4')
     <output id="popup-changes">{{ changes.join(',') }}</output>
     <label><input v-model="disabled" type="checkbox" /> 禁用单据说明</label>
     <button>浮层外按钮</button>
+    <div id="popup-external-a"></div>
+    <div id="popup-external-b" ref="detached"></div>
+    <YmPopup trigger="focus" attach="#popup-external-a" overlay-class-name="popup-focus-panel">
+      <button>聚焦打开说明</button>
+      <template #content><button>聚焦面板内容</button></template>
+    </YmPopup>
+    <YmPopup trigger="mousedown" content="按下显示" overlay-class-name="popup-mousedown-panel"><button>按下打开说明</button></YmPopup>
     <YmPopup trigger="hover" overlay-class-name="popup-hover-panel">
       <button>悬停查看备注</button>
       <template #content><button>查看备注详情</button></template>
@@ -58,6 +68,17 @@ const surface = ref('#f0f2f4')
     <ConfigProvider :size="compact ? 'small' : 'large'" :mode="dark ? 'dark' : 'light'"
       :theme="{ light: { surface, text: '#493152' }, dark: { surface: '#202530', text: '#e1e2e9' } }">
       <ConfigProvider :radius="compact ? 0 : 11">
+        <YmPopup trigger="context-menu" :attach="movePanel && detached ? detached : '#popup-external-a'" show-arrow :z-index="71"
+          :overlay-class-name="['popup-context', { 'popup-outer-panel': true }]" :overlay-style="() => ({ padding: '7px' })">
+          <button>右键打开说明</button>
+          <template #content>
+            <label><input type="checkbox" v-model="movePanel" /> 切换挂载节点</label>
+            <YmPopup :attach="mountChild" overlay-class-name="popup-child-panel">
+              <button>打开外挂子面板</button>
+              <template #content><button>子面板操作</button></template>
+            </YmPopup>
+          </template>
+        </YmPopup>
         <YmPopup overlay-class-name="popup-global-panel">
           <button>显示全局配置浮层</button>
           <template #content>

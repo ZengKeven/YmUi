@@ -159,8 +159,9 @@ function keydown(e: KeyboardEvent) {
 </script>
 
 <template>
-  <YmPopup class="ym-select" :class="props.class" :style="props.style" :size="props.size" trigger="manual"
-    :visible="open" :disabled="props.disabled" overlay-class-name="ym-select__panel" @update:visible="setOpen">
+  <YmPopup v-bind="props.popupProps" class="ym-select" :class="props.class" :style="props.style"
+    :size="props.size ?? props.popupProps?.size" trigger="manual" :visible="open" :disabled="props.disabled"
+    :overlay-class-name="['ym-select__panel', props.popupProps?.overlayClassName]" @update:visible="setOpen">
     <div ref="control" class="ym-select__control" :data-open="open || undefined" :data-disabled="props.disabled || undefined"
       @click="activate(!searchable)">
       <div class="ym-select__values">

@@ -21,6 +21,8 @@ export default {
   filter: Function as PropType<SelectProps['filter']>,
   /** 远程搜索函数。 */
   remoteMethod: Function as PropType<SelectProps['remoteMethod']>,
+  /** 自定义选项浮层的位置及外观。 */
+  popupProps: Object as PropType<SelectProps['popupProps']>,
   /** 未选择时的提示文字。 */
   placeholder: { type: String, default: '请选择' },
   /** 原生表单字段名，多选值按同名字段分别提交。 */

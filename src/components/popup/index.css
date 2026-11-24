@@ -24,3 +24,20 @@
   overflow-wrap: anywhere;
   box-shadow: 0 .25rem 1rem color-mix(in srgb, var(--ym-color-text) 15%, transparent);
 }
+.ym-popup__panel[data-arrow] { overflow: visible; }
+.ym-popup__scroll { max-height: inherit; max-width: inherit; overflow: auto; }
+.ym-popup__panel[data-arrow]::before {
+  content: '';
+  position: absolute;
+  box-sizing: border-box;
+  width: 10px;
+  height: 10px;
+  border: solid var(--ym-color-border);
+  border-width: 1px 0 0 1px;
+  background: inherit;
+  pointer-events: none;
+}
+.ym-popup__panel[data-placement='bottom']::before { top: -1px; left: var(--ym-popup-arrow-x); transform: translate(-50%, -50%) rotate(45deg); }
+.ym-popup__panel[data-placement='top']::before { bottom: -1px; left: var(--ym-popup-arrow-x); transform: translate(-50%, 50%) rotate(225deg); }
+.ym-popup__panel[data-placement='right']::before { left: -1px; top: var(--ym-popup-arrow-y); transform: translate(-50%, -50%) rotate(-45deg); }
+.ym-popup__panel[data-placement='left']::before { right: -1px; top: var(--ym-popup-arrow-y); transform: translate(50%, -50%) rotate(135deg); }

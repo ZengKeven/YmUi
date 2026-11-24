@@ -25,6 +25,7 @@ category: 表单组件
 | filterable | `boolean` | `false` | 启用本地搜索，按 `label` 进行忽略大小写的包含匹配。 |
 | filter | `(query, option) => boolean` | — | 自定义本地过滤函数，返回 `true` 的选项会保留。传入后即可输入搜索词。 |
 | remoteMethod | `(query, signal) => readonly SelectOption[] \| Promise<readonly SelectOption[]>` | — | 打开列表或修改搜索词时调用。组件直接展示最新一次查询的结果。 |
+| popupProps | `SelectProps['popupProps']` | — | 配置选项浮层的展示方向（`placement`）、附加类名（`overlayClassName`）和行内样式（`overlayStyle`）。浮层开关由选择器管理。 |
 | disabled | `boolean` | `false` | 禁用整个选择器。 |
 | name | `string` | — | 原生表单提交选项的 `value`。多选时每个已选值占一个同名字段。 |
 | form | `string` | — | 关联的原生表单 ID。 |

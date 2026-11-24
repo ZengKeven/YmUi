@@ -6,6 +6,10 @@ export {
   type CheckboxOption, type CheckboxProps, type CheckboxValue,
 } from './components/checkbox'
 export { YmIcon, type IconName, type IconProps } from './components/icon'
+export {
+  YmColorPicker, YmColorPickerPanel, type ColorFormat, type ColorMode, type ColorObject,
+  type ColorPickerChangeContext, type ColorPickerChangeTrigger, type ColorPickerPanelProps, type ColorPickerProps,
+} from './components/color-picker'
 export { YmInput, type InputProps } from './components/input'
 export { YmInputNumber, type InputNumberProps } from './components/input-number'
 export { YmLayout, type LayoutProps } from './components/layout'
