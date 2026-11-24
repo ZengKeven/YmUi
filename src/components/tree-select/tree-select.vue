@@ -169,7 +169,8 @@ watch([control, () => props.form], ([element], _, onCleanup) => {
   <YmPopup class="ym-tree-select" :class="props.class" :style="props.style" :size="props.size" trigger="manual"
     :visible="open" :disabled="props.disabled" overlay-class-name="ym-tree-select__panel" @update:visible="setOpen">
     <div ref="control" class="ym-tree-select__control" :data-open="open || undefined"
-      :data-disabled="props.disabled || undefined" @click="focusAndOpen(!props.filterable)">
+      :data-disabled="props.disabled || undefined" :data-borderless="props.borderless || undefined"
+      @click="focusAndOpen(!props.filterable)">
       <div class="ym-tree-select__values">
         <template v-if="props.multiple">
           <YmTag v-for="key in selection" :key="key" :content="labelFor(key)" variant="light" closable

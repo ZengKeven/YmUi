@@ -14,7 +14,7 @@ export interface TreeSelectOption<Key extends SelectKey = SelectKey> {
 }
 
 export interface TreeSelectProps<Key extends SelectKey = SelectKey> extends
-  Pick<SelectProps, 'size' | 'disabled' | 'placeholder' | 'name' | 'form' | 'class' | 'style'> {
+  Pick<SelectProps, 'size' | 'disabled' | 'borderless' | 'placeholder' | 'name' | 'form' | 'class' | 'style'> {
   /** 树形选项。 */
   options?: readonly TreeSelectOption<Key>[]
   /** 当前选中值，支持 v-model。 */

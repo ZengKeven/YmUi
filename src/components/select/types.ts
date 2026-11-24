@@ -15,7 +15,7 @@ export interface SelectOption {
   [field: string]: any
 }
 
-export interface SelectProps<Option extends SelectOption = SelectOption> extends Pick<InputProps, 'size' | 'placeholder' | 'disabled' | 'class' | 'style' | 'name' | 'form'> {
+export interface SelectProps<Option extends SelectOption = SelectOption> extends Pick<InputProps, 'size' | 'placeholder' | 'disabled' | 'borderless' | 'class' | 'style' | 'name' | 'form'> {
   /** 当前选中值，支持 v-model。 */
   modelValue?: SelectValue
   /** 未受控时的初始选中值。 */

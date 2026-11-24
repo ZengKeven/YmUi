@@ -14,8 +14,9 @@
   font-size: var(--ym-control-font-size);
   cursor: pointer;
 }
-.ym-select__control:not([data-disabled]):is(:hover, :focus-within, [data-open]) { border-color: var(--ym-color-primary); }
+.ym-select__control:not([data-disabled]):where(:hover, :focus-within, [data-open]) { border-color: var(--ym-color-primary); }
 .ym-select__control:focus-within { outline: 2px solid color-mix(in srgb, var(--ym-color-primary) 25%, transparent); }
+.ym-select__control[data-borderless] { border-color: transparent; outline: none; }
 .ym-select__control[data-disabled] { opacity: .55; cursor: not-allowed; }
 .ym-select__values { display: flex; align-items: center; flex: 1; flex-wrap: wrap; gap: .2em; min-width: 0; }
 .ym-select__values:has(> .ym-tag) { padding-block: .1em; }

@@ -27,6 +27,7 @@ category: 表单组件
 | remoteMethod | `(query, signal) => readonly SelectOption[] \| Promise<readonly SelectOption[]>` | — | 打开列表或修改搜索词时调用。组件直接展示最新一次查询的结果。 |
 | popupProps | `SelectProps['popupProps']` | — | 配置选项浮层的展示方向（`placement`）、附加类名（`overlayClassName`）和行内样式（`overlayStyle`）。浮层开关由选择器管理。 |
 | disabled | `boolean` | `false` | 禁用整个选择器。 |
+| borderless | `boolean` | `false` | 开启无边框模式，隐藏选择器输入框的边框。 |
 | name | `string` | — | 原生表单提交选项的 `value`。多选时每个已选值占一个同名字段。 |
 | form | `string` | — | 关联的原生表单 ID。 |
 | size | `extra-small / small / medium / large` | 继承全局尺寸，初始为 `medium` | 设置输入框、选项行及文字的尺寸。 |

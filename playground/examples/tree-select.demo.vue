@@ -25,6 +25,7 @@ const disabledLevels = computed(() => [
   ...(disableRegions.value ? [1] : []),
   ...(disableCities.value ? [2] : []),
 ])
+const borderless = ref(false)
 const disabled = ref(false)
 const size = ref<ControlSize>()
 
@@ -39,7 +40,8 @@ watch(multiple, enabled => {
   <PreviewFrame name="YmTreeSelect">
     <template #preview>
       <YmTreeSelect v-model="selected" :options="warehouses" :multiple="multiple" :filterable="filterable"
-        :disabled-levels="disabledLevels" :disabled="disabled" :size="size" aria-label="仓库范围" placeholder="选择仓库范围" />
+        :disabled-levels="disabledLevels" :borderless="borderless" :disabled="disabled" :size="size"
+        aria-label="仓库范围" placeholder="选择仓库范围" />
     </template>
     <template #controls>
       <label>多选 <YmSwitch v-model="multiple" /></label>
@@ -52,6 +54,7 @@ watch(multiple, enabled => {
           <option v-for="[value, label] in sizes" :key="value" :value="value">{{ label }}</option>
         </select>
       </label>
+      <label>无边框 <YmSwitch v-model="borderless" /></label>
       <label>禁用整个选择器 <YmSwitch v-model="disabled" /></label>
     </template>
   </PreviewFrame>

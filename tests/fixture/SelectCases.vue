@@ -9,6 +9,7 @@ const options = [
   { value: 3, label: 'Charlie 分仓', code: 'WH04' },
 ]
 const selected = ref<SelectValue>(0)
+const borderless = ref(false)
 const many = ref<SelectValue>([])
 const updates = ref<SelectValue[]>([])
 const changes = ref<SelectValue[]>([])
@@ -35,11 +36,12 @@ async function remoteSearch(query: string): Promise<SelectOption[]> {
 
 <template>
   <section id="select-cases">
-    <YmSelect v-model="selected" aria-label="单选仓库" :options="options"
+    <YmSelect v-model="selected" aria-label="单选仓库" :options="options" :borderless="borderless"
       @update:model-value="updates.push($event)" @change="changes.push($event)" />
     <output id="select-updates">{{ JSON.stringify(updates) }}</output>
     <output id="select-changes">{{ JSON.stringify(changes) }}</output>
     <button @click="selected = 3">切换默认仓库</button>
+    <button @click="borderless = !borderless">切换单选仓库边框</button>
     <YmSelect aria-label="锁定仓库" :model-value="0" :options="options" />
     <YmSelect aria-label="禁用仓库" disabled multiple :options="options" :default-value="[3]" />
 

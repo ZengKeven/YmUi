@@ -19,6 +19,8 @@ export default {
   placeholder: selectProps.placeholder,
   /** 禁用整个选择器。 */
   disabled: selectProps.disabled,
+  /** 隐藏选择框边框。 */
+  borderless: selectProps.borderless,
   /** 控件尺寸，省略时继承全局配置。 */
   size: selectProps.size,
   /** 原生表单字段名，多选值分别提交。 */

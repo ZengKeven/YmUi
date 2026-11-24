@@ -4,6 +4,37 @@ test.beforeEach(async ({ page }) => {
   await page.goto('/tests/fixture/')
 })
 
+for (const [component, label, optionRole, optionName] of [
+  ['select', '单选仓库', 'option', 'Bravo 分仓'],
+  ['tree-select', '键盘选仓', 'treeitem', '华东大区'],
+] as const) {
+  test(`${component} toggles borderless styling and still selects an option`, async ({ page }) => {
+    const field = page.getByRole('combobox', { name: label })
+    const control = page.locator(`.ym-${component}__control`).filter({ has: field })
+    const input = control.locator('.ym-input')
+    const toggle = page.getByRole('button', { name: `切换${label}边框` })
+    const transparent = 'rgba(0, 0, 0, 0)'
+
+    await expect(control).not.toHaveCSS('border-top-color', transparent)
+    await toggle.click()
+    await expect(control).toHaveCSS('border-top-color', transparent)
+    await field.hover()
+    await expect(control).toHaveCSS('border-top-color', transparent)
+    await field.click()
+    await expect(field).toBeFocused()
+    await expect(field).toHaveAttribute('aria-expanded', 'true')
+    await expect(control).toHaveCSS('border-top-color', transparent)
+    await expect(control).toHaveCSS('outline-style', 'none')
+    await expect(control).toHaveCSS('box-shadow', 'none')
+    await expect(input).toHaveCSS('border-top-width', '0px')
+    await expect(input).toHaveCSS('box-shadow', 'none')
+    await page.getByRole(optionRole, { name: optionName, exact: true }).click()
+    await expect(field).toHaveValue(optionName)
+    await toggle.click()
+    await expect(control).not.toHaveCSS('border-top-color', transparent)
+  })
+}
+
 test('single selection preserves value types, emits once and follows its owner', async ({ page }) => {
   const field = page.getByRole('combobox', { name: '单选仓库' })
   await expect(field).toHaveValue('Alpha 总仓')

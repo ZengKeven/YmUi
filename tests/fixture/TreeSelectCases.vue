@@ -14,6 +14,7 @@ const options = [
   ] },
 ]
 const many = ref<(number | string)[]>([])
+const borderless = ref(false)
 const levels = ref([1, 2])
 const changes = ref<(number | string)[][]>([])
 const searches = ref<string[]>([])
@@ -31,7 +32,8 @@ const surface = ref('#f5f0e0')
     <output id="tree-searches">{{ JSON.stringify(searches) }}</output>
     <button @click="levels = [2]">仅禁选第二级</button>
     <button @click="levels = []">允许各层级选择</button>
-    <YmTreeSelect aria-label="键盘选仓" :options="options" />
+    <YmTreeSelect aria-label="键盘选仓" :options="options" :borderless="borderless" />
+    <button @click="borderless = !borderless">切换键盘选仓边框</button>
     <YmTreeSelect aria-label="锁定区域" :options="options" model-value="east" />
     <YmTreeSelect aria-label="已禁用的区域" disabled multiple :options="options" :default-value="[0]" />
 

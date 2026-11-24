@@ -163,7 +163,7 @@ function keydown(e: KeyboardEvent) {
     :size="props.size ?? props.popupProps?.size" trigger="manual" :visible="open" :disabled="props.disabled"
     :overlay-class-name="['ym-select__panel', props.popupProps?.overlayClassName]" @update:visible="setOpen">
     <div ref="control" class="ym-select__control" :data-open="open || undefined" :data-disabled="props.disabled || undefined"
-      @click="activate(!searchable)">
+      :data-borderless="props.borderless || undefined" @click="activate(!searchable)">
       <div class="ym-select__values">
         <template v-if="props.multiple">
           <YmTag v-for="item in selectedItems" :key="item.value" :content="item.label"

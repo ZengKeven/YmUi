@@ -23,6 +23,7 @@ category: 表单组件
 | filterable | `boolean` | `false` | 在本地按节点名称过滤，显示匹配项及其祖先路径。清空搜索词后恢复原来的展开状态。 |
 | disabledLevels | `readonly number[]` | `[]` | 指定要禁选的层级，根节点为第 1 层。例如 `[1, 2]` 禁选前两层，第 3 层及更深节点仍可选择。 |
 | disabled | `boolean` | `false` | 禁用整个选择器。 |
+| borderless | `boolean` | `false` | 开启无边框模式，隐藏选择器输入框的边框。 |
 | placeholder | `string` | `请选择` | 空值时的提示文字。 |
 | name | `string` | — | 原生表单字段名，多选时每个已选值作为同名字段提交。 |
 | form | `string` | — | 关联的原生表单 ID。 |
