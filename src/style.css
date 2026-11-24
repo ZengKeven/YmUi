@@ -4,6 +4,7 @@
 @import './components/color-picker/index.css';
 @import './components/icon/index.css';
 @import './components/input/index.css';
+@import './components/date-picker/index.css';
 @import './components/input-number/index.css';
 @import './components/layout/index.css';
 @import './components/loading/index.css';

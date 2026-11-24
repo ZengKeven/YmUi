@@ -99,7 +99,9 @@ test('holiday badges follow the published rest and makeup days, with a name on t
   const nameBox = (await firstName.boundingBox())!
   expect(badgeBox.x + badgeBox.width / 2).toBeGreaterThan(box.x + box.width / 2)
   expect(badgeBox.y + badgeBox.height / 2).toBeLessThan(box.y + box.height / 2)
-  expect(badgeBox.y + badgeBox.height).toBeLessThanOrEqual(dateBox.y)
+  expect(badgeBox.x - (dateBox.x + dateBox.width)).toBeGreaterThanOrEqual(0)
+  expect(badgeBox.x - (dateBox.x + dateBox.width)).toBeLessThanOrEqual(3)
+  expect(Math.abs(badgeBox.y - dateBox.y)).toBeLessThanOrEqual(3)
   expect(nameBox.y).toBeGreaterThanOrEqual(dateBox.y + dateBox.height - 1)
   expect(nameBox.y + nameBox.height).toBeLessThanOrEqual(box.y + box.height + 1)
 

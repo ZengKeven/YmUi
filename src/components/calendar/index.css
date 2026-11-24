@@ -14,8 +14,9 @@
 }
 
 .ym-calendar[data-theme='card'] {
-  width: 20rem;
+  width: 22.5rem;
   max-width: 100%;
+  padding-block: calc(var(--ym-control-padding) * .7);
   padding-inline: calc(var(--ym-control-padding) * .75);
 }
 
@@ -69,6 +70,25 @@
   overflow-wrap: anywhere;
   cursor: pointer;
 }
+.ym-calendar__day-heading {
+  width: 100%;
+}
+.ym-calendar__day-content {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+}
+.ym-calendar[data-theme='card'] .ym-calendar__grid { container-type: inline-size; }
+.ym-calendar[data-theme='card'] .ym-calendar__day-heading {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, max-content) minmax(max-content, 1fr);
+  align-items: start;
+  justify-items: center;
+  font-size: min(1em, 5.5cqi);
+}
+.ym-calendar[data-theme='card'] .ym-calendar__day-content { grid-column: 2; align-items: center; }
+.ym-calendar__number { white-space: nowrap; }
 .ym-calendar[data-theme='card'] .ym-calendar__day {
   align-items: center;
   justify-content: center;
@@ -79,34 +99,44 @@
   padding: 0;
 }
 .ym-calendar[data-theme='card']:is([data-show-lunar], [data-show-holiday]) .ym-calendar__day {
-  width: 100%;
-  min-height: calc(var(--ym-control-height) + 1em);
+  width: calc(100% - 2px);
+  min-height: max(var(--ym-control-height), 2.65em);
   height: 100%;
-}
-.ym-calendar[data-theme='card'][data-show-holiday] .ym-calendar__day {
   justify-content: flex-start;
-  padding-block-end: .15em;
+  padding-block: .15em;
+  line-height: 1.2;
   text-align: center;
-}
-.ym-calendar[data-show-holiday] .ym-calendar__day {
-  padding-block-start: max(.8rem, .9em);
 }
 .ym-calendar__lunar, .ym-calendar__holiday-name {
   font-size: max(.625rem, .8em);
   font-weight: 400;
   line-height: 1.2;
 }
+.ym-calendar[data-theme='card'] :is(.ym-calendar__lunar, .ym-calendar__holiday-name) {
+  font-size: max(.625rem, min(.8em, 3.15cqi));
+}
 .ym-calendar__badge {
-  position: absolute;
-  inset-block-start: 0;
-  inset-inline-end: 0;
-  padding: .08em .16em;
+  flex: none;
+  padding: .05em .1em;
   border-radius: min(.2em, var(--ym-radius));
   background: var(--ym-color-danger);
   color: var(--ym-color-on-accent);
   font-size: max(.625rem, .7em);
   font-weight: 500;
   line-height: 1;
+}
+.ym-calendar[data-theme='card'] .ym-calendar__badge {
+  justify-self: start;
+  margin-inline-start: 1px;
+  transform: translateY(-.08em);
+}
+.ym-calendar[data-theme='full'][data-show-holiday] .ym-calendar__day {
+  padding-block-start: max(.8rem, .9em);
+}
+.ym-calendar[data-theme='full'] .ym-calendar__badge {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-end: 0;
 }
 .ym-calendar__badge[data-workday] { background: var(--ym-color-warning); }
 

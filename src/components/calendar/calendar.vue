@@ -39,10 +39,15 @@ const shownMonth = computed(() => cursorKey.value.slice(0, 7))
 const grid = useTemplateRef<HTMLElement>('grid')
 const calendarId = `ym-calendar-${useId()}`
 
-function placeCursor(date: Date, focus = false) {
+function focus() {
+  grid.value?.querySelector<HTMLButtonElement>('button[tabindex="0"]')?.focus()
+}
+defineExpose({ focus })
+
+function placeCursor(date: Date, moveFocus = false) {
   if (date.getFullYear() < 1 || date.getFullYear() > 9999) return
   cursor.value = date
-  if (focus) nextTick(() => grid.value?.querySelector<HTMLElement>(`button[aria-label="${cursorKey.value}"]`)?.focus())
+  if (moveFocus) nextTick(focus)
 }
 watch(selected, value => {
   const date = parseDate(value)
@@ -144,14 +149,18 @@ function keydown(event: KeyboardEvent, date: Date) {
             :data-outside="!cell.inMonth || undefined" :aria-current="cell.today ? 'date' : undefined"
             :disabled="props.disabled || cell.outsideRange" :aria-disabled="cell.blocked || undefined"
             :tabindex="cell.value === cursorKey ? 0 : -1" @keydown="keydown($event, cell.date)" @click="choose(cell)">
-            <slot name="cell" :date="cell.date" :value="cell.value" :today="cell.today" :selected="cell.selected" :in-month="cell.inMonth">
-              <span class="ym-calendar__number">{{ cell.date.getDate() }}</span>
-            </slot>
+            <span class="ym-calendar__day-heading">
+              <span class="ym-calendar__day-content">
+                <slot name="cell" :date="cell.date" :value="cell.value" :today="cell.today" :selected="cell.selected" :in-month="cell.inMonth">
+                  <span class="ym-calendar__number">{{ cell.date.getDate() }}</span>
+                </slot>
+              </span>
+              <span v-if="cell.holiday" :id="`${cell.id}-badge`" class="ym-calendar__badge"
+                :data-workday="cell.holiday.workday || undefined" :title="cell.holiday.name"
+                :aria-label="cell.holiday.workday ? '补班' : '放假'">{{ cell.holiday.workday ? '班' : '休' }}</span>
+            </span>
             <span v-if="cell.note" :id="`${cell.id}-note`"
               :class="cell.holiday?.firstDay ? 'ym-calendar__holiday-name' : 'ym-calendar__lunar'">{{ cell.note }}</span>
-            <span v-if="cell.holiday" :id="`${cell.id}-badge`" class="ym-calendar__badge"
-              :data-workday="cell.holiday.workday || undefined" :title="cell.holiday.name"
-              :aria-label="cell.holiday.workday ? '补班' : '放假'">{{ cell.holiday.workday ? '班' : '休' }}</span>
           </button>
         </div>
       </div>

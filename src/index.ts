@@ -2,6 +2,7 @@ import { version as packageVersion } from '../package.json'
 
 export { YmButton, type ButtonProps } from './components/button'
 export { YmCalendar, type CalendarCell, type CalendarProps } from './components/calendar'
+export { YmDatePicker, type DatePickerProps } from './components/date-picker'
 export {
   YmCheckbox, YmCheckboxGroup, type CheckboxGroupChangeContext, type CheckboxGroupProps,
   type CheckboxOption, type CheckboxProps, type CheckboxValue,

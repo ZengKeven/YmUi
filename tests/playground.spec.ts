@@ -111,6 +111,28 @@ test('the calendar preview switches between card and full layout and copies its 
   expect(source).toMatch(/\sshow-holiday(?=\s|\/?>)/)
 })
 
+test('the date picker preview selects from the calendar and copies the enabled annotations', async ({ page, context }) => {
+  await context.grantPermissions(['clipboard-read', 'clipboard-write'])
+  await page.goto('/calendar/')
+  await page.locator('#VPSidebarNav').getByRole('link', { name: 'YmDatePicker 日期选择器' }).click()
+  await expect(page).toHaveURL('/date-picker/')
+  const field = page.getByRole('combobox', { name: '收货日期' })
+  await field.click()
+  const panel = page.getByRole('dialog', { name: '选择日期' })
+  await expect(panel.getByRole('button', { name: '2026-10-01' })).toContainText('国庆节')
+  await panel.getByRole('button', { name: '2026-10-02' }).click()
+  await expect(field).toHaveValue('2026-10-02')
+  await page.getByRole('switch', { name: '显示农历' }).uncheck()
+  await field.click()
+  await expect(panel.locator('.ym-calendar__lunar')).toHaveCount(0)
+  await expect(panel.locator('.ym-calendar__badge').first()).toBeVisible()
+  await page.keyboard.press('Escape')
+  const source = await copyPreview(page)
+  expect(source).toContain('<YmDatePicker ')
+  expect(source).toContain(':show-lunar="false"')
+  expect(source).toMatch(/\sshow-holiday(?=\s|\/?>)/)
+})
+
 test('the select preview limits warehouse choices and searches remotely by code', async ({ page, context }) => {
   await context.grantPermissions(['clipboard-read', 'clipboard-write'])
   await page.goto('/button/')
