@@ -14,6 +14,8 @@ export default {
   },
   /** 在公历日期下方显示农历。 */
   showLunar: Boolean,
+  /** 显示节假日和调休补班标记。 */
+  showHoliday: Boolean,
   /** 每周的第一天，默认周一。 */
   firstDayOfWeek: {
     type: Number as PropType<CalendarProps['firstDayOfWeek']>, default: 1,

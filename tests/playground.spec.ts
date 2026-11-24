@@ -79,6 +79,7 @@ test('the color picker preview shares the chosen color with its inline panel and
 
 test('the calendar preview switches between card and full layout and copies its settings', async ({ page, context }) => {
   await context.grantPermissions(['clipboard-read', 'clipboard-write'])
+  await page.clock.setFixedTime(new Date('2026-10-01T12:00:00'))
   await page.goto('/button/')
   await page.locator('#VPSidebarNav').getByRole('link', { name: 'YmCalendar 日历' }).click()
   await expect(page).toHaveURL('/calendar/')
@@ -97,12 +98,17 @@ test('the calendar preview switches between card and full layout and copies its 
   await page.getByLabel('日历尺寸').selectOption('small')
   await page.getByRole('switch', { name: '显示农历' }).check()
   await expect(today.locator('.ym-calendar__lunar')).toBeVisible()
+  await expect(today.locator('.ym-calendar__badge')).toHaveCount(0)
+  await page.getByRole('switch', { name: '显示节假日' }).check()
+  await expect(today.locator('.ym-calendar__badge')).toHaveText('休')
+  await expect(today.locator('.ym-calendar__holiday-name')).toHaveText('国庆节')
   const source = await copyPreview(page)
   expect(source).toContain('<YmCalendar ')
   expect(source).toContain('theme="full"')
   expect(source).toContain('size="small"')
   expect(source).toContain(':first-day-of-week="7"')
   expect(source).toMatch(/\sshow-lunar(?=\s|\/?>)/)
+  expect(source).toMatch(/\sshow-holiday(?=\s|\/?>)/)
 })
 
 test('the select preview limits warehouse choices and searches remotely by code', async ({ page, context }) => {

@@ -74,6 +74,66 @@ test('lunar dates follow the local day, including month starts and leap months',
   await expect(adjacent).toHaveAttribute('aria-pressed', 'true')
 })
 
+test('holiday badges follow the published rest and makeup days, with a name on the first day only', async ({ page }) => {
+  const calendar = page.locator('#holidays')
+  const badges = calendar.locator('.ym-calendar__badge')
+  const toggle = calendar.getByLabel('显示节假日')
+  const first = day(calendar, '2026-10-01')
+  const firstName = first.locator('.ym-calendar__holiday-name')
+  await expect(badges).toHaveCount(0)
+  await toggle.check()
+  await expect(firstName).toHaveText('国庆节')
+  await expect(calendar.locator('.ym-calendar__holiday-name')).toHaveCount(1)
+  for (const date of ['01', '02', '03', '04', '05', '06', '07']) {
+    await expect(day(calendar, `2026-10-${date}`).locator('.ym-calendar__badge')).toHaveText('休')
+  }
+  await expect(day(calendar, '2026-10-08').locator('.ym-calendar__badge')).toHaveCount(0)
+  const makeup = day(calendar, '2026-10-10').locator('.ym-calendar__badge')
+  await expect(makeup).toHaveText('班')
+  await expect(makeup).toHaveAttribute('title', '补班')
+  const colors = await makeup.evaluate(el => [getComputedStyle(el).color, getComputedStyle(el).backgroundColor])
+  expect(colors).toContain('rgb(255, 114, 0)')
+  const box = (await first.boundingBox())!
+  const badgeBox = (await first.locator('.ym-calendar__badge').boundingBox())!
+  const dateBox = (await first.locator('.ym-calendar__number').boundingBox())!
+  const nameBox = (await firstName.boundingBox())!
+  expect(badgeBox.x + badgeBox.width / 2).toBeGreaterThan(box.x + box.width / 2)
+  expect(badgeBox.y + badgeBox.height / 2).toBeLessThan(box.y + box.height / 2)
+  expect(badgeBox.y + badgeBox.height).toBeLessThanOrEqual(dateBox.y)
+  expect(nameBox.y).toBeGreaterThanOrEqual(dateBox.y + dateBox.height - 1)
+  expect(nameBox.y + nameBox.height).toBeLessThanOrEqual(box.y + box.height + 1)
+
+  await page.getByLabel('显示农历').check()
+  await expect(first.locator('.ym-calendar__lunar')).toHaveCount(0)
+  await expect(firstName).toBeVisible()
+  const second = day(calendar, '2026-10-02')
+  await expect(second.locator('.ym-calendar__lunar')).toBeVisible()
+  await first.press('ArrowRight')
+  await second.press('Enter')
+  await toggle.uncheck()
+  await expect(second).toHaveAttribute('aria-pressed', 'true')
+  await expect(firstName).toHaveCount(0)
+  await expect(first.locator('.ym-calendar__lunar')).toBeVisible()
+})
+
+test('spillover dates use their own holiday schedule and an unlisted year has no holiday badges', async ({ page }) => {
+  const calendar = page.locator('#holidays')
+  await calendar.getByLabel('显示节假日').check()
+  await calendar.getByRole('button', { name: '上个月' }).click()
+  const spillover = day(calendar, '2026-10-01')
+  await expect(spillover).toHaveAttribute('data-outside', 'true')
+  await expect(spillover.locator('.ym-calendar__holiday-name')).toHaveText('国庆节')
+  await calendar.getByRole('combobox', { name: '月份' }).click()
+  await page.getByRole('option', { name: '2月', exact: true }).click()
+  await expect(day(calendar, '2026-02-15').locator('.ym-calendar__holiday-name')).toHaveText('春节')
+  await expect(day(calendar, '2026-02-17').locator('.ym-calendar__holiday-name')).toHaveCount(0)
+  await calendar.getByRole('combobox', { name: '年份' }).click()
+  await page.getByRole('option', { name: '2016年', exact: true }).click()
+  await expect(day(calendar, '2016-02-15')).toBeVisible()
+  await expect(calendar.locator('.ym-calendar__badge')).toHaveCount(0)
+  await expect(calendar.locator('.ym-calendar__holiday-name')).toHaveCount(0)
+})
+
 test('navigation and external model changes keep the displayed month separate from the selected date', async ({ page }) => {
   const calendar = page.locator('#controlled')
   await calendar.getByRole('button', { name: '上个月' }).click()

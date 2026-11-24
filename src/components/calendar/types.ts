@@ -22,6 +22,8 @@ export interface CalendarProps {
   theme?: 'full' | 'card'
   /** 在公历日期下方显示农历，初一显示农历月名。 */
   showLunar?: boolean
+  /** 标记内置安排中的放假日、补班日，并在假期首日显示节名。 */
+  showHoliday?: boolean
   /** 每周的第一天，1 为周一，7 为周日。 */
   firstDayOfWeek?: 1 | 2 | 3 | 4 | 5 | 6 | 7
   /** 返回 true 时禁止选中该本地日期。 */

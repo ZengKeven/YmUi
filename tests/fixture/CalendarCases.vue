@@ -11,6 +11,7 @@ const picks = ref<string[]>([])
 const pickerChanges = ref<string[]>([])
 const sundayFirst = ref(false)
 const showLunar = ref(false)
+const showHoliday = ref(false)
 const disabled = ref(false)
 const dark = ref(false)
 const compact = ref(false)
@@ -40,6 +41,11 @@ const weekend = (date: Date) => date.getDay() === 0 || date.getDay() === 6
     <label><input v-model="disabled" type="checkbox" />禁用日历</label>
   </section>
   <section id="empty"><YmCalendar /></section>
+  <section id="holidays">
+    <label><input v-model="showHoliday" type="checkbox" />显示节假日</label>
+    <YmCalendar theme="card" size="extra-small" default-value="2026-10-01"
+      :show-holiday="showHoliday" :show-lunar="showLunar" />
+  </section>
   <section id="uncontrolled"><YmCalendar default-value="2023-12-31" /></section>
   <section id="locked"><YmCalendar model-value="2024-01-12" /></section>
   <section id="picker">
