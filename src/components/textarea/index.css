@@ -3,7 +3,8 @@
   --ym-textarea-max-rows: initial;
   --ym-textarea-status-color: initial;
   --ym-textarea-muted: color-mix(in srgb, var(--ym-color-text) 62%, var(--ym-color-surface));
-  --ym-textarea-padding-y: calc(var(--ym-control-padding) / 2);
+  --ym-textarea-padding-x: max(.25rem, calc(var(--ym-control-padding) - .25rem));
+  --ym-textarea-padding-y: calc(var(--ym-textarea-padding-x) / 2);
   display: inline-flex;
   flex-direction: column;
   width: 100%;
@@ -28,7 +29,7 @@
   box-sizing: border-box;
   width: 100%;
   min-width: 0;
-  padding: var(--ym-textarea-padding-y) var(--ym-control-padding);
+  padding: var(--ym-textarea-padding-y) var(--ym-textarea-padding-x);
   border: 1px solid var(--ym-textarea-status-color, var(--ym-color-border));
   border-radius: var(--ym-radius);
   outline: none;
@@ -38,7 +39,7 @@
   resize: vertical;
 }
 .ym-textarea__field:has(> .ym-textarea__count-anchor) > .ym-textarea__control {
-  padding-inline-end: calc(var(--ym-textarea-count-width) + var(--ym-textarea-count-inset) + .5em);
+  padding-inline-end: calc(var(--ym-textarea-count-width) + var(--ym-textarea-count-inset) + var(--ym-textarea-padding-y));
 }
 .ym-textarea__control::placeholder { color: var(--ym-textarea-muted); opacity: 1; }
 .ym-textarea__control:enabled:is(:hover, :focus) {
