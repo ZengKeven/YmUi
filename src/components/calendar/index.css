@@ -14,7 +14,7 @@
 }
 
 .ym-calendar[data-theme='card'] {
-  width: 22.5rem;
+  width: 21rem;
   max-width: 100%;
   padding-block: calc(var(--ym-control-padding) * .7);
   padding-inline: calc(var(--ym-control-padding) * .75);
