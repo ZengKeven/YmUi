@@ -1,4 +1,6 @@
 .ym-switch {
+  --ym-switch-accent: var(--ym-color-primary);
+  --ym-switch-on-accent: var(--ym-color-on-accent);
   --ym-switch-height: calc(var(--ym-control-height) * .75);
   --ym-switch-inset: 2px;
   --ym-switch-thumb: calc(var(--ym-switch-height) - 2 * var(--ym-switch-inset));
@@ -25,9 +27,17 @@
   transition: background-color 140ms;
 }
 
+.ym-switch[data-theme='default'] {
+  --ym-switch-accent: var(--ym-color-text);
+  --ym-switch-on-accent: var(--ym-color-surface);
+}
+.ym-switch[data-theme='success'] { --ym-switch-accent: var(--ym-color-success); }
+.ym-switch[data-theme='warning'] { --ym-switch-accent: var(--ym-color-warning); }
+.ym-switch[data-theme='danger'] { --ym-switch-accent: var(--ym-color-danger); }
+
 .ym-switch[aria-checked='true'] {
-  background-color: var(--ym-color-primary);
-  color: var(--ym-color-on-accent);
+  background-color: var(--ym-switch-accent);
+  color: var(--ym-switch-on-accent);
 }
 
 .ym-switch__thumb {
@@ -38,7 +48,8 @@
   inline-size: var(--ym-switch-thumb);
   block-size: var(--ym-switch-thumb);
   border-radius: 50%;
-  background-color: var(--ym-color-on-accent);
+  background-color: var(--ym-switch-on-accent);
+  color: var(--ym-switch-accent);
   transition: inset-inline-start 140ms;
 }
 
@@ -54,7 +65,7 @@
   padding-inline: .5em var(--ym-switch-height);
 }
 
-.ym-switch:focus-visible { outline: 2px solid var(--ym-color-primary); outline-offset: 2px; }
+.ym-switch:focus-visible { outline: 2px solid var(--ym-switch-accent); outline-offset: 2px; }
 .ym-switch[aria-busy='true'] { cursor: progress; }
 .ym-switch:disabled { opacity: .5; cursor: not-allowed; }
 

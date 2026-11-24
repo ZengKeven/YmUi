@@ -119,3 +119,28 @@ test('the track responds to provider size, radius, mode and theme while a local 
     await expect(toggle).toHaveCSS('border-top-left-radius', '0px')
   }
 })
+
+test('the selected theme colors the on track using the current provider palette', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  const toggle = page.getByRole('switch', { name: '局部尺寸的开关' })
+  const theme = page.getByRole('combobox', { name: '开关主题', exact: true })
+  for (const [name, color] of [
+    ['primary', 'rgb(36, 104, 84)'], ['success', 'rgb(25, 120, 73)'],
+    ['warning', 'rgb(145, 80, 0)'], ['danger', 'rgb(170, 51, 68)'],
+  ]) {
+    await theme.selectOption(name)
+    await expect(toggle).toHaveCSS('background-color', color)
+  }
+  await page.getByLabel('开关深色模式').check()
+  await expect(toggle).toHaveCSS('background-color', 'rgb(255, 102, 119)')
+  await theme.selectOption('default')
+  await expect(toggle).toHaveCSS('background-color', 'rgb(204, 221, 238)')
+  await expect(toggle.locator('.ym-switch__thumb')).toHaveCSS('background-color', 'rgb(34, 34, 51)')
+
+  await page.getByLabel('开关深色模式').uncheck()
+  await toggle.uncheck()
+  const offColor = 'rgb(170, 187, 204)'
+  await expect(toggle).toHaveCSS('background-color', offColor)
+  await theme.selectOption('warning')
+  await expect(toggle).toHaveCSS('background-color', offColor)
+})

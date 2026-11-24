@@ -49,11 +49,11 @@ async function toggle(e: MouseEvent) {
 </script>
 
 <template>
-  <button type="button" role="switch" class="ym-switch" :data-size="props.size"
+  <button type="button" role="switch" class="ym-switch" :data-size="props.size" :data-theme="props.theme"
     :aria-checked="checked" :disabled="props.disabled"
     :aria-busy="busy || undefined" :aria-disabled="busy || undefined" @click="toggle">
     <span class="ym-switch__thumb" aria-hidden="true">
-      <YmLoading v-if="busy" size="var(--ym-switch-spinner)" />
+      <YmLoading v-if="busy" inherit-color size="var(--ym-switch-spinner)" />
     </span>
     <span v-if="$slots.label || label" class="ym-switch__label">
       <slot name="label" :value="value" :checked="checked">{{ label }}</slot>

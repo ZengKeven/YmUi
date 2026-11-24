@@ -1,6 +1,6 @@
 <script setup lang="ts" vapor>
 import { ref } from 'vue'
-import { ConfigProvider, YmSwitch, type ControlSize, type SwitchValue } from 'ym-ui-vapor'
+import { ConfigProvider, YmSwitch, type ControlSize, type SwitchProps, type SwitchValue } from 'ym-ui-vapor'
 
 const enabled = ref(false)
 const events = ref<string[]>([])
@@ -29,6 +29,7 @@ const dark = ref(false)
 const lightPrimary = ref('#246854')
 const flat = ref(false)
 const size = ref<ControlSize>('medium')
+const theme = ref<SwitchProps['theme']>('primary')
 </script>
 
 <template>
@@ -67,13 +68,19 @@ const size = ref<ControlSize>('medium')
       </select>
     </label>
     <label>开关浅色主题色 <input v-model="lightPrimary" type="color" /></label>
+    <label>开关主题
+      <select v-model="theme">
+        <option>default</option><option>primary</option><option>success</option><option>warning</option><option>danger</option>
+      </select>
+    </label>
     <label><input v-model="dark" type="checkbox" />开关深色模式</label>
     <label><input v-model="flat" type="checkbox" />开关直角</label>
     <ConfigProvider :size="size" :mode="dark ? 'dark' : 'light'"
-      :theme="{ light: { primary: lightPrimary }, dark: { primary: '#aaccee' } }">
-      <ConfigProvider :radius="flat ? 0 : 4">
+      :theme="{ light: { primary: lightPrimary, success: '#197849', warning: '#915000', danger: '#aa3344', border: '#aabbcc' },
+        dark: { primary: '#aaccee', danger: '#ee8899' } }">
+      <ConfigProvider :radius="flat ? 0 : 4" :theme="{ dark: { danger: '#ff6677', text: '#ccddee', surface: '#222233' } }">
         <YmSwitch aria-label="继承配置的开关" :default-value="true" />
-        <YmSwitch aria-label="局部尺寸的开关" size="small" :default-value="true" />
+        <YmSwitch aria-label="局部尺寸的开关" size="small" :theme="theme" :default-value="true" />
       </ConfigProvider>
     </ConfigProvider>
   </section>

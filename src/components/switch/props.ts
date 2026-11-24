@@ -1,5 +1,5 @@
 import type { ComponentObjectPropsOptions, PropType } from 'vue'
-import inputProps from '../input/props'
+import buttonProps from '../button/props'
 import type { SwitchProps, SwitchValue } from './types'
 
 const valueProp = { type: [String, Number, Boolean] as PropType<SwitchValue>, default: undefined }
@@ -25,6 +25,8 @@ export default {
   disabled: Boolean,
   /** 是否正在加载。 */
   loading: Boolean,
+  /** 开关的语义色，默认使用主色。 */
+  theme: { ...buttonProps.theme, default: 'primary' },
   /** 局部尺寸，默认继承。 */
-  size: inputProps.size,
+  size: buttonProps.size,
 } satisfies ComponentObjectPropsOptions<SwitchProps>

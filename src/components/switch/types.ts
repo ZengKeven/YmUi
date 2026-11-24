@@ -1,3 +1,4 @@
+import type { ButtonProps } from '../button'
 import type { ControlSize } from '../config-provider/types'
 
 export type SwitchValue = boolean | string | number
@@ -19,6 +20,8 @@ export interface SwitchProps<Value extends SwitchValue = SwitchValue> {
   disabled?: boolean
   /** 是否显示加载指示并暂停切换。 */
   loading?: boolean
+  /** 开关的语义色，默认使用主色。 */
+  theme?: ButtonProps['theme']
   /** 开关尺寸，省略时继承全局配置。 */
   size?: ControlSize
 }
