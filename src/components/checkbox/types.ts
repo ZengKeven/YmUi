@@ -1,8 +1,11 @@
+import type { ButtonProps } from '../button'
 import type { ControlSize } from '../config-provider/types'
 
 export type CheckboxValue = string | number | boolean
 
 export interface CheckboxProps {
+  /** 选项的语义色，默认继承分组，独立使用时为 primary。 */
+  theme?: ButtonProps['theme']
   /** 单独使用时的选中状态，支持 v-model。 */
   modelValue?: boolean
   /** 单独使用且未绑定选中状态时的初始值。 */
@@ -22,6 +25,8 @@ export interface CheckboxProps {
 }
 
 export type CheckboxOption = CheckboxValue | {
+  /** 此选项的语义色，省略时继承分组。 */
+  theme?: CheckboxProps['theme']
   /** 组内唯一的选项值。 */
   value: CheckboxValue
   /** 标签文字，省略时显示选项值。 */
@@ -31,6 +36,8 @@ export type CheckboxOption = CheckboxValue | {
 }
 
 export interface CheckboxGroupProps {
+  /** 组内选项的默认语义色。 */
+  theme?: CheckboxProps['theme']
   /** 已选值列表，支持 v-model。 */
   modelValue?: readonly CheckboxValue[]
   /** 未绑定已选列表时的初始选中值。 */

@@ -1,6 +1,6 @@
 <script setup lang="ts" vapor>
 import { ref } from 'vue'
-import { ConfigProvider, YmCheckbox, YmCheckboxGroup, type CheckboxGroupChangeContext, type CheckboxValue } from 'ym-ui-vapor'
+import { ConfigProvider, YmCheckbox, YmCheckboxGroup, type CheckboxGroupChangeContext, type CheckboxProps, type CheckboxValue } from 'ym-ui-vapor'
 
 const checked = ref(false)
 const mixed = ref(true)
@@ -17,6 +17,7 @@ const compact = ref(false)
 const dark = ref(false)
 const primary = ref('#236547')
 const groupSize = ref(false)
+const groupTheme = ref<CheckboxProps['theme']>('primary')
 
 function recordGroup(values: CheckboxValue[], { current, type, e }: CheckboxGroupChangeContext) {
   groupChanges.value.push(`${JSON.stringify(values)} ${type} ${JSON.stringify(current)} ${e.type}`)
@@ -53,20 +54,25 @@ function recordGroup(values: CheckboxValue[], { current, type, e }: CheckboxGrou
     <output id="checkbox-group-updates">{{ JSON.stringify(groupUpdates) }}</output>
     <output id="checkbox-group-changes">{{ groupChanges.join('; ') }}</output>
     <output id="checkbox-item-events">{{ itemUpdates.join(',') }}/{{ itemChanges.join(',') }}</output>
-    <YmCheckboxGroup aria-label="配送方式" :default-value="['自提']"
-      :options="['自提', 0, false, { value: 'express', label: '快递' }, { value: 'stop', label: '暂停配送', disabled: true }]" />
+    <YmCheckboxGroup aria-label="配送方式" theme="success" :default-value="['自提']"
+      :options="['自提', 0, false, { value: 'express', label: '快递', theme: 'warning' }, { value: 'stop', label: '暂停配送', disabled: true }]" />
 
     <label>复选框浅色主色 <input v-model="primary" type="color" /></label>
     <button @click="compact = !compact">调整复选框尺寸圆角</button>
     <button @click="dark = !dark">调整复选框模式</button>
     <button @click="groupSize = !groupSize">调整分组局部尺寸</button>
+    <label>复选框分组主题
+      <select v-model="groupTheme">
+        <option>primary</option><option>success</option><option>warning</option><option>danger</option><option>default</option>
+      </select>
+    </label>
     <ConfigProvider :mode="dark ? 'dark' : 'light'" :size="compact ? 'small' : 'large'"
-      :theme="{ light: { primary }, dark: { primary: '#99bbdd' } }">
-      <ConfigProvider :radius="compact ? 0 : 9">
+      :theme="{ light: { primary, success: '#127949' }, dark: { primary: '#99bbdd' } }">
+      <ConfigProvider :radius="compact ? 0 : 9" :theme="{ dark: { warning: '#efab44', text: '#ccddee', surface: '#203040' } }">
         <YmCheckbox default-checked label="继承单项" />
-        <YmCheckboxGroup :default-value="['inherit', 'local']" :size="groupSize ? 'medium' : undefined">
+        <YmCheckboxGroup :default-value="['inherit']" :size="groupSize ? 'medium' : undefined" :theme="groupTheme">
           <YmCheckbox value="inherit">继承分组</YmCheckbox>
-          <YmCheckbox size="extra-small" value="local">局部复选框</YmCheckbox>
+          <YmCheckbox size="extra-small" value="local" theme="default" indeterminate>局部复选框</YmCheckbox>
         </YmCheckboxGroup>
       </ConfigProvider>
     </ConfigProvider>

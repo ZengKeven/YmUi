@@ -41,7 +41,7 @@ async function change(e: Event) {
 </script>
 
 <template>
-  <label class="ym-radio" :data-size="props.size">
+  <label class="ym-radio" :data-size="props.size" :data-theme="props.theme ?? group?.theme ?? 'primary'">
     <input v-bind="$attrs" class="ym-radio__input" type="radio" :name="group?.name ?? props.name"
       :value="String(props.value ?? 'on')" :disabled="disabled" :checked="checked ?? initiallyChecked"
       :data-ym-radio-selected="checked || undefined" @change="change" />

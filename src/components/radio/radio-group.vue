@@ -21,6 +21,7 @@ const selected = computed(() => props.modelValue ?? model.value ?? initialValue)
 const options = computed(() => props.options?.map(option => typeof option === 'object' ? option : { value: option }))
 
 provide(radioGroupKey, {
+  get theme() { return props.theme },
   get selected() { return selected.value },
   get name() { return props.name || defaultName },
   get disabled() { return props.disabled },

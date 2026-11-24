@@ -65,6 +65,18 @@
 :where(.ym-theme[data-theme='dark']) { color-scheme: dark; }
 :where(.ym-theme[data-theme='auto']) { color-scheme: light dark; }
 
+:where(.ym-checkbox, .ym-radio) {
+  --ym-choice-accent: var(--ym-color-primary);
+  --ym-choice-on-accent: var(--ym-color-on-accent);
+}
+:where(.ym-checkbox, .ym-radio)[data-theme='default'] {
+  --ym-choice-accent: var(--ym-color-text);
+  --ym-choice-on-accent: var(--ym-color-surface);
+}
+:where(.ym-checkbox, .ym-radio)[data-theme='success'] { --ym-choice-accent: var(--ym-color-success); }
+:where(.ym-checkbox, .ym-radio)[data-theme='warning'] { --ym-choice-accent: var(--ym-color-warning); }
+:where(.ym-checkbox, .ym-radio)[data-theme='danger'] { --ym-choice-accent: var(--ym-color-danger); }
+
 :where(:root, :is(.ym-theme, .ym-button, .ym-checkbox, .ym-checkbox-group, .ym-input, .ym-menu, .ym-pagination, .ym-popup, .ym-radio, .ym-radio-group, .ym-steps, .ym-switch, .ym-tabs, .ym-tag)[data-size='medium']) {
   --ym-control-height: 2rem;
   --ym-tag-font-size: .75rem;

@@ -60,6 +60,7 @@ test('rejected updates restore the previous radio and unnamed groups stay indepe
   await expect(independent).toHaveCSS('flex-direction', 'column')
   await expect(independent.getByRole('radio', { checked: true })).toHaveCount(0)
   await second.check()
+  await expect(second).toHaveCSS('background-color', 'rgb(10, 191, 91)')
   await candidate.click()
   await expect(page.locator('#radio-rejected')).toHaveText('["b"]')
   await expect(previous).toBeChecked()
@@ -90,4 +91,30 @@ test('radio size, palette and focus radius follow nested providers and local ove
   await expect(inherited).toHaveCSS('width', '14px')
   await expect(grouped).toHaveCSS('width', '16px')
   await expect(smaller).toHaveCSS('width', '13px')
+})
+
+test('radio group themes follow the palette and selected options can override their group', async ({ page }) => {
+  const group = page.getByRole('radiogroup', { name: '单选框主题展示' })
+  const grouped = group.getByRole('radio', { name: '继承组尺寸' })
+  const local = group.getByRole('radio', { name: '显式单项尺寸' })
+  const theme = page.getByRole('combobox', { name: '单选框分组主题' })
+  for (const [value, color] of [
+    ['primary', 'rgb(36, 104, 84)'], ['warning', 'rgb(145, 80, 0)'], ['success', 'rgb(10, 191, 91)'],
+  ]) {
+    await theme.selectOption(value)
+    await expect(grouped).toHaveCSS('background-color', color)
+    await expect(grouped).toHaveCSS('border-top-color', color)
+  }
+  await theme.selectOption('danger')
+  await page.getByRole('button', { name: '切换单选框配色模式' }).click()
+  await expect(grouped).toHaveCSS('background-color', 'rgb(255, 102, 119)')
+  await grouped.press('Space')
+  await expect(group.locator('label:focus-within')).toHaveCSS('outline-color', 'rgb(255, 102, 119)')
+  await local.check()
+  await expect(local).toHaveCSS('background-color', 'rgb(204, 221, 238)')
+  const dot = await local.evaluate(el => getComputedStyle(el, '::before').backgroundColor)
+  expect(dot).toBe('rgb(32, 48, 64)')
+  await expect(grouped).toHaveCSS('background-color', 'rgb(32, 48, 64)')
+  await grouped.hover()
+  await expect(grouped).toHaveCSS('border-top-color', 'rgb(255, 102, 119)')
 })

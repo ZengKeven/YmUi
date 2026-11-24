@@ -21,6 +21,7 @@ const options = computed(() => props.options?.map(option =>
 ))
 
 provide(checkboxGroupKey, {
+  get theme() { return props.theme },
   get selected() { return selected.value },
   get disabled() { return props.disabled },
   get name() { return props.name },

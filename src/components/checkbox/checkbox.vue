@@ -35,7 +35,7 @@ async function change(e: Event) {
 </script>
 
 <template>
-  <label class="ym-checkbox" :data-size="props.size">
+  <label class="ym-checkbox" :data-size="props.size" :data-theme="props.theme ?? group?.theme ?? 'primary'">
     <input v-bind="$attrs" class="ym-checkbox__input" type="checkbox"
       :name="props.name ?? group?.name" :value="String(props.value ?? 'on')"
       :disabled="disabled" :checked="checked ?? initialChecked" :indeterminate="props.indeterminate"

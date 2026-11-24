@@ -71,6 +71,8 @@ test('option groups render primitive and labeled options and track an uncontroll
   await delivery.getByRole('checkbox', { name: '0' }).check()
   await delivery.getByRole('checkbox', { name: 'false' }).check()
   await delivery.getByRole('checkbox', { name: '快递' }).check()
+  await expect(delivery.getByRole('checkbox', { name: '快递' })).toHaveCSS('background-color', 'rgb(255, 114, 0)')
+  await expect(delivery.getByRole('checkbox', { name: '自提' })).toHaveCSS('background-color', 'rgb(10, 191, 91)')
   await delivery.getByRole('checkbox', { name: '自提' }).uncheck()
   await expect(delivery.getByRole('checkbox', { checked: true })).toHaveCount(3)
 })
@@ -97,4 +99,30 @@ test('checkboxes inherit live size, palette, mode and radius through a nested pr
   await cases.getByRole('button', { name: '调整分组局部尺寸' }).click()
   await expect(grouped).toHaveCSS('height', '16px')
   await expect(local).toHaveCSS('height', '13px')
+})
+
+test('checkbox themes color selected and mixed indicators, with a local theme overriding its group', async ({ page }) => {
+  const grouped = page.getByRole('checkbox', { name: '继承分组' })
+  const mixed = page.getByRole('checkbox', { name: '局部复选框' })
+  const theme = page.getByRole('combobox', { name: '复选框分组主题' })
+  for (const [value, color] of [
+    ['primary', 'rgb(35, 101, 71)'], ['success', 'rgb(18, 121, 73)'], ['danger', 'rgb(229, 69, 69)'],
+  ]) {
+    await theme.selectOption(value)
+    await expect(grouped).toHaveCSS('background-color', color)
+    await expect(grouped).toHaveCSS('border-top-color', color)
+  }
+  await theme.selectOption('warning')
+  await page.getByRole('button', { name: '调整复选框模式' }).click()
+  await expect(grouped).toHaveCSS('background-color', 'rgb(239, 171, 68)')
+  await expect(mixed).toBeChecked({ indeterminate: true })
+  await expect(mixed).toHaveCSS('background-color', 'rgb(204, 221, 238)')
+  const line = await mixed.evaluate(el => getComputedStyle(el, '::before').borderBottomColor)
+  expect(line).toBe('rgb(32, 48, 64)')
+  await grouped.press('Space')
+  await expect(grouped).not.toBeChecked()
+  await expect(grouped).toHaveCSS('background-color', 'rgb(32, 48, 64)')
+  await expect(grouped).toHaveCSS('outline-color', 'rgb(239, 171, 68)')
+  await grouped.hover()
+  await expect(grouped).toHaveCSS('border-top-color', 'rgb(239, 171, 68)')
 })

@@ -30,17 +30,17 @@
   border: 1px solid var(--ym-color-border);
   border-radius: var(--ym-radius);
   background-color: var(--ym-color-surface);
-  color: var(--ym-color-on-accent);
+  color: var(--ym-choice-on-accent);
   cursor: inherit;
 }
 
 .ym-checkbox:hover .ym-checkbox__input:enabled,
 .ym-checkbox__input:is(:checked, :indeterminate) {
-  border-color: var(--ym-color-primary);
+  border-color: var(--ym-choice-accent);
 }
 
 .ym-checkbox__input:is(:checked, :indeterminate) {
-  background-color: var(--ym-color-primary);
+  background-color: var(--ym-choice-accent);
 }
 
 .ym-checkbox__input:checked::before {
@@ -62,7 +62,7 @@
   transform: none;
 }
 
-.ym-checkbox__input:focus-visible { outline: 2px solid var(--ym-color-primary); outline-offset: 2px; }
+.ym-checkbox__input:focus-visible { outline: 2px solid var(--ym-choice-accent); outline-offset: 2px; }
 .ym-checkbox:has(.ym-checkbox__input:disabled) { opacity: 0.5; cursor: not-allowed; }
 .ym-checkbox__label:empty { display: none; }
 

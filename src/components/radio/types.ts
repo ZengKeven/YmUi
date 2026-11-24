@@ -1,8 +1,11 @@
+import type { ButtonProps } from '../button'
 import type { ControlSize } from '../config-provider/types'
 
 export type RadioValue = string | number | boolean
 
 export interface RadioProps {
+  /** 选项的语义色，默认继承分组，独立使用时为 primary。 */
+  theme?: ButtonProps['theme']
   /** 独立使用时的选中状态，支持 v-model。 */
   modelValue?: boolean
   /** 未绑定选中状态时的初始状态。 */
@@ -20,6 +23,8 @@ export interface RadioProps {
 }
 
 export type RadioOption = RadioValue | {
+  /** 此选项的语义色，省略时继承分组。 */
+  theme?: RadioProps['theme']
   /** 组内唯一的选项值。 */
   value: RadioValue
   /** 标签文字，默认显示选项值。 */
@@ -29,6 +34,8 @@ export type RadioOption = RadioValue | {
 }
 
 export interface RadioGroupProps {
+  /** 组内选项的默认语义色。 */
+  theme?: RadioProps['theme']
   /** 当前选项值，支持 v-model。 */
   modelValue?: RadioValue
   /** 未绑定选项值时的初始选择。 */

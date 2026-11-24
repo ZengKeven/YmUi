@@ -40,19 +40,19 @@
 }
 
 .ym-radio:hover .ym-radio__input:enabled,
-.ym-radio__input:checked { border-color: var(--ym-color-primary); }
-.ym-radio__input:checked { background-color: var(--ym-color-primary); }
+.ym-radio__input:checked { border-color: var(--ym-choice-accent); }
+.ym-radio__input:checked { background-color: var(--ym-choice-accent); }
 .ym-radio__input:checked::before {
   content: '';
   width: 50%;
   height: 50%;
   border-radius: 50%;
-  background-color: var(--ym-color-on-accent);
+  background-color: var(--ym-choice-on-accent);
 }
 
 .ym-radio__input:focus-visible { outline: none; }
 .ym-radio:has(> .ym-radio__input:focus-visible) {
-  outline: 2px solid var(--ym-color-primary);
+  outline: 2px solid var(--ym-choice-accent);
   outline-offset: 2px;
 }
 .ym-radio:has(> .ym-radio__input:disabled) { opacity: 0.5; cursor: not-allowed; }

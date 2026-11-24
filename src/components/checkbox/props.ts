@@ -1,4 +1,5 @@
 import type { ComponentObjectPropsOptions, PropType } from 'vue'
+import buttonProps from '../button/props'
 import type { CheckboxGroupProps, CheckboxProps } from './types'
 
 const sizeProp = {
@@ -7,6 +8,8 @@ const sizeProp = {
 }
 
 export default {
+  /** 单项的语义色，默认继承分组。 */
+  theme: buttonProps.theme,
   /** 单个复选框的选中状态。 */
   modelValue: { type: Boolean, default: undefined },
   /** 未绑定 v-model 时的初始状态。 */
@@ -26,6 +29,8 @@ export default {
 } satisfies ComponentObjectPropsOptions<CheckboxProps>
 
 export const checkboxGroupProps = {
+  /** 组内选项的默认语义色。 */
+  theme: { ...buttonProps.theme, default: 'primary' },
   /** 组选中值列表。 */
   modelValue: Array as PropType<CheckboxGroupProps['modelValue']>,
   /** 未绑定 v-model 时的初始选中值。 */

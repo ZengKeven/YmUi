@@ -21,17 +21,19 @@ category: 表单组件
 | YmRadio.disabled | `boolean` | `false` | 禁用当前项。所属组禁用时，所有子项都禁用。 |
 | YmRadio.name | `string` | — | 单独使用时设置原生表单字段名。组内统一使用组名。 |
 | YmRadio.size | `ControlSize` | 继承 | 控制选项的圆点尺寸与标签字号。 |
+| YmRadio.theme | `default / primary / success / warning / danger` | 继承所属组，单独使用时为 `primary` | 设置选中指示器、悬停边框和键盘焦点环的颜色。 |
 | YmRadioGroup.modelValue | `RadioValue` | `defaultValue` | 已选中的选项值，支持 `v-model`。 |
 | YmRadioGroup.defaultValue | `RadioValue` | — | 省略 `modelValue` 时的初始选中值。 |
-| YmRadioGroup.options | `readonly RadioOption[]` | — | 传入选项值，或含有 `value`、可选 `label` 和 `disabled` 的对象。 |
+| YmRadioGroup.options | `readonly RadioOption[]` | — | 每项可直接传值，也可传 `{ value, label?, disabled?, theme? }`。选项的 `theme` 优先于组主题。 |
 | YmRadioGroup.name | `string` | 自动生成 | 组内所有单选框共用的原生表单字段名。 |
 | YmRadioGroup.disabled | `boolean` | `false` | 禁用整组，保留当前选择。 |
 | YmRadioGroup.direction | `horizontal / vertical` | `horizontal` | 指定选项横向或纵向排列。 |
 | YmRadioGroup.size | `ControlSize` | 继承 | 设置整组选项的尺寸及间距，子项可显式覆盖自身尺寸。 |
+| YmRadioGroup.theme | `default / primary / success / warning / danger` | `primary` | 为组内选项统一设置语义色，子项可用自己的 `theme` 覆盖。 |
 
 `RadioValue` 可以是字符串、数字或布尔值。比如 `:value="0"` 表示数字，`value="0"` 表示字符串。
 
-单选框继承最近的 `ConfigProvider`，嵌套配置逐项覆盖。`size` 有 `extra-small`、`small`、`medium`、`large` 四档，初始为 `medium`。`mode` 和 `theme` 控制文字、圆点、边框与焦点配色。`radius` 控制标签键盘焦点轮廓的圆角，设为 `0` 时轮廓为直角。单选指示器保持圆形。
+单选框继承最近的 `ConfigProvider`，嵌套配置逐项覆盖。`size` 有 `extra-small`、`small`、`medium`、`large` 四档，初始为 `medium`。组件的 `theme` 从当前调色板选取语义色，例如 `theme="success"` 会随全局 `mode` 使用浅色或深色调色板中的 `success`。`default` 使用中性色。`radius` 控制标签键盘焦点轮廓的圆角，设为 `0` 时轮廓为直角。单选指示器保持圆形。
 
 ## 事件
 
@@ -67,6 +69,6 @@ const options = [
 </script>
 
 <template>
-  <YmRadioGroup v-model="delivery" name="delivery" aria-label="配送方式" :options="options" />
+  <YmRadioGroup v-model="delivery" theme="success" name="delivery" aria-label="配送方式" :options="options" />
 </template>
 ```

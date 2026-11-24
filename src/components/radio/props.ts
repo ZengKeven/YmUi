@@ -1,4 +1,5 @@
 import type { ComponentObjectPropsOptions, PropType } from 'vue'
+import buttonProps from '../button/props'
 import type { RadioGroupProps, RadioProps } from './types'
 
 const valueProp = { type: [String, Number, Boolean] as PropType<RadioProps['value']>, default: undefined }
@@ -8,6 +9,8 @@ const sizeProp = {
 }
 
 export default {
+  /** 单项的语义色，默认继承分组。 */
+  theme: buttonProps.theme,
   /** 独立使用时的选中状态。 */
   modelValue: { type: Boolean, default: undefined },
   /** 未绑定选中状态时的初始值。 */
@@ -25,6 +28,8 @@ export default {
 } satisfies ComponentObjectPropsOptions<RadioProps>
 
 export const radioGroupProps = {
+  /** 组内选项的默认语义色。 */
+  theme: { ...buttonProps.theme, default: 'primary' },
   /** 当前选中的选项值。 */
   modelValue: valueProp,
   /** 未绑定时的初始选项值。 */

@@ -1,6 +1,6 @@
 <script setup lang="ts" vapor>
 import { ref } from 'vue'
-import { ConfigProvider, YmRadio, YmRadioGroup, type RadioValue } from 'ym-ui-vapor'
+import { ConfigProvider, YmRadio, YmRadioGroup, type RadioProps, type RadioValue } from 'ym-ui-vapor'
 
 const checked = ref(false)
 const singleEvents = ref<string[]>([])
@@ -12,6 +12,7 @@ const disabled = ref(false)
 const compact = ref(false)
 const dark = ref(false)
 const lightPrimary = ref('#246854')
+const groupTheme = ref<RadioProps['theme']>('primary')
 </script>
 
 <template>
@@ -43,19 +44,25 @@ const lightPrimary = ref('#246854')
     <YmRadioGroup :model-value="false" aria-label="待确认方式" :options="[false, { label: '备用', value: 'b' }]"
       @update:model-value="rejected.push($event)" />
     <output id="radio-rejected">{{ JSON.stringify(rejected) }}</output>
-    <YmRadioGroup aria-label="另一组" :options="[false, '乙']" direction="vertical" />
+    <YmRadioGroup aria-label="另一组" theme="danger"
+      :options="[false, { value: '乙', theme: 'success' }]" direction="vertical" />
 
     <button @click="dark = !dark">切换单选框配色模式</button>
     <button @click="compact = !compact">切换单选框尺寸和圆角</button>
     <label>单选框浅色主题色 <input v-model="lightPrimary" type="color" /></label>
+    <label>单选框分组主题
+      <select v-model="groupTheme">
+        <option>primary</option><option>success</option><option>warning</option><option>danger</option><option>default</option>
+      </select>
+    </label>
     <ConfigProvider :size="compact ? 'small' : 'large'" :mode="dark ? 'dark' : 'light'"
-      :theme="{ light: { primary: lightPrimary }, dark: { primary: '#aaccee' } }">
-      <ConfigProvider :radius="compact ? 0 : 9">
+      :theme="{ light: { primary: lightPrimary, warning: '#915000' }, dark: { primary: '#aaccee' } }">
+      <ConfigProvider :radius="compact ? 0 : 9" :theme="{ dark: { danger: '#ff6677', text: '#ccddee', surface: '#203040' } }">
         <YmRadio default-checked label="继承单选尺寸" />
         <YmRadioGroup default-value="normal" aria-label="单选框主题展示"
-          :size="compact ? 'medium' : undefined">
+          :size="compact ? 'medium' : undefined" :theme="groupTheme">
           <YmRadio value="normal">继承组尺寸</YmRadio>
-          <YmRadio value="small" size="extra-small">显式单项尺寸</YmRadio>
+          <YmRadio value="small" size="extra-small" theme="default">显式单项尺寸</YmRadio>
         </YmRadioGroup>
       </ConfigProvider>
     </ConfigProvider>

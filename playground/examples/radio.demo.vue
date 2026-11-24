@@ -5,6 +5,7 @@ import PreviewFrame from './PreviewFrame.vue'
 import { sizes } from './settings'
 
 const delivery = ref<RadioValue>('courier')
+const theme = ref<RadioGroupProps['theme']>('primary')
 const size = ref<ControlSize>()
 const direction = ref<RadioGroupProps['direction']>('horizontal')
 const disabled = ref(false)
@@ -14,13 +15,19 @@ const disabled = ref(false)
   <PreviewFrame name="YmRadio">
     <template #preview>
       <YmRadioGroup v-model="delivery" name="delivery" aria-label="配送方式"
-        :direction="direction" :size="size" :disabled="disabled">
+        :theme="theme" :direction="direction" :size="size" :disabled="disabled">
         <YmRadio value="courier">快递配送</YmRadio>
         <YmRadio value="pickup">门店自提</YmRadio>
         <YmRadio value="express" disabled>当日达</YmRadio>
       </YmRadioGroup>
     </template>
     <template #controls>
+      <label>单选框主题
+        <select v-model="theme">
+          <option value="primary">主要</option><option value="default">中性</option><option value="success">成功</option>
+          <option value="warning">警告</option><option value="danger">危险</option>
+        </select>
+      </label>
       <label>排列方向
         <select v-model="direction">
           <option value="horizontal">横向</option><option value="vertical">纵向</option>

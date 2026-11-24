@@ -22,16 +22,18 @@ category: 表单组件
 | YmCheckbox.disabled | `boolean` | `false` | 禁用当前项。所属组禁用时，所有子项都禁用。 |
 | YmCheckbox.name | `string` | 继承所属组 | 原生表单字段名，可为单项单独指定。 |
 | YmCheckbox.size | `ControlSize` | 继承 | 设置当前项的方框尺寸和标签字号。 |
+| YmCheckbox.theme | `default / primary / success / warning / danger` | 继承所属组，单独使用时为 `primary` | 设置选中、半选、悬停边框和键盘焦点环的颜色。 |
 | YmCheckboxGroup.modelValue | `readonly CheckboxValue[]` | `defaultValue` | 已选值数组，支持 `v-model`。 |
 | YmCheckboxGroup.defaultValue | `readonly CheckboxValue[]` | `[]` | 省略 `modelValue` 时的初始选中值。 |
-| YmCheckboxGroup.options | `readonly CheckboxOption[]` | — | 每项可直接传值，也可传 `{ value, label?, disabled? }`。 |
+| YmCheckboxGroup.options | `readonly CheckboxOption[]` | — | 每项可直接传值，也可传 `{ value, label?, disabled?, theme? }`。选项的 `theme` 优先于组主题。 |
 | YmCheckboxGroup.disabled | `boolean` | `false` | 禁用整组，保留已有选择。 |
 | YmCheckboxGroup.name | `string` | — | 为组内各项统一设置原生表单字段名。 |
 | YmCheckboxGroup.size | `ControlSize` | 继承 | 设置组内控件尺寸和间距，子项可显式覆盖自身尺寸。 |
+| YmCheckboxGroup.theme | `default / primary / success / warning / danger` | `primary` | 为组内选项统一设置语义色，子项可用自己的 `theme` 覆盖。 |
 
 `CheckboxValue` 可以是字符串、数字或布尔值。需要保留值的类型时使用属性绑定，例如 `:value="0"` 和 `:value="false"`。
 
-复选框及其分组继承最近的 `ConfigProvider`，嵌套时逐项覆盖。`size` 支持 `extra-small`、`small`、`medium`、`large` 四档，默认是 `medium`。`mode` 和 `theme` 决定文字、边框、背景与选中标记的配色。`radius` 控制方框圆角，设为 `0` 可显示直角。
+复选框及其分组继承最近的 `ConfigProvider`，嵌套时逐项覆盖。`size` 支持 `extra-small`、`small`、`medium`、`large` 四档，默认是 `medium`。组件的 `theme` 从当前调色板选取语义色，例如 `theme="success"` 会随全局 `mode` 使用浅色或深色调色板中的 `success`。`default` 使用中性色。`radius` 控制方框圆角，设为 `0` 可显示直角。
 
 ## 事件
 
@@ -69,6 +71,6 @@ const options = [
 
 <template>
   <YmCheckbox v-model="subscribed">接收订单提醒</YmCheckbox>
-  <YmCheckboxGroup v-model="channels" name="channel" aria-label="通知方式" :options="options" />
+  <YmCheckboxGroup v-model="channels" theme="success" name="channel" aria-label="通知方式" :options="options" />
 </template>
 ```
