@@ -18,7 +18,7 @@
   box-sizing: border-box;
   min-width: 0;
   height: 100%;
-  padding: 0 var(--ym-control-padding);
+  padding: 0 max(.25rem, calc(var(--ym-control-padding) - .25rem));
   border: 0;
   border-radius: inherit;
   outline: none;
