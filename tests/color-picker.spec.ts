@@ -47,6 +47,33 @@ test('the popup edits the bound value, reports the color and source, and clears 
   await expect(mono.getByRole('combobox', { name: '颜色格式' })).toBeDisabled()
 })
 
+test('a centered trigger and its open popup stay in place as RGB text changes or clears', async ({ page }) => {
+  await page.addStyleTag({ content: '#picker { display: flex; flex-direction: column; align-items: center }' })
+  const picker = page.locator('#picker')
+  const field = picker.getByRole('textbox', { name: '颜色值', exact: true })
+  const trigger = picker.locator('.ym-color-picker__trigger')
+  const popup = page.locator('.ym-color-picker__popup:popover-open')
+  const horizontalBounds = (locator: Locator) => locator.evaluate(el => {
+    const { x, width } = el.getBoundingClientRect()
+    return { x, width }
+  })
+  await field.click()
+  await expect(popup).toBeVisible()
+  const triggerBounds = await horizontalBounds(trigger)
+  const popupBounds = await horizontalBounds(popup)
+
+  for (const color of ['rgb(0, 0, 0)', 'rgb(255, 255, 255)', '']) {
+    if (color) await field.fill(color)
+    else await picker.getByRole('button', { name: '清空颜色' }).click()
+    await expect(picker.locator('#model')).toHaveText(color)
+    expect(await horizontalBounds(trigger)).toEqual(triggerBounds)
+    expect(await horizontalBounds(popup)).toEqual(popupBounds)
+  }
+  await field.press('Escape')
+  await picker.evaluate(el => { el.style.width = '130px' })
+  await expect(trigger).toHaveCSS('width', '130px')
+})
+
 test('a custom trigger opens the configured popup and mode changes follow controlled ownership', async ({ page }) => {
   await page.getByRole('button', { name: '自定义颜色触发器' }).click()
   const panel = page.locator('.custom-color-popup:popover-open')
