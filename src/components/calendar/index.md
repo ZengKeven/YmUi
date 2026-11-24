@@ -17,6 +17,7 @@ category: 表单组件
 | modelValue | `string \| null` | — | 选中的本地日期，格式为 `YYYY-MM-DD`，支持 `v-model`。传入 `null` 可清空选择。 |
 | defaultValue | `string` | — | 非受控模式下的初始选中日期。未提供初始日期时，面板展示本月，等待用户选择。 |
 | theme | `full / card` | `full` | `full` 铺满容器宽度，`card` 展示紧凑的日历卡片。两种样式均固定显示六周。 |
+| showLunar | `boolean` | `false` | 在完整和卡片模式的公历日期下方显示农历。每月初一显示月名（如「正月」「闰六月」），其余日期显示日名（如「初二」）。 |
 | firstDayOfWeek | `1 / 2 / 3 / 4 / 5 / 6 / 7` | `1` | 每周的第一天，`1` 为周一，`7` 为周日。 |
 | disabledDate | `(date: Date) => boolean` | — | 按本地日期判断能否选择，返回 `true` 表示禁选该日。 |
 | disabled | `boolean` | `false` | 禁用日期选择与月份导航。 |
@@ -37,7 +38,7 @@ category: 表单组件
 
 | 名称 | 说明 |
 | --- | --- |
-| cell | 替换日期按钮中的日号。接收 `date`（本地 `Date`）、`value`（`YYYY-MM-DD`）、`selected`（已选中）、`today`（今天）和 `inMonth`（属于当前展示月）。 |
+| cell | 替换日期按钮中的日号。接收 `date`（本地 `Date`）、`value`（`YYYY-MM-DD`）、`selected`（已选中）、`today`（今天）和 `inMonth`（属于当前展示月）。开启 `showLunar` 后，农历显示在插槽内容下方。 |
 
 ## 使用指南
 
@@ -53,7 +54,7 @@ const deliveryDate = ref<string | null>(null)
 </script>
 
 <template>
-  <YmCalendar v-model="deliveryDate" theme="card" />
+  <YmCalendar v-model="deliveryDate" theme="card" show-lunar />
 </template>
 ```
 

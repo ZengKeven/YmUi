@@ -85,6 +85,7 @@ test('the calendar preview switches between card and full layout and copies its 
   const calendar = page.locator('.demo-canvas .ym-calendar')
   await expect(calendar).toHaveAttribute('data-theme', 'card')
   const today = calendar.locator('button[aria-current="date"]')
+  await expect(today.locator('.ym-calendar__lunar')).toHaveCount(0)
   await today.click()
   await expect(today).toHaveAttribute('aria-pressed', 'true')
   const cardDayHeight = await today.evaluate(button => button.getBoundingClientRect().height)
@@ -94,11 +95,14 @@ test('the calendar preview switches between card and full layout and copies its 
   expect(await today.evaluate(button => button.getBoundingClientRect().height)).toBeGreaterThan(cardDayHeight)
   await page.getByLabel('每周首日').selectOption('7')
   await page.getByLabel('日历尺寸').selectOption('small')
+  await page.getByRole('switch', { name: '显示农历' }).check()
+  await expect(today.locator('.ym-calendar__lunar')).toBeVisible()
   const source = await copyPreview(page)
   expect(source).toContain('<YmCalendar ')
   expect(source).toContain('theme="full"')
   expect(source).toContain('size="small"')
   expect(source).toContain(':first-day-of-week="7"')
+  expect(source).toMatch(/\sshow-lunar(?=\s|\/?>)/)
 })
 
 test('the select preview limits warehouse choices and searches remotely by code', async ({ page, context }) => {

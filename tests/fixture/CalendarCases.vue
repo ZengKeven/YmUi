@@ -10,6 +10,7 @@ const picked = ref<string | null>(null)
 const picks = ref<string[]>([])
 const pickerChanges = ref<string[]>([])
 const sundayFirst = ref(false)
+const showLunar = ref(false)
 const disabled = ref(false)
 const dark = ref(false)
 const compact = ref(false)
@@ -19,7 +20,7 @@ const weekend = (date: Date) => date.getDay() === 0 || date.getDay() === 6
 
 <template>
   <section id="controlled">
-    <YmCalendar v-model="value" theme="card" :first-day-of-week="sundayFirst ? 7 : 1"
+    <YmCalendar v-model="value" theme="card" :show-lunar="showLunar" :first-day-of-week="sundayFirst ? 7 : 1"
       :disabled-date="weekend" :disabled="disabled" @update:model-value="updates.push($event)"
       @change="changes.push($event)" @month-change="months.push($event)">
       <template #cell="{ value: day, date, inMonth, today, selected }">
@@ -35,6 +36,7 @@ const weekend = (date: Date) => date.getDay() === 0 || date.getDay() === 6
     <button @click="value = '2025-01-02'">设置次年日期</button>
     <button @click="value = null">清空日期</button>
     <label><input v-model="sundayFirst" type="checkbox" />周日起始</label>
+    <label><input v-model="showLunar" type="checkbox" />显示农历</label>
     <label><input v-model="disabled" type="checkbox" />禁用日历</label>
   </section>
   <section id="empty"><YmCalendar /></section>
@@ -61,7 +63,7 @@ const weekend = (date: Date) => date.getDay() === 0 || date.getDay() === 6
       :theme="{ light: { primary, surface: '#fffaf3' }, dark: { primary: '#8acdb4', surface: '#26344b' } }">
       <ConfigProvider :radius="compact ? 0 : 12">
         <div id="inherited"><YmCalendar theme="card" default-value="2024-02-28" /></div>
-        <div id="local"><YmCalendar theme="card" size="extra-small" default-value="2024-02-28" /></div>
+        <div id="local"><YmCalendar theme="card" size="extra-small" default-value="2025-07-25" :show-lunar="showLunar" /></div>
       </ConfigProvider>
     </ConfigProvider>
   </section>

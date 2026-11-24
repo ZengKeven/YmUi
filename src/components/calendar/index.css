@@ -77,6 +77,16 @@
   margin-inline: auto;
   padding: 0;
 }
+.ym-calendar[data-theme='card'][data-show-lunar] .ym-calendar__day {
+  width: 100%;
+  min-height: calc(var(--ym-control-height) + 1em);
+  height: 100%;
+}
+.ym-calendar__lunar {
+  font-size: max(.625rem, .8em);
+  font-weight: 400;
+  line-height: 1.2;
+}
 
 .ym-calendar__day[data-outside] {
   color: color-mix(in srgb, var(--ym-color-text) 55%, var(--ym-color-surface));

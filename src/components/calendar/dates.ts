@@ -28,3 +28,20 @@ export function inMonth(date: Date, year: number, month: number) {
   const lastDay = localDate(year, month + 1, 0).getDate()
   return localDate(year, month, Math.min(date.getDate(), lastDay))
 }
+
+const lunarDays = [
+  '初一', '初二', '初三', '初四', '初五', '初六', '初七', '初八', '初九', '初十',
+  '十一', '十二', '十三', '十四', '十五', '十六', '十七', '十八', '十九', '二十',
+  '廿一', '廿二', '廿三', '廿四', '廿五', '廿六', '廿七', '廿八', '廿九', '三十',
+]
+let lunarFormatter: Intl.DateTimeFormat | undefined
+
+export function lunarLabel(date: Date) {
+  lunarFormatter ??= new Intl.DateTimeFormat('zh-CN', {
+    calendar: 'chinese', numberingSystem: 'latn', month: 'long', day: 'numeric',
+  })
+  const parts = lunarFormatter.formatToParts(date)
+  const day = parts.find(part => part.type === 'day')?.value
+  if (day === '1' || day === '初一') return parts.find(part => part.type === 'month')?.value
+  return lunarDays[Number(day) - 1] ?? day
+}

@@ -1,9 +1,9 @@
 <script setup lang="ts" vapor>
-import { computed, nextTick, onMounted, onScopeDispose, ref, useTemplateRef, watch } from 'vue'
+import { computed, nextTick, onMounted, onScopeDispose, ref, useId, useTemplateRef, watch } from 'vue'
 import { YmButton } from '../button'
 import { YmIcon } from '../icon'
 import { YmSelect } from '../select'
-import { addDays, dateKey, inMonth, localDate, parseDate } from './dates'
+import { addDays, dateKey, inMonth, localDate, lunarLabel, parseDate } from './dates'
 import calendarProps from './props'
 import type { CalendarCell } from './types'
 
@@ -36,6 +36,7 @@ const year = computed(() => cursor.value.getFullYear())
 const month = computed(() => cursor.value.getMonth())
 const shownMonth = computed(() => cursorKey.value.slice(0, 7))
 const grid = useTemplateRef<HTMLElement>('grid')
+const lunarId = `ym-calendar-lunar-${useId()}`
 
 function placeCursor(date: Date, focus = false) {
   if (date.getFullYear() < 1 || date.getFullYear() > 9999) return
@@ -69,6 +70,7 @@ const weeks = computed(() => {
     return {
       date, value, inMonth: date.getMonth() === month.value,
       today: value === today.value, selected: value === selected.value,
+      lunar: props.showLunar && !outsideRange ? lunarLabel(date) : undefined,
       blocked: outsideRange || !!props.disabledDate?.(date), outsideRange,
     }
   }))
@@ -110,7 +112,7 @@ function keydown(event: KeyboardEvent, date: Date) {
 </script>
 
 <template>
-  <section class="ym-calendar" :data-theme="props.theme" :data-size="props.size">
+  <section class="ym-calendar" :data-theme="props.theme" :data-size="props.size" :data-show-lunar="props.showLunar || undefined">
     <div class="ym-calendar__toolbar">
       <YmButton variant="text" shape="square" aria-label="上个月" :disabled="props.disabled || (year === 1 && month === 0)"
         @click="browse(year, month - 1)">
@@ -133,12 +135,14 @@ function keydown(event: KeyboardEvent, date: Date) {
       <div v-for="week in weeks" :key="week[0].value" class="ym-calendar__week" role="row">
         <div v-for="cell in week" :key="cell.value" class="ym-calendar__cell" role="gridcell" :aria-selected="cell.selected">
           <button class="ym-calendar__day" type="button" :aria-label="cell.value" :aria-pressed="cell.selected"
+            :aria-describedby="cell.lunar ? `${lunarId}-${cell.value}` : undefined"
             :data-outside="!cell.inMonth || undefined" :aria-current="cell.today ? 'date' : undefined"
             :disabled="props.disabled || cell.outsideRange" :aria-disabled="cell.blocked || undefined"
             :tabindex="cell.value === cursorKey ? 0 : -1" @keydown="keydown($event, cell.date)" @click="choose(cell)">
             <slot name="cell" :date="cell.date" :value="cell.value" :today="cell.today" :selected="cell.selected" :in-month="cell.inMonth">
               <span class="ym-calendar__number">{{ cell.date.getDate() }}</span>
             </slot>
+            <span v-if="cell.lunar" :id="`${lunarId}-${cell.value}`" class="ym-calendar__lunar">{{ cell.lunar }}</span>
           </button>
         </div>
       </div>

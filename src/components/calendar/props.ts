@@ -12,6 +12,8 @@ export default {
     type: String as PropType<CalendarProps['theme']>, default: 'full',
     validator: (value: string) => value === 'full' || value === 'card',
   },
+  /** 在公历日期下方显示农历。 */
+  showLunar: Boolean,
   /** 每周的第一天，默认周一。 */
   firstDayOfWeek: {
     type: Number as PropType<CalendarProps['firstDayOfWeek']>, default: 1,

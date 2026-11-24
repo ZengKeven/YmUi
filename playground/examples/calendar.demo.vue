@@ -8,6 +8,7 @@ const selected = ref<string | null>(null)
 const theme = ref<CalendarProps['theme']>('card')
 const size = ref<ControlSize>()
 const firstDayOfWeek = ref<1 | 7>(1)
+const showLunar = ref(false)
 const disableWeekends = ref(false)
 const disabled = ref(false)
 
@@ -20,7 +21,7 @@ function isWeekend(date: Date) {
   <PreviewFrame name="YmCalendar">
     <template #preview>
       <YmCalendar v-model="selected" :theme="theme" :size="size" :first-day-of-week="firstDayOfWeek"
-        :disabled-date="disableWeekends ? isWeekend : undefined" :disabled="disabled" />
+        :show-lunar="showLunar" :disabled-date="disableWeekends ? isWeekend : undefined" :disabled="disabled" />
     </template>
     <template #controls>
       <label>日历样式
@@ -35,6 +36,7 @@ function isWeekend(date: Date) {
       <label>每周首日
         <select v-model="firstDayOfWeek"><option :value="1">周一</option><option :value="7">周日</option></select>
       </label>
+      <label>显示农历 <YmSwitch v-model="showLunar" /></label>
       <label>禁选周末 <YmSwitch v-model="disableWeekends" /></label>
       <label>禁用 <YmSwitch v-model="disabled" /></label>
     </template>

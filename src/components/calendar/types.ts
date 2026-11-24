@@ -20,6 +20,8 @@ export interface CalendarProps {
   defaultValue?: string
   /** 完整月历或可嵌入的紧凑卡片。 */
   theme?: 'full' | 'card'
+  /** 在公历日期下方显示农历，初一显示农历月名。 */
+  showLunar?: boolean
   /** 每周的第一天，1 为周一，7 为周日。 */
   firstDayOfWeek?: 1 | 2 | 3 | 4 | 5 | 6 | 7
   /** 返回 true 时禁止选中该本地日期。 */
