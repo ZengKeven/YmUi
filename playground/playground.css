@@ -59,25 +59,6 @@ html:not(.dark) .playground[data-theme='auto'] { color-scheme: light; }
 .demo-fields select { appearance: auto; }
 .playground input { accent-color: var(--ym-color-primary); }
 .playground input[type='checkbox'] { appearance: auto; width: .95rem; height: .95rem; vertical-align: middle; cursor: pointer; }
-.demo-panel input[type='checkbox'] {
-  appearance: none;
-  width: 1.8rem;
-  height: 1rem;
-  padding: 2px;
-  border-radius: 1rem;
-  background: var(--ym-color-border);
-}
-.demo-panel input[type='checkbox']::before {
-  content: '';
-  display: block;
-  width: .75rem;
-  height: .75rem;
-  border-radius: 50%;
-  background: #fff;
-}
-.demo-panel input[type='checkbox']:checked { background: var(--ym-color-primary); }
-.demo-panel input[type='checkbox']:checked::before { transform: translateX(.8rem); }
-.demo-panel input[type='checkbox']:focus-visible { outline: 2px solid var(--ym-color-primary); outline-offset: 2px; }
 .demo-fields input[type='color'] { width: 2rem; height: 1.5rem; padding: 1px; cursor: pointer; }
 .radius-field { display: inline-flex; align-items: center; gap: .4rem; }
 .radius-field input { width: 3.6rem; }

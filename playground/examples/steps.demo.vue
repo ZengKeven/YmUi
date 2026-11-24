@@ -1,6 +1,6 @@
 <script setup lang="ts" vapor>
 import { ref } from 'vue'
-import { YmSteps, type StepOption, type StepsProps, type StepValue } from '../../src'
+import { YmSteps, YmSwitch, type StepOption, type StepsProps, type StepValue } from '../../src'
 import PreviewFrame from './PreviewFrame.vue'
 import { sizes } from './settings'
 
@@ -62,7 +62,7 @@ const readOnly = ref(false)
           <option v-for="[value, label] in sizes" :key="value" :value="value">{{ label }}</option>
         </select>
       </label>
-      <label>只读 <input v-model="readOnly" type="checkbox" /></label>
+      <label>只读 <YmSwitch v-model="readOnly" /></label>
     </template>
   </PreviewFrame>
 </template>

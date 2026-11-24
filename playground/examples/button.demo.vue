@@ -1,6 +1,6 @@
 <script setup lang="ts" vapor>
 import { onScopeDispose, ref } from 'vue'
-import { YmButton, YmIcon, type ButtonProps } from '../../src'
+import { YmButton, YmIcon, YmSwitch, type ButtonProps } from '../../src'
 import { sizes } from './settings'
 import PreviewFrame from './PreviewFrame.vue'
 
@@ -41,9 +41,9 @@ onScopeDispose(() => window.clearTimeout(saveTimer))
         @click="clicks++">确定</YmButton>
     </template>
     <template #controls>
-      <label>block <input v-model="block" type="checkbox" /></label>
-      <label>disabled <input v-model="disabled" type="checkbox" /></label>
-      <label>loading <input v-model="loading" type="checkbox" /></label>
+      <label>block <YmSwitch v-model="block" /></label>
+      <label>disabled <YmSwitch v-model="disabled" /></label>
+      <label>loading <YmSwitch v-model="loading" /></label>
       <label>theme <select v-model="theme"><option v-for="[value] in themes" :key="value">{{ value }}</option></select></label>
       <label>variant <select v-model="variant"><option v-for="[value] in variants" :key="value">{{ value }}</option></select></label>
       <label>shape <select v-model="shape"><option>rectangle</option><option>round</option><option>square</option><option>circle</option></select></label>

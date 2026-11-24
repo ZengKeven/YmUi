@@ -28,9 +28,9 @@ const loading = ref(false)
           <option v-for="[value, text] in sizes" :key="value" :value="value">{{ text }}</option>
         </select>
       </label>
-      <label>显示开关文字 <input v-model="showLabel" type="checkbox" /></label>
-      <label>禁用 <input v-model="disabled" type="checkbox" /></label>
-      <label>加载中 <input v-model="loading" type="checkbox" /></label>
+      <label>显示开关文字 <YmSwitch v-model="showLabel" /></label>
+      <label>禁用 <YmSwitch v-model="disabled" /></label>
+      <label>加载中 <YmSwitch v-model="loading" /></label>
     </template>
   </PreviewFrame>
 </template>

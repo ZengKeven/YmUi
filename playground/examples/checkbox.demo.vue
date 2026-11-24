@@ -1,6 +1,6 @@
 <script setup lang="ts" vapor>
 import { computed, ref } from 'vue'
-import { YmCheckbox, YmCheckboxGroup, type CheckboxValue, type ControlSize } from '../../src'
+import { YmCheckbox, YmCheckboxGroup, YmSwitch, type CheckboxValue, type ControlSize } from '../../src'
 import PreviewFrame from './PreviewFrame.vue'
 import { sizes } from './settings'
 
@@ -32,7 +32,7 @@ const allSelected = computed({
           <option v-for="[value, label] in sizes" :key="value" :value="value">{{ label }}</option>
         </select>
       </label>
-      <label>禁用 <input v-model="disabled" type="checkbox" /></label>
+      <label>禁用 <YmSwitch v-model="disabled" /></label>
     </template>
   </PreviewFrame>
 </template>

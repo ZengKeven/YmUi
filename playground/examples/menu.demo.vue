@@ -1,6 +1,6 @@
 <script setup lang="ts" vapor>
 import { computed, ref } from 'vue'
-import { YmLayout, YmMenu, type ControlSize, type MenuItem, type MenuValue } from '../../src'
+import { YmLayout, YmMenu, YmSwitch, type ControlSize, type MenuItem, type MenuValue } from '../../src'
 import PreviewFrame from './PreviewFrame.vue'
 import { sizes } from './settings'
 
@@ -41,7 +41,7 @@ const logo = 'data:image/svg+xml,' + encodeURIComponent(
       </YmLayout>
     </template>
     <template #controls>
-      <label>收起侧栏 <input v-model="collapsed" type="checkbox" /></label>
+      <label>收起侧栏 <YmSwitch v-model="collapsed" /></label>
       <label>菜单尺寸
         <select v-model="size">
           <option :value="undefined">继承</option>

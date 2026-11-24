@@ -1,6 +1,6 @@
 <script setup lang="ts" vapor>
 import { computed, ref, watch } from 'vue'
-import { YmTreeSelect, type ControlSize, type TreeSelectOption, type TreeSelectValue } from '../../src'
+import { YmSwitch, YmTreeSelect, type ControlSize, type TreeSelectOption, type TreeSelectValue } from '../../src'
 import PreviewFrame from './PreviewFrame.vue'
 import { sizes } from './settings'
 
@@ -42,17 +42,17 @@ watch(multiple, enabled => {
         :disabled-levels="disabledLevels" :disabled="disabled" :size="size" aria-label="仓库范围" placeholder="选择仓库范围" />
     </template>
     <template #controls>
-      <label>多选 <input v-model="multiple" type="checkbox" /></label>
-      <label>允许过滤 <input v-model="filterable" type="checkbox" /></label>
-      <label>禁选第一级（区域） <input v-model="disableRegions" type="checkbox" /></label>
-      <label>禁选第二级（城市） <input v-model="disableCities" type="checkbox" /></label>
+      <label>多选 <YmSwitch v-model="multiple" /></label>
+      <label>允许过滤 <YmSwitch v-model="filterable" /></label>
+      <label>禁选第一级（区域） <YmSwitch v-model="disableRegions" /></label>
+      <label>禁选第二级（城市） <YmSwitch v-model="disableCities" /></label>
       <label>选择器尺寸
         <select v-model="size">
           <option :value="undefined">继承</option>
           <option v-for="[value, label] in sizes" :key="value" :value="value">{{ label }}</option>
         </select>
       </label>
-      <label>禁用整个选择器 <input v-model="disabled" type="checkbox" /></label>
+      <label>禁用整个选择器 <YmSwitch v-model="disabled" /></label>
     </template>
   </PreviewFrame>
 </template>

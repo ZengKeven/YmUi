@@ -1,6 +1,6 @@
 <script setup lang="ts" vapor>
 import { computed, ref, watch } from 'vue'
-import { YmSelect, type ControlSize, type SelectValue } from '../../src'
+import { YmSelect, YmSwitch, type ControlSize, type SelectValue } from '../../src'
 import PreviewFrame from './PreviewFrame.vue'
 import { sizes } from './settings'
 
@@ -50,7 +50,7 @@ async function searchWarehouses(query: string, signal: AbortSignal) {
       </YmSelect>
     </template>
     <template #controls>
-      <label>多选 <input v-model="multiple" type="checkbox" /></label>
+      <label>多选 <YmSwitch v-model="multiple" /></label>
       <label v-if="multiple">最多可选
         <select v-model="max">
           <option :value="0">不限</option><option :value="1">1 项</option><option :value="2">2 项</option>
@@ -61,14 +61,14 @@ async function searchWarehouses(query: string, signal: AbortSignal) {
           <option value="none">关闭搜索</option><option value="local">本地过滤</option><option value="remote">远程搜索</option>
         </select>
       </label>
-      <label>显示仓库代码 <input v-model="custom" type="checkbox" /></label>
+      <label>显示仓库代码 <YmSwitch v-model="custom" /></label>
       <label>选择器尺寸
         <select v-model="size">
           <option :value="undefined">继承</option>
           <option v-for="[value, label] in sizes" :key="value" :value="value">{{ label }}</option>
         </select>
       </label>
-      <label>禁用 <input v-model="disabled" type="checkbox" /></label>
+      <label>禁用 <YmSwitch v-model="disabled" /></label>
     </template>
   </PreviewFrame>
 </template>

@@ -1,6 +1,6 @@
 <script setup lang="ts" vapor>
 import { computed, ref } from 'vue'
-import { YmIcon, YmSpace, type SpaceProps } from '../../src'
+import { YmIcon, YmSpace, YmSwitch, type SpaceProps } from '../../src'
 import PreviewFrame from './PreviewFrame.vue'
 
 const direction = ref<SpaceProps['direction']>('horizontal')
@@ -55,7 +55,7 @@ const separator = ref('none')
           <option value="none">无</option><option value="text">斜线</option><option value="icon">箭头图标</option>
         </select>
       </label>
-      <label>自动换行 <input v-model="breakLine" :disabled="direction === 'vertical'" type="checkbox" /></label>
+      <label>自动换行 <YmSwitch v-model="breakLine" :disabled="direction === 'vertical'" /></label>
     </template>
   </PreviewFrame>
 </template>

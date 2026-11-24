@@ -1,6 +1,6 @@
 <script setup lang="ts" vapor>
 import { ref } from 'vue'
-import { YmInput, type ControlSize, type InputProps } from '../../src'
+import { YmInput, YmSwitch, type ControlSize, type InputProps } from '../../src'
 import PreviewFrame from './PreviewFrame.vue'
 import { sizes } from './settings'
 
@@ -36,9 +36,9 @@ const disabled = ref(false)
           <option v-for="[value, label] in sizes" :key="value" :value="value">{{ label }}</option>
         </select>
       </label>
-      <label>自动聚焦 <input v-model="autofocus" type="checkbox" /></label>
-      <label>只读 <input v-model="readOnly" type="checkbox" /></label>
-      <label>禁用 <input v-model="disabled" type="checkbox" /></label>
+      <label>自动聚焦 <YmSwitch v-model="autofocus" /></label>
+      <label>只读 <YmSwitch v-model="readOnly" /></label>
+      <label>禁用 <YmSwitch v-model="disabled" /></label>
     </template>
   </PreviewFrame>
 </template>

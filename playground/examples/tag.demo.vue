@@ -1,6 +1,6 @@
 <script setup lang="ts" vapor>
 import { nextTick, ref, useTemplateRef } from 'vue'
-import { YmButton, YmIcon, YmInput, YmTag, type TagProps } from '../../src'
+import { YmButton, YmIcon, YmInput, YmSwitch, YmTag, type TagProps } from '../../src'
 import PreviewFrame from './PreviewFrame.vue'
 import { sizes } from './settings'
 
@@ -84,9 +84,9 @@ function onEditorKey(event: KeyboardEvent) {
           <option v-for="[value, label] in sizes" :key="value" :value="value">{{ label }}</option>
         </select>
       </label>
-      <label>显示图标 <input v-model="showIcon" type="checkbox" /></label>
-      <label>可关闭 <input v-model="closable" type="checkbox" /></label>
-      <label>禁用 <input v-model="disabled" type="checkbox" /></label>
+      <label>显示图标 <YmSwitch v-model="showIcon" /></label>
+      <label>可关闭 <YmSwitch v-model="closable" /></label>
+      <label>禁用 <YmSwitch v-model="disabled" /></label>
       <YmButton v-if="warehouses.length < initialWarehouses.length" variant="outline"
         @click="warehouses = [...initialWarehouses]">恢复标签</YmButton>
     </template>

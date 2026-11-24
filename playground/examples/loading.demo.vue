@@ -1,6 +1,6 @@
 <script setup lang="ts" vapor>
 import { ref } from 'vue'
-import { YmLoading, type ControlSize } from '../../src'
+import { YmLoading, YmSwitch, type ControlSize } from '../../src'
 import PreviewFrame from './PreviewFrame.vue'
 import { sizes } from './settings'
 
@@ -17,8 +17,8 @@ const showOverlay = ref(false)
       <YmLoading :loading="loading" :indicator="indicator" :size="size" :text="text" />
     </template>
     <template #controls>
-      <label>loading <input v-model="loading" type="checkbox" /></label>
-      <label>indicator <input v-model="indicator" type="checkbox" /></label>
+      <label>loading <YmSwitch v-model="loading" /></label>
+      <label>indicator <YmSwitch v-model="indicator" /></label>
       <label>size
         <select v-model="size">
           <option :value="undefined">继承</option>

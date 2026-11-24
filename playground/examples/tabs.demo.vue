@@ -1,6 +1,6 @@
 <script setup lang="ts" vapor>
 import { ref } from 'vue'
-import { YmButton, YmIcon, YmTabPanel as TTabPanel, YmTabs, type ControlSize } from '../../src'
+import { YmButton, YmIcon, YmSwitch, YmTabPanel as TTabPanel, YmTabs, type ControlSize } from '../../src'
 import PreviewFrame from './PreviewFrame.vue'
 import { sizes } from './settings'
 
@@ -47,7 +47,7 @@ const showIcons = ref(true)
           <option v-for="[value, label] in sizes" :key="value" :value="value">{{ label }}</option>
         </select>
       </label>
-      <label>显示图标 <input v-model="showIcons" type="checkbox" /></label>
+      <label>显示图标 <YmSwitch v-model="showIcons" /></label>
     </template>
   </PreviewFrame>
 </template>

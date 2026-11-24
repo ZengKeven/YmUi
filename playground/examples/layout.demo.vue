@@ -1,6 +1,6 @@
 <script setup lang="ts" vapor>
 import { ref } from 'vue'
-import { YmLayout } from '../../src'
+import { YmLayout, YmSwitch } from '../../src'
 import PreviewFrame from './PreviewFrame.vue'
 
 const systemName = ref('云明系统')
@@ -36,7 +36,7 @@ const logo = 'data:image/svg+xml,' + encodeURIComponent(
           <option v-for="value in [48, 56, 72]" :key="value" :value="value">{{ value }} px</option>
         </select>
       </label>
-      <label>收起侧栏 <input v-model="collapsed" type="checkbox" /></label>
+      <label>收起侧栏 <YmSwitch v-model="collapsed" /></label>
     </template>
   </PreviewFrame>
 </template>

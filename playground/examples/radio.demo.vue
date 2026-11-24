@@ -1,6 +1,6 @@
 <script setup lang="ts" vapor>
 import { ref } from 'vue'
-import { YmRadio, YmRadioGroup, type ControlSize, type RadioGroupProps, type RadioValue } from '../../src'
+import { YmRadio, YmRadioGroup, YmSwitch, type ControlSize, type RadioGroupProps, type RadioValue } from '../../src'
 import PreviewFrame from './PreviewFrame.vue'
 import { sizes } from './settings'
 
@@ -32,7 +32,7 @@ const disabled = ref(false)
           <option v-for="[value, label] in sizes" :key="value" :value="value">{{ label }}</option>
         </select>
       </label>
-      <label>整组禁用 <input v-model="disabled" type="checkbox" /></label>
+      <label>整组禁用 <YmSwitch v-model="disabled" /></label>
     </template>
   </PreviewFrame>
 </template>
