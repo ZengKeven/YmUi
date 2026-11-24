@@ -5,7 +5,7 @@
   align-items: center;
   min-width: 0;
   min-height: var(--ym-control-height);
-  padding-inline: calc(var(--ym-control-padding) * .75);
+  padding-inline: max(.25rem, calc(var(--ym-control-padding) - .25rem));
   gap: .4em;
   border: 1px solid var(--ym-color-border);
   border-radius: var(--ym-radius);
