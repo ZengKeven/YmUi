@@ -49,12 +49,13 @@
 }
 .ym-swiper[data-type='card'] > .ym-swiper__viewport > .ym-swiper__item[aria-hidden='false'] { transform: none; }
 .ym-swiper__controls { display: contents; }
-.ym-swiper__arrow {
+.ym-swiper__controls > .ym-swiper__arrow {
   grid-area: viewport;
   align-self: center;
   z-index: 2;
   margin: calc(var(--ym-control-padding) * .5);
-  --ym-button-fill: color-mix(in srgb, var(--ym-color-surface) 92%, transparent);
+  --ym-button-fill: transparent;
+  --ym-button-state-tint: transparent;
 }
 .ym-swiper__prev { justify-self: start; }
 .ym-swiper__next { justify-self: end; }
@@ -77,13 +78,11 @@
   margin: .4em;
   overflow: auto;
   border-radius: var(--ym-radius);
-  background: color-mix(in srgb, var(--ym-color-surface) 88%, transparent);
   color: var(--ym-color-text);
   font-size: var(--ym-control-font-size);
 }
 .ym-swiper[data-placement='outside'] > .ym-swiper__controls > .ym-swiper__navigation {
   grid-area: navigation;
-  background: var(--ym-color-surface);
 }
 .ym-swiper[data-direction='vertical'][data-placement='outside'] {
   grid-template: "viewport navigation" auto / minmax(0, 1fr) auto;
