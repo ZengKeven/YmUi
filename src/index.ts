@@ -32,6 +32,7 @@ export { YmSelect, type SelectKey, type SelectOption, type SelectProps, type Sel
 export { YmSpace, type SpaceProps, type SpaceSize } from './components/space'
 export { YmStatistic, type StatisticAnimation, type StatisticInstance, type StatisticProps } from './components/statistic'
 export { YmSteps, type StepOption, type StepsProps, type StepStatus, type StepValue } from './components/steps'
+export { YmSwiper, YmSwiperItem, type SwiperChangeSource, type SwiperNavigation, type SwiperProps } from './components/swiper'
 export { YmSwitch, type SwitchProps, type SwitchValue } from './components/switch'
 export { YmTabs, YmTabPanel, type TabPanelProps, type TabsProps, type TabValue } from './components/tabs'
 export { YmTag, type TagProps } from './components/tag'
