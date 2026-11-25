@@ -1,5 +1,7 @@
 <!-- @fallthroughAttributes true -->
 <script setup lang="ts" vapor>
+import { useFormControlState } from '../form/control-state'
+import { onFormFieldReset } from '../form/field-reset'
 import { computed, provide, shallowRef } from 'vue'
 import YmCheckbox from './checkbox.vue'
 import { checkboxGroupKey } from './context'
@@ -8,13 +10,16 @@ import type { CheckboxGroupChangeContext, CheckboxValue } from './types'
 
 defineOptions({ name: 'YmCheckboxGroup' })
 const props = defineProps(checkboxGroupProps)
+const { disabled, nativeDisabled } = useFormControlState(props, 'choice')
 const emit = defineEmits<{
   'update:modelValue': [values: CheckboxValue[]]
   change: [values: CheckboxValue[], context: CheckboxGroupChangeContext]
 }>()
 defineSlots<{ default?: () => unknown }>()
 
-const localValue = shallowRef([...(props.defaultValue ?? [])])
+const initial = [...(props.defaultValue ?? [])]
+const localValue = shallowRef(initial)
+onFormFieldReset(type => { localValue.value = type === 'initial' ? initial : [] })
 const selected = computed(() => props.modelValue ?? localValue.value)
 const options = computed(() => props.options?.map(option =>
   typeof option === 'object' ? option : { value: option },
@@ -23,11 +28,11 @@ const options = computed(() => props.options?.map(option =>
 provide(checkboxGroupKey, {
   get theme() { return props.theme },
   get selected() { return selected.value },
-  get disabled() { return props.disabled },
+  get disabled() { return nativeDisabled.value },
   get name() { return props.name },
   toggle(value, checked, e) {
     const next = new Set(selected.value)
-    if (props.disabled || next.has(value) === checked) return
+    if (disabled.value || next.has(value) === checked) return
     if (checked) next.add(value)
     else next.delete(value)
     const values = [...next]
@@ -39,7 +44,7 @@ provide(checkboxGroupKey, {
 </script>
 
 <template>
-  <div class="ym-checkbox-group" role="group" :data-size="props.size" :aria-disabled="props.disabled || undefined">
+  <div class="ym-checkbox-group" role="group" :data-size="props.size" :aria-disabled="nativeDisabled || undefined">
     <slot>
       <YmCheckbox v-for="option in options" :key="`${typeof option.value}:${option.value}`" v-bind="option" />
     </slot>

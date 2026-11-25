@@ -1,5 +1,7 @@
 <!-- @fallthroughAttributes true -->
 <script setup lang="ts" vapor>
+import { useFormControlState } from '../form/control-state'
+import { onFormFieldReset } from '../form/field-reset'
 import { computed, nextTick, ref, useId, useTemplateRef, watch, type AriaAttributes } from 'vue'
 import { useTextareaAutosizeFallback } from './autosize'
 import { measureText } from './length'
@@ -7,6 +9,7 @@ import textareaProps from './props'
 
 defineOptions({ name: 'YmTextarea', inheritAttrs: false })
 const props = defineProps(textareaProps)
+const { disabled, readOnly } = useFormControlState(props, 'text')
 const emit = defineEmits<{
   'update:modelValue': [value: string]
   change: [value: string, context: { e: Event }]
@@ -42,6 +45,13 @@ function show(input: HTMLTextAreaElement, value: string) {
   text.value = input.value
 }
 
+onFormFieldReset(type => {
+  composing = false
+  nextTick(() => {
+    if (field.value) show(field.value, controlled.value ?? (type === 'initial' ? initial : ''))
+  })
+})
+
 watch([field, controlled, () => props.autofocus], ([input, value, autofocus], [previous, oldValue, wasAutofocus]) => {
   if (!input) return
   if (input !== previous) input.defaultValue = initial
@@ -73,7 +83,7 @@ watch(over, (exceeded, previous) => {
 
 async function commit(event: Event) {
   const input = event.currentTarget as HTMLTextAreaElement
-  if (composing || (event as InputEvent).isComposing || props.readonly || props.disabled) return
+  if (composing || (event as InputEvent).isComposing || readOnly.value || disabled.value) return
   const next = limit.value === undefined || props.allowInputOverMax
     ? input.value : measureText(input.value, weighted.value, limit.value).text
   const previous = text.value
@@ -99,12 +109,12 @@ defineExpose({ focus: () => field.value?.focus(), blur: () => field.value?.blur(
 
 <template>
   <div class="ym-textarea" :class="props.class" :data-size="props.size" :data-status="status"
-    :data-disabled="props.disabled || undefined" :data-autosize="bounds ? 'bounded' : props.autosize ? 'auto' : undefined"
+    :data-disabled="disabled || undefined" :data-autosize="bounds ? 'bounded' : props.autosize ? 'auto' : undefined"
     :style="{ '--ym-textarea-min-rows': bounds?.minRows, '--ym-textarea-max-rows': bounds?.maxRows }">
     <div class="ym-textarea__field" :style="countText ? { '--ym-textarea-count-width': countText.length + 'ch' } : undefined">
       <textarea ref="field" v-bind="$attrs" class="ym-textarea__control" :style="[props.style, { textAlign: props.align }]"
         :rows="props.rows" :placeholder="props.placeholder" :name="props.name" :form="props.form"
-        :disabled="props.disabled" :readonly="props.readonly" :autofocus="props.autofocus"
+        :disabled="disabled" :readonly="readOnly" :autofocus="props.autofocus"
         :maxlength="!weighted && !props.allowInputOverMax ? limit : undefined"
         :aria-invalid="status === 'error' ? true : $attrs['aria-invalid'] as AriaAttributes['aria-invalid']"
         :aria-describedby="[$attrs['aria-describedby'], hasTips && infoId, countText && infoId + '-count'].filter(Boolean).join(' ') || undefined"

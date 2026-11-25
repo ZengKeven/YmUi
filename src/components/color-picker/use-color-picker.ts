@@ -1,10 +1,12 @@
 import { computed, ref, shallowRef, watch } from 'vue'
+import { onFormFieldReset } from '../form/field-reset'
 import type { ColorPickerPanelProps } from './types'
 
 type ModelFields = { modelValue?: string | false; value?: string | false; defaultValue?: string }
 
 export function useColorValue(props: ModelFields, sync: (event: 'update:modelValue' | 'update:value', value: string) => void) {
   const local = ref(props.defaultValue ?? '')
+  onFormFieldReset(type => { local.value = type === 'initial' ? props.defaultValue ?? '' : '' })
   const external = computed(() => {
     if (props.modelValue !== false) return props.modelValue ?? ''
     if (props.value !== false) return props.value ?? ''

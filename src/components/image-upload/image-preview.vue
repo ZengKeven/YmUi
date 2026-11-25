@@ -94,7 +94,7 @@ function endPan(event: PointerEvent) {
     <div class="ym-image-upload__preview-header">
       <strong class="ym-image-upload__preview-name" :title="current?.name">{{ current?.name }}</strong>
       <span v-if="props.items.length > 1" class="ym-image-upload__preview-count" aria-live="polite">{{ index + 1 }} / {{ props.items.length }}</span>
-      <YmButton type="button" variant="text" theme="default" shape="square" aria-label="关闭预览" title="关闭预览" @click="emit('close')">
+      <YmButton type="button" variant="text" theme="default" shape="square" :disabled="false" aria-label="关闭预览" title="关闭预览" @click="emit('close')">
         <YmIcon name="close" />
       </YmButton>
     </div>

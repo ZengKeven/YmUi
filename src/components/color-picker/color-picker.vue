@@ -1,4 +1,5 @@
 <script setup lang="ts" vapor>
+import { useFormControlState } from '../form/control-state'
 import { computed } from 'vue'
 import { YmButton } from '../button'
 import { YmIcon } from '../icon'
@@ -12,6 +13,7 @@ import { useColorValue, useRecentColors } from './use-color-picker'
 
 defineOptions({ name: 'YmColorPicker' })
 const props = defineProps(pickerProps)
+const { disabled: formDisabled, nativeDisabled, readOnly } = useFormControlState(props, 'choice')
 const emit = defineEmits<{
   'update:modelValue': [value: string]
   'update:value': [value: string]
@@ -28,7 +30,7 @@ const { value, changeValue } = useColorValue(props, (event, next) => {
   else emit('update:value', next)
 })
 const preview = computed(() => isValidColor(value.value) ? new Color(value.value).css : undefined)
-const disabled = computed(() => props.disabled || props.popupProps?.disabled)
+const disabled = computed(() => formDisabled.value || props.popupProps?.disabled)
 const { recent, changeRecent } = useRecentColors(props, colors => {
   emit('update:recentColors', colors)
   emit('recent-colors-change', colors)
@@ -75,7 +77,8 @@ function openFromKeyboard(e: KeyboardEvent, visible: boolean) {
             <span :style="{ background: preview }" />
           </span>
           <YmInput aria-label="颜色值" v-bind="props.inputProps" :model-value="value" type="text"
-            :disabled="disabled || props.inputProps?.disabled" :aria-expanded="visible" aria-haspopup="dialog"
+            :disabled="nativeDisabled || props.inputProps?.disabled || props.popupProps?.disabled"
+            :readonly="readOnly || props.inputProps?.readonly" :aria-expanded="visible" aria-haspopup="dialog"
             :aria-controls="visible ? panelId : undefined" @keydown="openFromKeyboard($event, visible)" @update:model-value="edit" />
           <YmButton v-if="props.clearable && value && !disabled && !props.inputProps?.disabled && !props.inputProps?.readonly"
             class="ym-color-picker__clear" aria-label="清空颜色" type="button" theme="default" variant="text" shape="square"

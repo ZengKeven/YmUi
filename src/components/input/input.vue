@@ -1,5 +1,7 @@
 <!-- @fallthroughAttributes true -->
 <script setup lang="ts" vapor>
+import { useFormControlState } from '../form/control-state'
+import { onFormFieldReset } from '../form/field-reset'
 import { computed, nextTick, ref, useTemplateRef, watch } from 'vue'
 import { YmButton } from '../button'
 import { YmIcon } from '../icon'
@@ -7,6 +9,7 @@ import inputProps from './props'
 
 defineOptions({ name: 'YmInput', inheritAttrs: false })
 const props = defineProps(inputProps)
+const { disabled, readOnly } = useFormControlState(props, 'text')
 const emit = defineEmits<{
   'update:modelValue': [value: string]
   change: [value: string, context: { e: Event }]
@@ -16,7 +19,7 @@ const field = useTemplateRef<HTMLInputElement>('field')
 const controlled = computed(() => props.modelValue ?? props.value)
 const initialValue = props.defaultValue
 const revealed = ref(false)
-watch([() => props.type, () => props.disabled], () => { revealed.value = false })
+watch([() => props.type, disabled], () => { revealed.value = false })
 
 let compositionStartValue: string | undefined
 let committedComposition: string | undefined
@@ -24,6 +27,14 @@ let committedComposition: string | undefined
 function setText(input: HTMLInputElement, value: string) {
   if (input.value !== value) input.value = value
 }
+
+onFormFieldReset(type => {
+  compositionStartValue = undefined
+  committedComposition = undefined
+  nextTick(() => {
+    if (field.value) setText(field.value, controlled.value ?? (type === 'initial' ? initialValue : ''))
+  })
+})
 
 watch([field, controlled, () => props.autofocus], ([input, value, autofocus], [previousInput, previousValue, wasAutofocus]) => {
   if (!input) return
@@ -54,7 +65,7 @@ watch([field, () => props.form], ([input], _, onCleanup) => {
 
 async function publish(e: Event) {
   const input = e.currentTarget as HTMLInputElement
-  if (props.disabled || props.readonly || input.value === controlled.value) return
+  if (disabled.value || readOnly.value || input.value === controlled.value) return
   const value = input.value
   emit('update:modelValue', value)
   emit('change', value, { e })
@@ -99,15 +110,15 @@ defineExpose({
 
 <template>
   <span class="ym-input" :class="props.class" :style="props.style" :data-size="props.size"
-    :data-borderless="props.borderless || undefined" :data-disabled="props.disabled || undefined" @mousedown="keepInputFocus">
+    :data-borderless="props.borderless || undefined" :data-disabled="disabled || undefined" @mousedown="keepInputFocus">
     <input ref="field" v-bind="$attrs" class="ym-input__control" :style="{ textAlign: props.align }"
       :type="props.type === 'password' && !revealed ? 'password' : 'text'"
       :value.attr="initialValue" :placeholder="props.placeholder" :name="props.name" :form="props.form"
-      :autofocus="props.autofocus" :disabled="props.disabled" :readonly="props.readonly"
+      :autofocus="props.autofocus" :disabled="disabled" :readonly="readOnly"
       @input="onInput" @compositionstart="startComposition" @compositionend="finishComposition"
       @change="finishComposition" />
     <YmButton v-if="props.type === 'password'" class="ym-input__visibility" type="button" variant="text"
-      theme="default" shape="square" :disabled="props.disabled" :aria-label="revealed ? '隐藏密码' : '显示密码'"
+      theme="default" shape="square" :disabled="disabled" :aria-label="revealed ? '隐藏密码' : '显示密码'"
       @click="revealed = !revealed">
       <YmIcon :name="revealed ? 'hide-password' : 'show-password'" />
     </YmButton>

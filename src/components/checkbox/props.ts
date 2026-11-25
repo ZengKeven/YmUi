@@ -21,7 +21,7 @@ export default {
   /** 是否显示半选状态。 */
   indeterminate: Boolean,
   /** 是否禁用当前项。 */
-  disabled: Boolean,
+  disabled: { type: Boolean, default: undefined },
   /** 表单字段名。 */
   name: String,
   /** 单项尺寸，默认继承。 */
@@ -38,7 +38,7 @@ export const checkboxGroupProps = {
   /** 无默认插槽时用于生成复选框的选项。 */
   options: Array as PropType<CheckboxGroupProps['options']>,
   /** 是否禁用所有组内选项。 */
-  disabled: Boolean,
+  disabled: { type: Boolean, default: undefined },
   /** 组内共用的表单字段名。 */
   name: String,
   /** 分组尺寸，默认继承。 */

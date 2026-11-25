@@ -15,6 +15,7 @@ const props = defineProps<{
   placeholder?: string
   borderless?: boolean
   disabled?: boolean
+  readonly?: boolean
   name?: string
   form?: string
   id?: string
@@ -27,7 +28,7 @@ const start = useTemplateRef<HTMLInputElement>('start')
 const end = useTemplateRef<HTMLInputElement>('end')
 
 function click(event: MouseEvent) {
-  if (props.disabled) return
+  if (props.disabled || props.readonly) return
   const endpoint = event.target === start.value ? 'start' : event.target === end.value ? 'end' : props.active
   const input = endpoint === 'start' ? start.value : end.value
   input?.focus()
@@ -35,7 +36,7 @@ function click(event: MouseEvent) {
 }
 
 function keydown(event: KeyboardEvent, endpoint: Endpoint) {
-  if (props.disabled || !['ArrowDown', 'Enter', ' '].includes(event.key)) return
+  if (props.disabled || props.readonly || !['ArrowDown', 'Enter', ' '].includes(event.key)) return
   event.preventDefault()
   emit('activate', endpoint, true)
 }

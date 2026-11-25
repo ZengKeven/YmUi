@@ -1,5 +1,6 @@
 <!-- @fallthroughAttributes true -->
 <script setup lang="ts" vapor>
+import { useFormControlState } from '../form/control-state'
 import { computed, nextTick, reactive, ref, watch } from 'vue'
 import { YmButton } from '../button'
 import { YmIcon } from '../icon'
@@ -15,6 +16,7 @@ import { useColorValue, useRecentColors } from './use-color-picker'
 
 defineOptions({ name: 'YmColorPickerPanel' })
 const props = defineProps(panelProps)
+const { disabled } = useFormControlState(props, 'choice')
 const emit = defineEmits<{
   'update:modelValue': [value: string]
   'update:value': [value: string]
@@ -58,7 +60,7 @@ function publish(trigger: ColorPickerChangeTrigger) {
 }
 
 function changeMode(next: string | number | boolean) {
-  if (props.disabled || mode.value === next) return
+  if (disabled.value || mode.value === next) return
   if (next === 'linear-gradient') color.update(color.gradientColors.length ? color.linearGradient : DEFAULT_LINEAR_GRADIENT)
   else {
     color.isGradient = false
@@ -111,7 +113,7 @@ function changeFormat(value: SelectValue) {
   if (format) editFormat.value = format
 }
 function editChannel(key: string, value: string | number) {
-  if (props.disabled) return
+  if (disabled.value) return
   if (key === 'a') color.alpha = Number(value) / 100
   else if (typeof value === 'string') {
     if (!Color.isValid(value)) return
@@ -136,47 +138,47 @@ const recentSwatches = computed(() => visibleSwatches(recent.value || []))
 const presets = computed(() => visibleSwatches(props.swatchColors === undefined ? DEFAULT_SYSTEM_SWATCH_COLORS : props.swatchColors ?? []))
 const activeRecent = computed(() => recent.value ? recent.value.findIndex(value => Color.compare(value, color.css)) : -1)
 function addRecent() {
-  if (props.disabled || !recent.value) return
+  if (disabled.value || !recent.value) return
   const next = [color.css, ...recent.value.filter(value => !Color.compare(value, color.css))]
   changeRecent(next.slice(0, 100))
 }
 function removeRecent() {
-  if (props.disabled || !recent.value || activeRecent.value < 0) return
+  if (disabled.value || !recent.value || activeRecent.value < 0) return
   changeRecent(recent.value.filter((_, index) => index !== activeRecent.value))
 }
 function chooseSwatch(value: string, trigger: 'recent' | 'preset') {
-  if (props.disabled || !Color.isValid(value)) return
+  if (disabled.value || !Color.isValid(value)) return
   applyValue(value)
   publish(trigger)
 }
 </script>
 
 <template>
-  <div class="ym-color-picker__panel" :data-size="props.size" :aria-disabled="props.disabled || undefined">
+  <div class="ym-color-picker__panel" :data-size="props.size" :aria-disabled="disabled || undefined">
     <YmRadioGroup v-if="modeOptions.length > 1" class="ym-color-picker__modes" aria-label="颜色模式"
-      :model-value="mode" :options="modeOptions" :disabled="props.disabled" @update:model-value="changeMode" />
-    <ColorPalette :color="color" :disabled="props.disabled" :enable-alpha="props.enableAlpha"
+      :model-value="mode" :options="modeOptions" :disabled="disabled" @update:model-value="changeMode" />
+    <ColorPalette :color="color" :disabled="disabled" :enable-alpha="props.enableAlpha"
       :enable-multiple-gradient="props.enableMultipleGradient" :show-primary-color-preview="props.showPrimaryColorPreview"
       @saturation="setSaturation" @hue="setHue" @alpha="setAlpha" @degree="setDegree" @select-stop="selectStop" @stops="setStops" />
     <div class="ym-color-picker__format">
       <YmSelect v-bind="props.selectInputProps" class="ym-color-picker__format-select" aria-label="颜色格式"
-        :model-value="editFormat" :options="formats" :multiple="false" :disabled="props.disabled || props.selectInputProps?.disabled"
+        :model-value="editFormat" :options="formats" :multiple="false" :disabled="disabled || props.selectInputProps?.disabled"
         @update:model-value="changeFormat" />
       <ChannelInput v-for="field in channels" :key="field.key" :input-props="props.inputProps" :label="field.key.toUpperCase()"
         :value="channelValues[field.key]" :min="field.min" :max="field.max" :unit="field.key === 'a' ? '%' : undefined"
-        :maxlength="editFormat === 'HEX' ? 9 : undefined" :disabled="props.disabled" @commit="editChannel(field.key, $event)" />
+        :maxlength="editFormat === 'HEX' ? 9 : undefined" :disabled="disabled" @commit="editChannel(field.key, $event)" />
     </div>
     <section v-if="recent !== false" class="ym-color-picker__swatches" aria-label="最近使用">
       <div class="ym-color-picker__swatch-heading">
         <span>最近使用颜色</span>
         <YmButton shape="square" variant="text" theme="default" aria-label="添加最近使用颜色" title="添加最近使用颜色"
-          :disabled="props.disabled" @click="addRecent"><YmIcon name="add" /></YmButton>
+          :disabled="disabled" @click="addRecent"><YmIcon name="add" /></YmButton>
         <YmButton v-if="recentSwatches.length" shape="square" variant="text" theme="default" aria-label="删除最近使用颜色"
-          title="删除最近使用颜色" :disabled="props.disabled || activeRecent < 0" @click="removeRecent"><YmIcon name="delete" /></YmButton>
+          title="删除最近使用颜色" :disabled="disabled || activeRecent < 0" @click="removeRecent"><YmIcon name="delete" /></YmButton>
       </div>
       <div class="ym-color-picker__swatch-list">
         <button v-for="(swatch, i) in recentSwatches" :key="i" type="button" class="ym-color-picker__swatch ym-color-picker__checker"
-          :aria-label="swatch" :title="swatch" :aria-pressed="Color.compare(swatch, color.css)" :disabled="props.disabled"
+          :aria-label="swatch" :title="swatch" :aria-pressed="Color.compare(swatch, color.css)" :disabled="disabled"
           @click="chooseSwatch(swatch, 'recent')"><span :style="{ background: swatch }" /></button>
       </div>
     </section>
@@ -184,7 +186,7 @@ function chooseSwatch(value: string, trigger: 'recent' | 'preset') {
       <div class="ym-color-picker__swatch-heading">系统预设颜色</div>
       <div class="ym-color-picker__swatch-list">
         <button v-for="(swatch, i) in presets" :key="i" type="button" class="ym-color-picker__swatch ym-color-picker__checker"
-          :aria-label="swatch" :title="swatch" :disabled="props.disabled" @click="chooseSwatch(swatch, 'preset')">
+          :aria-label="swatch" :title="swatch" :disabled="disabled" @click="chooseSwatch(swatch, 'preset')">
           <span :style="{ background: swatch }" />
         </button>
       </div>

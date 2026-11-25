@@ -1,4 +1,7 @@
 <script setup lang="ts" vapor generic="Key extends SelectKey = SelectKey, Multiple extends boolean = false">
+import { useFormControlState } from '../form/control-state'
+import { onFormFieldReset } from '../form/field-reset'
+import type { FormResetType } from '../form/types'
 import { computed, nextTick, ref, shallowRef, useId, useTemplateRef, watch } from 'vue'
 import { YmCheckbox } from '../checkbox'
 import { YmIcon } from '../icon'
@@ -12,6 +15,7 @@ import type { TreeSelectValue } from './types'
 
 defineOptions({ name: 'YmTreeSelect', inheritAttrs: false })
 const props = defineProps(treeSelectProps)
+const { disabled, nativeDisabled, readOnly } = useFormControlState(props, 'choice')
 type Choice = Multiple extends true ? Key[] : Key
 const emit = defineEmits<{
   'update:modelValue': [value: Choice]
@@ -57,7 +61,7 @@ const nodeId = (row: TreeRow) => `${treeId}-node-${row.index}`
 const isBranch = (row: TreeRow) => filtering.value ? matchedBranches.value.has(row.option.value) : row.hasChildren
 
 function setOpen(next: boolean) {
-  if (next && props.disabled) return
+  if (next && disabled.value) return
   if (next && !open.value) {
     const current = byKey.value.get(selection.value[0])
     for (let parent = current?.parent; parent; parent = parent.parent) expanded.value.add(parent.option.value)
@@ -66,7 +70,7 @@ function setOpen(next: boolean) {
   open.value = next
   if (!next) query.value = ''
 }
-watch(() => props.disabled, disabled => { if (disabled) setOpen(false) })
+watch(disabled, disabled => { if (disabled) setOpen(false) })
 watch(() => props.filterable, filterable => { if (!filterable) query.value = '' })
 watch(query, () => foldedMatches.value.clear(), { flush: 'sync' })
 watch([visible, open], ([items, isOpen]) => {
@@ -75,28 +79,28 @@ watch([visible, open], ([items, isOpen]) => {
 }, { flush: 'sync' })
 
 function focusAndOpen(toggle: boolean) {
-  if (props.disabled) return
+  if (disabled.value) return
   const next = toggle ? !open.value : true
   editor.value?.focus()
   setOpen(next)
 }
 
 function search(text: string) {
-  if (!props.filterable || props.disabled) return
+  if (!props.filterable || disabled.value) return
   setOpen(true)
   query.value = text
   emit('search', text)
 }
 
 function beforeInput(event: Event) {
-  if (!open.value && props.filterable && !props.disabled) {
+  if (!open.value && props.filterable && !disabled.value) {
     (event.target as HTMLInputElement).select()
     setOpen(true)
   }
 }
 
 function choose(key: SelectKey) {
-  if (props.disabled || byKey.value.get(key)?.disabled) return
+  if (disabled.value || byKey.value.get(key)?.disabled) return
   const exists = selected.value.has(key)
   if (props.multiple || !exists) {
     let next: TreeSelectValue = key
@@ -122,7 +126,7 @@ function scrollToActive() {
 watch([tree, visible], () => nextTick(scrollToActive), { flush: 'post' })
 
 function keydown(event: KeyboardEvent) {
-  if (props.disabled || event.isComposing || event.keyCode === 229) return
+  if (disabled.value || event.isComposing || event.keyCode === 229) return
   const { key } = event
   if (key === 'ArrowDown' || key === 'ArrowUp') {
     event.preventDefault()
@@ -152,13 +156,17 @@ function keydown(event: KeyboardEvent) {
   }
 }
 
+function resetSelection(type: FormResetType) {
+  local.value = type === 'initial' ? initial : null
+  setOpen(false)
+}
+onFormFieldReset(resetSelection)
 watch([control, () => props.form], ([element], _, onCleanup) => {
   const form = element?.querySelector('input')?.form
   if (!form) return
   const reset = (event: Event) => nextTick(() => {
     if (event.defaultPrevented || control.value !== element) return
-    if (props.modelValue === undefined) local.value = initial
-    setOpen(false)
+    resetSelection('initial')
   })
   form.addEventListener('reset', reset)
   onCleanup(() => form.removeEventListener('reset', reset))
@@ -167,18 +175,18 @@ watch([control, () => props.form], ([element], _, onCleanup) => {
 
 <template>
   <YmPopup class="ym-tree-select" :class="props.class" :style="props.style" :size="props.size" trigger="manual"
-    :visible="open" :disabled="props.disabled" overlay-class-name="ym-tree-select__panel" @update:visible="setOpen">
+    :visible="open" :disabled="disabled" overlay-class-name="ym-tree-select__panel" @update:visible="setOpen">
     <div ref="control" class="ym-tree-select__control" :data-open="open || undefined"
-      :data-disabled="props.disabled || undefined" :data-borderless="props.borderless || undefined"
+      :data-disabled="nativeDisabled || undefined" :data-borderless="props.borderless || undefined"
       @click="focusAndOpen(!props.filterable)">
       <div class="ym-tree-select__values">
         <template v-if="props.multiple">
           <YmTag v-for="key in selection" :key="key" :content="labelFor(key)" variant="light" closable
-            :disabled="props.disabled || byKey.get(key)?.disabled" @mousedown.prevent @close="choose(key)" />
+            :disabled="disabled || byKey.get(key)?.disabled" @mousedown.prevent @close="choose(key)" />
         </template>
         <YmInput ref="editor" v-bind="$attrs" class="ym-tree-select__field" role="combobox" autocomplete="off"
           :model-value="inputText" :placeholder="props.multiple && selection.length ? '' : singleLabel || props.placeholder"
-          :disabled="props.disabled" :readonly="!props.filterable" :form="props.form"
+          :disabled="nativeDisabled" :readonly="readOnly || !props.filterable" :form="props.form"
           aria-haspopup="tree" :aria-expanded="open" :aria-controls="open ? treeId : undefined"
           :aria-autocomplete="props.filterable ? 'list' : 'none'" :aria-activedescendant="open && activeRow ? nodeId(activeRow) : undefined"
           @update:model-value="search" @beforeinput="beforeInput" @focus="props.filterable && setOpen(true)"
@@ -190,7 +198,7 @@ watch([control, () => props.form], ([element], _, onCleanup) => {
     </div>
     <template v-if="props.name">
       <input v-for="key in selection" :key="key" type="hidden" :name="props.name" :value="key"
-        :form="props.form" :disabled="props.disabled" />
+        :form="props.form" :disabled="nativeDisabled" />
     </template>
     <template #content>
       <div :id="treeId" ref="tree" role="tree" :aria-label="props.placeholder" :aria-multiselectable="props.multiple || undefined">

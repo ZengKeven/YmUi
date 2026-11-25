@@ -22,7 +22,7 @@ export default {
   /** 返回布尔值或 Promise 的切换前校验函数。 */
   beforeChange: Function as PropType<SwitchProps['beforeChange']>,
   /** 是否禁止操作。 */
-  disabled: Boolean,
+  disabled: { type: Boolean, default: undefined },
   /** 是否正在加载。 */
   loading: Boolean,
   /** 开关的语义色，默认使用主色。 */

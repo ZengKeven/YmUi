@@ -1,0 +1,75 @@
+.ym-form {
+  min-width: 0;
+  color: var(--ym-color-text);
+  font-size: var(--ym-control-font-size);
+  line-height: 1.5;
+}
+.ym-form[data-layout='inline'] {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--ym-control-padding) var(--ym-control-height);
+}
+.ym-form__item {
+  --ym-form-label-width: 100px;
+  --ym-form-status-color: var(--ym-color-text);
+  display: grid;
+  grid-template-columns: var(--ym-form-label-width) minmax(0, 1fr);
+  align-items: start;
+  min-width: 0;
+  color: var(--ym-color-text);
+  font-size: var(--ym-control-font-size);
+}
+.ym-form:not([data-layout='inline']) .ym-form__item:has(~ .ym-form__item) {
+  margin-block-end: var(--ym-control-padding);
+}
+.ym-form[data-layout='inline'] .ym-form__item { max-width: 100%; }
+.ym-form__item:is([data-align='top'], [data-hide-label]) { grid-template-columns: minmax(0, 1fr); }
+.ym-form__item[data-status='error'] { --ym-form-status-color: var(--ym-color-danger); }
+.ym-form__item[data-status='warning'] { --ym-form-status-color: var(--ym-color-warning); }
+.ym-form__item[data-status='success'] { --ym-form-status-color: var(--ym-color-success); }
+
+.ym-form__label {
+  display: flex;
+  align-items: baseline;
+  justify-content: flex-end;
+  box-sizing: border-box;
+  padding-inline-end: var(--ym-control-padding);
+  line-height: var(--ym-control-height);
+  overflow-wrap: anywhere;
+}
+.ym-form__item:not([data-align='right']) > .ym-form__label { justify-content: flex-start; }
+.ym-form__item[data-align='top'] > .ym-form__label {
+  padding: 0 0 .35em;
+  line-height: 1.5;
+}
+.ym-form__required { color: var(--ym-color-danger); margin-inline: .2em; }
+.ym-form__body { min-width: 0; }
+.ym-form__controls {
+  display: flex;
+  align-items: center;
+  gap: .5em;
+  min-height: var(--ym-control-height);
+}
+.ym-form__status-icon { display: inline-flex; flex: none; color: var(--ym-form-status-color); }
+.ym-form__status-icon:empty { display: none; }
+.ym-form__help, .ym-form__tips, .ym-form__message {
+  margin-block-start: .25em;
+  font-size: .875em;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.ym-form__help { color: color-mix(in srgb, var(--ym-color-text) 70%, var(--ym-color-surface)); }
+.ym-form__tips, .ym-form__message { color: var(--ym-form-status-color); }
+/* 给反馈留出一行，失焦校验更新文案时，下一项仍留在鼠标按下的位置。 */
+.ym-form__message { min-height: 1.5em; }
+.ym-form:not([data-layout='inline']) .ym-form__item:has(> .ym-form__body > .ym-form__message):has(~ .ym-form__item) {
+  margin-block-end: .25em;
+}
+
+/* 边框跟随当前表单项的状态，并保留无边框控件的外观。 */
+@scope (.ym-form__item:is([data-status='error'], [data-status='warning'], [data-status='success'][data-success-border])) to (.ym-form__item) {
+  .ym-form__controls :is(.ym-input, .ym-select__control, .ym-tree-select__control, .ym-textarea__control, .ym-color-picker__trigger):not([data-borderless]) {
+    border-color: var(--ym-form-status-color);
+  }
+}

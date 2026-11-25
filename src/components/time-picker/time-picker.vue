@@ -1,4 +1,7 @@
 <script setup lang="ts" vapor generic="Mode extends TimePickerMode = 'single'">
+import { useFormControlState } from '../form/control-state'
+import { onFormFieldReset } from '../form/field-reset'
+import type { FormResetType } from '../form/types'
 import { computed, nextTick, ref, shallowRef, useId, useTemplateRef, watch } from 'vue'
 import { YmButton } from '../button'
 import { YmIcon } from '../icon'
@@ -10,6 +13,7 @@ import type { TimePickerMode, TimePickerValue, TimeRangeValue } from './types'
 
 defineOptions({ name: 'YmTimePicker', inheritAttrs: false })
 const props = defineProps(pickerProps)
+const { disabled, nativeDisabled } = useFormControlState(props, 'choice')
 const emit = defineEmits<{
   'update:modelValue': [value: TimePickerValue<Mode>]
   change: [value: TimePickerValue<Mode>]
@@ -54,7 +58,7 @@ const dialog = useTemplateRef<HTMLElement>('dialog')
 const panels = useTemplateRef<{ focus(): void }[]>('panels')
 
 function openPicker(side: number, keyboard = false) {
-  if (props.disabled) return
+  if (disabled.value) return
   if (!open.value) draft.value = [...committed.value]
   activeSide.value = side
   open.value = true
@@ -62,7 +66,7 @@ function openPicker(side: number, keyboard = false) {
 }
 
 function clickField(event: MouseEvent) {
-  if (props.disabled || !field.value) return
+  if (disabled.value || !field.value) return
   const fields = field.value.querySelectorAll<HTMLInputElement>('input[role="combobox"]')
   const side = event.target === fields[1] ? 1 : event.target === fields[0] ? 0 : activeSide.value
   fields[side]?.focus()
@@ -70,7 +74,7 @@ function clickField(event: MouseEvent) {
 }
 
 function keydown(event: KeyboardEvent, side: number) {
-  if (!['ArrowDown', 'Enter', ' '].includes(event.key)) return
+  if (disabled.value || !['ArrowDown', 'Enter', ' '].includes(event.key)) return
   event.preventDefault()
   openPicker(side, true)
 }
@@ -81,7 +85,7 @@ function pick(side: number, time: string) {
 }
 
 function confirm(close: () => void) {
-  if (props.disabled) return
+  if (disabled.value) return
   const [first, last] = displayed.value
   const start = first || midnight.value
   const next = range.value ? ordered(start, last || midnight.value) : start
@@ -100,20 +104,26 @@ function dismissOnLeave(event: FocusEvent) {
   if (next instanceof Node && !field.value?.contains(next) && !dialog.value?.contains(next)) open.value = false
 }
 
-watch([() => props.disabled, range, () => props.format], () => {
+watch([disabled, range, () => props.format], () => {
   open.value = false
   activeSide.value = 0
 })
 watch([() => committed.value[0], () => committed.value[1]], () => {
   if (open.value) draft.value = [...committed.value]
 })
+function resetSelection(type: FormResetType) {
+  local.value = type === 'initial' ? initial : undefined
+  open.value = false
+  activeSide.value = 0
+  draft.value = ['', '']
+}
+onFormFieldReset(resetSelection)
 watch([field, () => props.form, range], ([element], _, onCleanup) => {
   const form = element?.querySelector('input')?.form
   if (!form) return
   const reset = (event: Event) => nextTick(() => {
     if (event.defaultPrevented || field.value !== element) return
-    if (props.modelValue === undefined) local.value = initial
-    open.value = false
+    resetSelection('initial')
   })
   form.addEventListener('reset', reset)
   onCleanup(() => form.removeEventListener('reset', reset))
@@ -123,27 +133,27 @@ watch([field, () => props.form, range], ([element], _, onCleanup) => {
 <template>
   <YmPopup class="ym-time-picker" :class="props.class" :style="props.style" :data-mode="props.mode"
     placement="bottom-left" v-bind="props.popupProps" trigger="manual" v-model:visible="open"
-    :size="props.size" :disabled="props.disabled" :overlay-class-name="['ym-time-picker__panel', props.popupProps?.overlayClassName]">
+    :size="props.size" :disabled="disabled" :overlay-class-name="['ym-time-picker__panel', props.popupProps?.overlayClassName]">
     <template #default>
       <span ref="field" class="ym-time-picker__trigger" :data-open="open || undefined" @click="clickField" @focusout="dismissOnLeave">
         <span v-if="range" aria-label="时间范围" v-bind="$attrs" :id="undefined" :tabindex="undefined"
           role="group" class="ym-input ym-time-picker__field ym-time-picker__range"
-          :data-disabled="props.disabled || undefined" :data-borderless="props.borderless || undefined">
+          :data-disabled="nativeDisabled || undefined" :data-borderless="props.borderless || undefined">
           <template v-for="(name, side) in names" :key="name">
             <span v-if="side === 1" aria-hidden="true">–</span>
             <input class="ym-input__control" type="text" readonly role="combobox" :aria-label="name" aria-haspopup="dialog"
               :id="side === 0 ? ($attrs.id as string | undefined) : undefined" :tabindex="$attrs.tabindex as number | undefined"
               :aria-describedby="$attrs['aria-describedby'] as string | undefined" :aria-expanded="open" :aria-controls="open ? dialogId : undefined"
               :data-active="open && activeSide === side || undefined" :value.attr="displayed[side]" :placeholder="props.placeholder ?? name"
-              :form="props.form" :disabled="props.disabled" @keydown="keydown($event, side)" />
+              :form="props.form" :disabled="nativeDisabled" @keydown="keydown($event, side)" />
           </template>
         </span>
         <YmInput v-else v-bind="$attrs" class="ym-time-picker__field" readonly role="combobox" aria-haspopup="dialog"
           :aria-expanded="open" :aria-controls="open ? dialogId : undefined" :model-value="displayed[0]"
-          :placeholder="props.placeholder ?? '请选择时间'" :disabled="props.disabled" :borderless="props.borderless"
+          :placeholder="props.placeholder ?? '请选择时间'" :disabled="nativeDisabled" :borderless="props.borderless"
           :form="props.form" @keydown="keydown($event, 0)" />
         <YmIcon class="ym-time-picker__icon" name="clock" />
-        <input v-if="props.name" type="hidden" :name="props.name" :form="props.form" :disabled="props.disabled" :value="formValue" />
+        <input v-if="props.name" type="hidden" :name="props.name" :form="props.form" :disabled="nativeDisabled" :value="formValue" />
       </span>
     </template>
     <template #content="{ close }">

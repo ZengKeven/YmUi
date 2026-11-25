@@ -1,3 +1,5 @@
+import { useFormControlState } from '../form/control-state'
+import { onFormFieldReset } from '../form/field-reset'
 import { computed, nextTick, onScopeDispose, ref, shallowReactive, shallowRef, toRaw, useId, watchEffect, type EmitFn, type Ref } from 'vue'
 import { acceptsFile, finishFile, maxBytes, requestFile, toUploadFile } from './request'
 import type { SharedUploadProps, UploadFile, UploadFileEvent, UploadValidation } from './types'
@@ -19,6 +21,7 @@ interface UploadBehavior {
 }
 
 export function useUpload(props: SharedUploadProps, emit: EmitFn<UploadEvents>, input: Readonly<Ref<HTMLInputElement | null>>, behavior: UploadBehavior = {}) {
+  const { disabled } = useFormControlState(props, 'choice')
   const local = shallowRef<UploadFile[]>(props.defaultValue?.slice() ?? [])
   const files = computed(() => props.modelValue ?? local.value)
   const limit = computed(() => props.multiple ? props.max || Infinity : 1)
@@ -60,6 +63,12 @@ export function useUpload(props: SharedUploadProps, emit: EmitFn<UploadEvents>, 
     jobs.delete(key)
     job?.controller.abort()
   }
+  onFormFieldReset(type => {
+    for (const key of jobs.keys()) cancel(key)
+    local.value = type === 'initial' ? props.defaultValue?.slice() ?? [] : []
+    message.value = ''
+    dragDepth.value = 0
+  })
   watchEffect(() => {
     if (!jobs.size) return
     const current = new Map(files.value.map(file => [keyFor(file), file]))
@@ -84,7 +93,7 @@ export function useUpload(props: SharedUploadProps, emit: EmitFn<UploadEvents>, 
   let commits = Promise.resolve()
   async function upload(file: UploadFile) {
     const key = keyFor(file)
-    if (disposed || props.disabled || !file.raw || !configured.value || jobs.has(key)) return
+    if (disposed || disabled.value || !file.raw || !configured.value || jobs.has(key)) return
     const job = shallowReactive({ controller: new AbortController(), raw: file.raw, initialStatus: file.status, percent: 0 })
     jobs.set(key, job)
     const result = await requestFile(file, props, {
@@ -117,7 +126,7 @@ export function useUpload(props: SharedUploadProps, emit: EmitFn<UploadEvents>, 
   }
 
   async function select(selection: File[]) {
-    if (props.disabled || !selection.length) return
+    if (disabled.value || !selection.length) return
     const base = replace.value ? [] : files.value
     const added: UploadFile[] = []
     message.value = ''
@@ -146,7 +155,7 @@ export function useUpload(props: SharedUploadProps, emit: EmitFn<UploadEvents>, 
   }
 
   function choose() {
-    if (!props.disabled && canChoose.value) input.value?.click()
+    if (!disabled.value && canChoose.value) input.value?.click()
   }
   function changeInput(event: Event) {
     const field = event.currentTarget as HTMLInputElement
@@ -155,7 +164,7 @@ export function useUpload(props: SharedUploadProps, emit: EmitFn<UploadEvents>, 
     void select(selection)
   }
   function remove(file: UploadFile, index: number) {
-    if (props.disabled) return
+    if (disabled.value) return
     message.value = ''
     publish(files.value.filter((_, i) => i !== index))
     emit('remove', { file, index })
@@ -163,7 +172,7 @@ export function useUpload(props: SharedUploadProps, emit: EmitFn<UploadEvents>, 
   function dragEvent(event: DragEvent) {
     if (!props.draggable || !event.dataTransfer?.types.includes('Files')) return
     event.preventDefault()
-    if (props.disabled) return
+    if (disabled.value) return
     if (event.type === 'dragenter') dragDepth.value++
     if (event.type === 'dragleave') dragDepth.value = Math.max(0, dragDepth.value - 1)
     if (event.type === 'drop') {
@@ -172,7 +181,7 @@ export function useUpload(props: SharedUploadProps, emit: EmitFn<UploadEvents>, 
     }
   }
   return {
-    files, entries, limit, configured, canChoose, canUpload, message, dragDepth, keyFor,
+    disabled, files, entries, limit, configured, canChoose, canUpload, message, dragDepth, keyFor,
     upload, uploadFiles, choose, changeInput, dragEvent, remove,
   }
 }

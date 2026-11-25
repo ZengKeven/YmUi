@@ -16,7 +16,7 @@ export const sharedUploadProps = {
   /** 每个文件的大小上限。 */
   sizeLimit: [Number, Object] as PropType<SharedUploadProps['sizeLimit']>,
   /** 禁用选择、上传和移除文件。 */
-  disabled: Boolean,
+  disabled: { type: Boolean, default: undefined },
   /** 启用拖放选择。 */
   draggable: Boolean,
   /** 显示上传百分比。 */

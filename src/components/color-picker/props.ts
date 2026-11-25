@@ -20,7 +20,7 @@ export const panelProps = {
     default: () => ['monochrome', 'linear-gradient'],
   },
   /** 禁用编辑。 */
-  disabled: Boolean,
+  disabled: { type: Boolean, default: undefined },
   /** 显示透明通道。 */
   enableAlpha: Boolean,
   /** 允许添加渐变色标。 */

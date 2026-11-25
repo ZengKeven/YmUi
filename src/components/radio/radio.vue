@@ -1,11 +1,14 @@
 <!-- @fallthroughAttributes true -->
 <script setup lang="ts" vapor>
-import { computed, inject, nextTick } from 'vue'
+import { useFormControlState } from '../form/control-state'
+import { onFormFieldReset } from '../form/field-reset'
+import { computed, inject, nextTick, ref, useTemplateRef } from 'vue'
 import { radioGroupKey } from './context'
 import radioProps from './props'
 
 defineOptions({ name: 'YmRadio', inheritAttrs: false })
 const props = defineProps(radioProps)
+const { nativeDisabled, readOnly } = useFormControlState(props, 'choice')
 const emit = defineEmits<{
   'update:modelValue': [checked: boolean]
   change: [checked: boolean, context: { e: Event }]
@@ -14,12 +17,19 @@ defineSlots<{ default?: () => unknown }>()
 
 const group = inject(radioGroupKey, undefined)
 const initiallyChecked = props.defaultChecked
+const fallback = ref(initiallyChecked)
+const field = useTemplateRef<HTMLInputElement>('field')
 const checked = computed(() => group ? props.value !== undefined && group.selected === props.value : props.modelValue)
-const disabled = computed(() => props.disabled || (group && (group.disabled || props.value === undefined)))
+const disabled = computed(() => nativeDisabled.value || (group && (group.disabled || props.value === undefined)))
+
+if (!group) onFormFieldReset(type => {
+  fallback.value = type === 'initial' && initiallyChecked
+  if (field.value) field.value.checked = checked.value ?? fallback.value
+})
 
 async function change(e: Event) {
   const input = e.currentTarget as HTMLInputElement
-  if (disabled.value || !input.checked) return
+  if (disabled.value || readOnly.value || !input.checked) return
   if (group && props.value !== undefined) group.select(props.value, e)
   emit('update:modelValue', true)
   emit('change', true, { e })
@@ -42,9 +52,11 @@ async function change(e: Event) {
 
 <template>
   <label class="ym-radio" :data-size="props.size" :data-theme="props.theme ?? group?.theme ?? 'primary'">
-    <input v-bind="$attrs" class="ym-radio__input" type="radio" :name="group?.name ?? props.name"
-      :value="String(props.value ?? 'on')" :disabled="disabled" :checked="checked ?? initiallyChecked"
-      :data-ym-radio-selected="checked || undefined" @change="change" />
+    <input ref="field" v-bind="$attrs" class="ym-radio__input" type="radio" :name="group?.name ?? props.name"
+      :value="String(props.value ?? 'on')" :disabled="disabled" :checked="checked ?? fallback"
+      :data-ym-radio-selected="checked || undefined" :aria-readonly="readOnly || undefined"
+      @click="readOnly && $event.preventDefault()"
+      @keydown="readOnly && $event.key.startsWith('Arrow') && $event.preventDefault()" @change="change" />
     <span class="ym-radio__label"><slot>{{ props.label ?? props.value }}</slot></span>
   </label>
 </template>

@@ -1,10 +1,12 @@
 <script setup lang="ts" vapor>
+import { useFormControlState } from '../form/control-state'
 import { computed } from 'vue'
 import { YmLoading } from '../loading'
 import buttonProps from './props'
 
 defineOptions({ name: 'YmButton', inheritAttrs: false })
 const props = defineProps(buttonProps)
+const { disabled } = useFormControlState(props, 'action')
 const emit = defineEmits<{ click: [event: MouseEvent] }>()
 defineSlots<{
   default?: () => unknown
@@ -17,7 +19,7 @@ const buttonRole = computed(() => element.value === 'div' || (element.value === 
 const intent = computed(() => props.theme ?? (props.variant === 'base' ? 'primary' : 'default'))
 
 function blockActivation(event: MouseEvent) {
-  if (!props.disabled && !props.loading) return false
+  if (!disabled.value && !props.loading) return false
   event.preventDefault()
   event.stopPropagation()
   return true
@@ -31,7 +33,7 @@ function handleKey(event: KeyboardEvent) {
   if (!buttonRole.value || event.target !== event.currentTarget || event.defaultPrevented) return
   if (event.key !== ' ' && event.key !== 'Enter') return
   event.preventDefault()
-  if (props.disabled || props.loading || event.repeat) return
+  if (disabled.value || props.loading || event.repeat) return
   const activate = event.key === 'Enter' ? event.type === 'keydown' : event.type === 'keyup'
   if (activate) (event.currentTarget as HTMLElement).click()
 }
@@ -50,11 +52,11 @@ function handleKey(event: KeyboardEvent) {
     :type="props.type"
     :form="props.form"
     :href="props.href || undefined"
-    :disabled="element === 'button' ? props.disabled : undefined"
-    :aria-disabled="props.loading || (props.disabled && element !== 'button') || $attrs['aria-disabled']"
+    :disabled="element === 'button' ? disabled : undefined"
+    :aria-disabled="props.loading || (disabled && element !== 'button') || $attrs['aria-disabled']"
     :aria-busy="props.loading || $attrs['aria-busy']"
     :role="$attrs.role ?? (buttonRole ? 'button' : undefined)"
-    :tabindex="props.disabled ? (element === 'button' ? undefined : -1) : ($attrs.tabindex ?? 0)"
+    :tabindex="disabled ? (element === 'button' ? undefined : -1) : ($attrs.tabindex ?? 0)"
     @click="handleClick"
     @auxclick="blockActivation"
     @keydown="handleKey"

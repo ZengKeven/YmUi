@@ -33,9 +33,9 @@ export default {
   /** 输入框外层的行内样式。 */
   style: [String, Array, Object] as PropType<InputProps['style']>,
   /** 是否禁用编辑及密码切换按钮。 */
-  disabled: Boolean,
+  disabled: { type: Boolean, default: undefined },
   /** 是否只读。 */
-  readonly: Boolean,
+  readonly: { type: Boolean, default: undefined },
   /** 输入框尺寸，默认继承。 */
   size: {
     type: String as PropType<InputProps['size']>,

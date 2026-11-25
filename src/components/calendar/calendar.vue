@@ -1,4 +1,6 @@
 <script setup lang="ts" vapor>
+import { useFormControlState } from '../form/control-state'
+import { onFormFieldReset } from '../form/field-reset'
 import { computed, inject, nextTick, onMounted, onScopeDispose, provide, ref, useId, useTemplateRef, watch } from 'vue'
 import { YmButton } from '../button'
 import { YmIcon } from '../icon'
@@ -11,6 +13,7 @@ import type { CalendarCell } from './types'
 
 defineOptions({ name: 'YmCalendar' })
 const props = defineProps(calendarProps)
+const { disabled } = useFormControlState(props, 'choice')
 const emit = defineEmits<{
   'update:modelValue': [value: string]
   change: [value: string]
@@ -25,6 +28,7 @@ const pair = inject(calendarPairKey, undefined)
 if (range) provide(calendarRangeKey, undefined)
 if (pair) provide(calendarPairKey, undefined)
 const local = ref(props.defaultValue)
+onFormFieldReset(type => { local.value = type === 'initial' ? props.defaultValue : undefined })
 const selected = computed(() => props.modelValue === undefined ? local.value : props.modelValue)
 const today = ref(dateKey(new Date()))
 let midnightTimer: ReturnType<typeof setTimeout> | undefined
@@ -118,11 +122,11 @@ const weeks = computed(() => {
 })
 
 function browse(targetYear: number, targetMonth: number) {
-  if (!props.disabled) navigate(inMonth(cursor.value, targetYear, targetMonth))
+  if (!disabled.value) navigate(inMonth(cursor.value, targetYear, targetMonth))
 }
 
 function choose(cell: CalendarCell & { blocked: boolean }) {
-  if (props.disabled || cell.blocked) return
+  if (disabled.value || cell.blocked) return
   placeCursor(cell.date, !cell.inMonth)
   if (!cell.selected) {
     if (props.modelValue === undefined) local.value = cell.value
@@ -133,7 +137,7 @@ function choose(cell: CalendarCell & { blocked: boolean }) {
 }
 
 function keydown(event: KeyboardEvent, date: Date) {
-  if (props.disabled || event.altKey || event.ctrlKey || event.metaKey) return
+  if (disabled.value || event.altKey || event.ctrlKey || event.metaKey) return
   const weekOffset = (date.getDay() - props.firstDayOfWeek + 7) % 7
   let target: Date
   switch (event.key) {
@@ -158,19 +162,19 @@ function keydown(event: KeyboardEvent, date: Date) {
     <div class="ym-calendar__toolbar">
       <template v-for="control in toolbarOrder" :key="control">
         <YmSelect v-if="control === 'month'" class="ym-calendar__month" aria-label="月份" :options="months"
-          :model-value="month + 1" :disabled="props.disabled" @update:model-value="browse(year, $event - 1)" />
+          :model-value="month + 1" :disabled="disabled" @update:model-value="browse(year, $event - 1)" />
         <YmSelect v-else-if="control === 'year'" class="ym-calendar__year" aria-label="年份" :options="years"
-          :model-value="year" :disabled="props.disabled" @update:model-value="browse($event, month)" />
+          :model-value="year" :disabled="disabled" @update:model-value="browse($event, month)" />
         <YmButton v-else-if="control === 'previous'" variant="text" shape="square" aria-label="上个月" title="上个月"
-          :disabled="props.disabled || !monthAllowed(year, month - 1)" @click="browse(year, month - 1)">
+          :disabled="disabled || !monthAllowed(year, month - 1)" @click="browse(year, month - 1)">
           <template #icon><YmIcon name="chevron-left" /></template>
         </YmButton>
         <YmButton v-else-if="control === 'next'" variant="text" shape="square" aria-label="下个月" title="下个月"
-          :disabled="props.disabled || !monthAllowed(year, month + 1)" @click="browse(year, month + 1)">
+          :disabled="disabled || !monthAllowed(year, month + 1)" @click="browse(year, month + 1)">
           <template #icon><YmIcon name="chevron-right" /></template>
         </YmButton>
         <YmButton v-else class="ym-calendar__today" variant="text" :shape="isCard ? 'square' : 'rectangle'"
-          aria-label="今天" title="今天" :disabled="props.disabled" @click="navigate(new Date())">
+          aria-label="今天" title="今天" :disabled="disabled" @click="navigate(new Date())">
           <template v-if="isCard" #icon>
             <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false">
               <circle cx="12" cy="12" r="7" stroke="currentColor" stroke-width="2" />
@@ -193,7 +197,7 @@ function keydown(event: KeyboardEvent, date: Date) {
             @pointerenter="range?.preview(cell.blocked ? null : cell.value)" @focus="range?.preview(cell.blocked ? null : cell.value)"
             :aria-describedby="cell.descriptionIds || undefined"
             :data-outside="!cell.inMonth || undefined" :aria-current="cell.today ? 'date' : undefined"
-            :disabled="props.disabled || cell.outsideRange || cell.spillover" :aria-disabled="cell.blocked || undefined"
+            :disabled="disabled || cell.outsideRange || cell.spillover" :aria-disabled="cell.blocked || undefined"
             :tabindex="cell.value === cursorKey ? 0 : -1" @keydown="keydown($event, cell.date)" @click="choose(cell)">
             <span class="ym-calendar__day-heading">
               <span class="ym-calendar__day-content">

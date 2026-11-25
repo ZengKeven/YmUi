@@ -20,7 +20,7 @@ export default {
   /** 默认插槽省略时的标签文字。 */
   label: String,
   /** 是否禁用此项。 */
-  disabled: Boolean,
+  disabled: { type: Boolean, default: undefined },
   /** 独立使用时的表单字段名。 */
   name: String,
   /** 单项尺寸，默认继承。 */
@@ -39,7 +39,7 @@ export const radioGroupProps = {
   /** 所有组内选项共用的表单字段名。 */
   name: String,
   /** 是否禁用全部选项。 */
-  disabled: Boolean,
+  disabled: { type: Boolean, default: undefined },
   /** 组内选项的排列方向。 */
   direction: {
     type: String as PropType<RadioGroupProps['direction']>, default: 'horizontal',

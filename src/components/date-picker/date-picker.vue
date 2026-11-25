@@ -1,4 +1,7 @@
 <script setup lang="ts" vapor generic="Mode extends DatePickerMode = 'single'">
+import { useFormControlState } from '../form/control-state'
+import { onFormFieldReset } from '../form/field-reset'
+import type { FormResetType } from '../form/types'
 import { computed, nextTick, provide, ref, shallowRef, useId, useTemplateRef, watch } from 'vue'
 import { YmCalendar, type CalendarCell } from '../calendar'
 import { parseDate } from '../calendar/dates'
@@ -13,6 +16,7 @@ import type { DatePickerMode, DatePickerValue, DateRangeValue } from './types'
 
 defineOptions({ name: 'YmDatePicker', inheritAttrs: false })
 const props = defineProps(pickerProps)
+const { disabled, nativeDisabled, readOnly } = useFormControlState(props, 'choice')
 const emit = defineEmits<{
   'update:modelValue': [value: DatePickerValue<Mode>]
   change: [value: DatePickerValue<Mode>]
@@ -74,7 +78,7 @@ provide(calendarRangeKey, computed<CalendarRange | undefined>(() => isRange.valu
 } : undefined))
 
 function select(date: string, close: () => void) {
-  if (props.disabled) return
+  if (disabled.value) return
   if (isRange.value && !anchor.value) {
     anchor.value = date
     active.value = active.value === 'start' ? 'end' : 'start'
@@ -110,7 +114,7 @@ function activateRange(endpoint: Endpoint, keyboard: boolean) {
 }
 
 function openFromKeyboard(event: KeyboardEvent) {
-  if (props.disabled || !['ArrowDown', 'Enter', ' '].includes(event.key)) return
+  if (disabled.value || !['ArrowDown', 'Enter', ' '].includes(event.key)) return
   event.preventDefault()
   open.value = true
   nextTick(() => calendar.value?.focus())
@@ -121,7 +125,7 @@ function dismissOnLeave(event: FocusEvent) {
   if (next instanceof Node && !trigger.value?.contains(next) && !dialog.value?.contains(next)) open.value = false
 }
 
-watch(() => props.disabled, disabled => { if (disabled) open.value = false })
+watch(disabled, disabled => { if (disabled) open.value = false })
 watch(isRange, () => { open.value = false })
 watch(open, visible => { if (!visible) resetDraft() })
 watch([() => committedRange.value?.[0], () => committedRange.value?.[1]], resetDraft)
@@ -129,13 +133,18 @@ watch(() => {
   const date = parseDate(anchor.value)
   return date && props.disabledDate?.(date)
 }, blocked => { if (blocked) resetDraft() })
+function resetSelection(type: FormResetType) {
+  local.value = type === 'initial' ? initial : null
+  open.value = false
+  resetDraft()
+}
+onFormFieldReset(resetSelection)
 watch([trigger, () => props.form, isRange], ([element], _, onCleanup) => {
   const form = element?.querySelector('input')?.form
   if (!form) return
   const reset = (event: Event) => nextTick(() => {
     if (event.defaultPrevented || trigger.value !== element) return
-    if (props.modelValue === undefined) local.value = initial
-    open.value = false
+    resetSelection('initial')
   })
   form.addEventListener('reset', reset)
   onCleanup(() => form.removeEventListener('reset', reset))
@@ -144,18 +153,18 @@ watch([trigger, () => props.form, isRange], ([element], _, onCleanup) => {
 
 <template>
   <YmPopup class="ym-date-picker" :class="props.class" :data-mode="props.mode" :style="props.style" placement="bottom-left" v-bind="props.popupProps"
-    v-model:visible="open" trigger="click" :disabled="props.disabled" :size="props.size"
+    v-model:visible="open" trigger="click" :disabled="disabled" :size="props.size"
     :overlay-class-name="['ym-date-picker__panel', props.popupProps?.overlayClassName]">
     <template #default>
       <span ref="trigger" class="ym-date-picker__trigger" :data-open="open || undefined" @focusout="dismissOnLeave">
         <RangeField v-if="isRange" v-bind="$attrs" :start-value="fields?.[0]" :end-value="fields?.[1]"
           :form-value="committedRange?.join(' 至 ') ?? ''" :active="active" :open="open" :dialog-id="dialogId"
-          :placeholder="props.placeholder" :borderless="props.borderless" :disabled="props.disabled"
+          :placeholder="props.placeholder" :borderless="props.borderless" :disabled="nativeDisabled" :readonly="readOnly"
           :name="props.name" :form="props.form" @activate="activateRange" />
         <template v-else>
           <YmInput v-bind="$attrs" class="ym-date-picker__field" type="text" role="combobox" readonly
             :model-value="singleDate ?? ''" :placeholder="props.placeholder ?? '请选择日期'"
-            :borderless="props.borderless" :disabled="props.disabled"
+            :borderless="props.borderless" :disabled="nativeDisabled"
             :name="props.name" :form="props.form" aria-haspopup="dialog" :aria-expanded="open"
             :aria-controls="open ? dialogId : undefined" @keydown="openFromKeyboard" />
           <span class="ym-date-picker__suffix"><YmIcon name="calendar" /></span>

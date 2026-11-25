@@ -17,7 +17,7 @@ defineSlots<{ trigger?: () => unknown }>()
 
 const input = useTemplateRef<HTMLInputElement>('input')
 const {
-  files, entries, configured, canChoose, canUpload, message, dragDepth, keyFor,
+  disabled, files, entries, configured, canChoose, canUpload, message, dragDepth, keyFor,
   upload, uploadFiles, choose, changeInput, dragEvent, remove,
 } = useUpload(props, emit, input, { acceptsFile: acceptsImage, replaceSingle: false, noun: '图片' })
 
@@ -57,9 +57,9 @@ defineExpose({ choose, uploadFiles })
 </script>
 
 <template>
-  <div class="ym-image-upload ym-theme" :data-size="props.size" :data-dragging="props.draggable && !props.disabled && dragDepth > 0 || undefined"
+  <div class="ym-image-upload ym-theme" :data-size="props.size" :data-dragging="props.draggable && !disabled && dragDepth > 0 || undefined"
     @dragover="dragEvent" @dragenter="dragEvent" @dragleave="dragEvent" @drop="dragEvent">
-    <input ref="input" type="file" hidden :multiple="props.multiple" :accept="props.accept" :disabled="props.disabled" @change="changeInput" />
+    <input ref="input" type="file" hidden :multiple="props.multiple" :accept="props.accept" :disabled="disabled" @change="changeInput" />
     <div class="ym-image-upload__list">
       <div v-for="(card, index) in cards" :key="card.key" class="ym-image-upload__item">
         <div class="ym-image-upload__tile" :data-status="card.status">
@@ -74,7 +74,7 @@ defineExpose({ choose, uploadFiles })
           <span v-if="card.status === 'waiting' && configured" class="ym-image-upload__waiting">待上传</span>
           <button v-if="card.url" type="button" class="ym-image-upload__open" :aria-label="'预览 ' + card.name"
             @click="preview(card.file, index)"><YmIcon name="show-password" /></button>
-          <span v-if="!props.disabled" class="ym-image-upload__actions">
+          <span v-if="!disabled" class="ym-image-upload__actions">
             <YmButton v-if="card.status === 'fail' && card.file.raw && configured" variant="text" shape="square"
               :aria-label="'重试 ' + card.name" @click="upload(card.file)"><YmIcon name="refresh" /></YmButton>
             <YmButton variant="text" shape="square" :aria-label="'删除 ' + card.name" @click="remove(card.file, index)"><YmIcon name="delete" /></YmButton>
@@ -82,11 +82,11 @@ defineExpose({ choose, uploadFiles })
         </div>
         <span v-if="props.showImageFileName" class="ym-image-upload__name" :title="card.name">{{ card.name }}</span>
       </div>
-      <YmButton v-if="canChoose" class="ym-image-upload__add" variant="dashed" theme="default" :disabled="props.disabled"
+      <YmButton v-if="canChoose" class="ym-image-upload__add" variant="dashed" theme="default" :disabled="disabled"
         aria-label="上传图片" @click="choose"><slot name="trigger"><YmIcon name="add" /><span>上传图片</span></slot></YmButton>
     </div>
     <p v-if="message" class="ym-image-upload__message" role="alert">{{ message }}</p>
-    <YmButton v-if="!props.autoUpload && canUpload" class="ym-image-upload__submit" :disabled="props.disabled" @click="uploadFiles">开始上传</YmButton>
+    <YmButton v-if="!props.autoUpload && canUpload" class="ym-image-upload__submit" :disabled="disabled" @click="uploadFiles">开始上传</YmButton>
     <ImagePreview v-if="activeKey" :active-key="activeKey" :items="previews" @navigate="activeKey = $event" @close="activeKey = ''" />
   </div>
 </template>

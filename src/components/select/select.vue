@@ -1,4 +1,7 @@
 <script setup lang="ts" vapor generic="Option extends SelectOption = SelectOption, Multiple extends boolean = false">
+import { useFormControlState } from '../form/control-state'
+import { onFormFieldReset } from '../form/field-reset'
+import type { FormResetType } from '../form/types'
 import { computed, nextTick, provide, ref, shallowRef, useId, useTemplateRef, watch } from 'vue'
 import { YmCheckbox } from '../checkbox'
 import { checkboxGroupKey } from '../checkbox/context'
@@ -13,6 +16,7 @@ import type { SelectKey, SelectOption, SelectValue } from './types'
 
 defineOptions({ name: 'YmSelect', inheritAttrs: false })
 const props = defineProps(selectProps)
+const { disabled, nativeDisabled, readOnly } = useFormControlState(props, 'choice')
 // 下拉选项由 Select 管理，即使它位于外部复选框组内。
 provide(checkboxGroupKey, undefined)
 type Choice = Multiple extends true ? Option['value'][] : Option['value']
@@ -69,20 +73,24 @@ watch([open, enabled], ([isOpen, items]) => {
 }, { flush: 'sync' })
 
 function setOpen(next: boolean) {
-  open.value = next && !props.disabled
+  open.value = next && !disabled.value
   if (!open.value) query.value = ''
 }
-watch(() => props.disabled, disabled => { if (disabled) setOpen(false) })
+watch(disabled, disabled => { if (disabled) setOpen(false) })
 watch(searchable, allowed => { if (!allowed) query.value = '' })
 
+function resetSelection(type: FormResetType) {
+  local.value = type === 'initial' ? initial : null
+  setOpen(false)
+}
+onFormFieldReset(resetSelection)
 watch([control, () => props.form], ([element], _, onCleanup) => {
   const form = element?.querySelector('input')?.form
   if (!form) return
   const reset = (event: Event) => {
     nextTick(() => {
       if (event.defaultPrevented || control.value !== element) return
-      if (props.modelValue === undefined) local.value = initial
-      setOpen(false)
+      resetSelection('initial')
     })
   }
   form.addEventListener('reset', reset)
@@ -90,21 +98,21 @@ watch([control, () => props.form], ([element], _, onCleanup) => {
 }, { flush: 'post' })
 
 function activate(toggle: boolean) {
-  if (props.disabled) return
+  if (disabled.value) return
   const next = toggle ? !open.value : true
   editor.value?.focus()
   setOpen(next)
 }
 
 function search(text: string) {
-  if (props.disabled || !searchable.value) return
+  if (disabled.value || !searchable.value) return
   setOpen(true)
   query.value = text
   emit('search', text)
 }
 
 function beforeInput(e: Event) {
-  if (open.value || !searchable.value || props.disabled) return
+  if (open.value || !searchable.value || disabled.value) return
   // 确认单选后输入框可能仍有焦点。键入、粘贴或输入法输入均从新查询开始。
   const input = e.target as HTMLInputElement
   input.select()
@@ -112,7 +120,7 @@ function beforeInput(e: Event) {
 }
 
 function choose(option: SelectOption) {
-  if (props.disabled || blocked(option)) return
+  if (disabled.value || blocked(option)) return
   const exists = selected.value.has(option.value)
   if (props.multiple || !exists) {
     let next: SelectValue = option.value
@@ -140,7 +148,7 @@ function scrollToActive() {
 watch([list, options], () => nextTick(scrollToActive), { flush: 'post' })
 
 function keydown(e: KeyboardEvent) {
-  if (props.disabled || e.isComposing || e.keyCode === 229) return
+  if (disabled.value || e.isComposing || e.keyCode === 229) return
   if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
     e.preventDefault()
     if (open.value) move(e.key === 'ArrowDown' ? 1 : -1)
@@ -160,18 +168,18 @@ function keydown(e: KeyboardEvent) {
 
 <template>
   <YmPopup v-bind="props.popupProps" class="ym-select" :class="props.class" :style="props.style"
-    :size="props.size ?? props.popupProps?.size" trigger="manual" :visible="open" :disabled="props.disabled"
+    :size="props.size ?? props.popupProps?.size" trigger="manual" :visible="open" :disabled="disabled"
     :overlay-class-name="['ym-select__panel', props.popupProps?.overlayClassName]" @update:visible="setOpen">
-    <div ref="control" class="ym-select__control" :data-open="open || undefined" :data-disabled="props.disabled || undefined"
+    <div ref="control" class="ym-select__control" :data-open="open || undefined" :data-disabled="nativeDisabled || undefined"
       :data-borderless="props.borderless || undefined" @click="activate(!searchable)">
       <div class="ym-select__values">
         <template v-if="props.multiple">
           <YmTag v-for="item in selectedItems" :key="item.value" :content="item.label"
-            variant="light" closable :disabled="props.disabled || item.disabled"
+            variant="light" closable :disabled="disabled || item.disabled"
             @mousedown.prevent @close="choose(item)" />
         </template>
         <YmInput ref="editor" v-bind="$attrs" type="text" class="ym-select__field" role="combobox" autocomplete="off"
-          :model-value="inputText" :placeholder="placeholder" :disabled="props.disabled" :readonly="!searchable" :form="props.form"
+          :model-value="inputText" :placeholder="placeholder" :disabled="nativeDisabled" :readonly="readOnly || !searchable" :form="props.form"
           :aria-expanded="open" aria-haspopup="listbox" :aria-controls="open ? listId : undefined"
           :aria-activedescendant="open && activeIndex >= 0 ? `${listId}-${activeIndex}` : undefined"
           :aria-autocomplete="searchable ? 'list' : 'none'"
@@ -184,7 +192,7 @@ function keydown(e: KeyboardEvent) {
     </div>
     <template v-if="props.name">
       <input v-for="value in selection" :key="value" type="hidden"
-        :name="props.name" :value="value" :form="props.form" :disabled="props.disabled" />
+        :name="props.name" :value="value" :form="props.form" :disabled="nativeDisabled" />
     </template>
     <template #content>
       <div :id="listId" ref="list" role="listbox" :aria-multiselectable="props.multiple || undefined"

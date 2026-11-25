@@ -24,7 +24,7 @@ export default {
   /** 判定指定日期是否禁选。 */
   disabledDate: Function as PropType<CalendarProps['disabledDate']>,
   /** 禁用整个日历。 */
-  disabled: Boolean,
+  disabled: { type: Boolean, default: undefined },
   /** 控件尺寸，默认继承最近的 ConfigProvider。 */
   size: buttonProps.size,
 } satisfies ComponentObjectPropsOptions<CalendarProps>

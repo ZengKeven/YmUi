@@ -13,7 +13,7 @@ export default {
   /** 是否允许重复点击当前分值清零。 */
   clearable: Boolean,
   /** 是否禁用交互。 */
-  disabled: Boolean,
+  disabled: { type: Boolean, default: undefined },
   /** 星星数量，默认五颗。 */
   count: { type: Number, default: 5, validator: (n: number) => Number.isSafeInteger(n) && n >= 0 },
   /** 星星之间的像素间距。 */

@@ -1,18 +1,22 @@
 <!-- @fallthroughAttributes true -->
 <script setup lang="ts" vapor>
+import { useFormControlState } from '../form/control-state'
+import { onFormFieldReset } from '../form/field-reset'
 import { computed, ref, watch } from 'vue'
 import { YmIcon } from '../icon'
 import rateProps from './props'
 
 defineOptions({ name: 'YmRate' })
 const props = defineProps(rateProps)
+const { disabled } = useFormControlState(props, 'choice')
 const emit = defineEmits<{
   'update:modelValue': [value: number]
   change: [value: number]
 }>()
 defineSlots<{ icon?: (scope: { index: number; size: string; color: string }) => unknown }>()
 
-const local = ref(props.defaultValue)
+const initial = props.defaultValue
+const local = ref(initial)
 const preview = ref<number>()
 const count = computed(() => Number.isSafeInteger(props.count) && props.count >= 0 ? props.count : 5)
 const step = computed(() => props.allowHalf ? 0.5 : 1)
@@ -37,7 +41,11 @@ const layers = ['empty', 'fill'] as const
 const layerColors = { empty: 'var(--ym-rate-inactive)', fill: 'var(--ym-rate-active)' }
 
 function clearPreview() { preview.value = undefined }
-watch([selected, count, () => props.disabled, step], clearPreview)
+watch([selected, count, disabled, step], clearPreview)
+onFormFieldReset(type => {
+  clearPreview()
+  local.value = type === 'initial' ? initial : 0
+})
 
 function scoreAt(event: MouseEvent, index: number) {
   if (!props.allowHalf) return index
@@ -46,12 +54,12 @@ function scoreAt(event: MouseEvent, index: number) {
 }
 
 function hover(event: PointerEvent, index: number) {
-  if (!props.disabled && event.pointerType !== 'touch') preview.value = scoreAt(event, index)
+  if (!disabled.value && event.pointerType !== 'touch') preview.value = scoreAt(event, index)
 }
 
 function commit(value: number) {
   clearPreview()
-  if (props.disabled || value === selected.value) return
+  if (disabled.value || value === selected.value) return
   if (controlled.value === undefined) local.value = value
   emit('update:modelValue', value)
   emit('change', value)
@@ -63,7 +71,7 @@ function choose(event: MouseEvent, index: number) {
 }
 
 function keydown(event: KeyboardEvent) {
-  if (props.disabled) return
+  if (disabled.value) return
   let value: number
   switch (event.key) {
     case 'ArrowRight': case 'ArrowUp': value = Math.min(selected.value + step.value, count.value); break
@@ -79,8 +87,8 @@ function keydown(event: KeyboardEvent) {
 
 <template>
   <span class="ym-rate" role="slider" aria-label="评分" :aria-valuemin="0" :aria-valuemax="count"
-    :aria-valuenow="selected" :aria-valuetext="`${selected}分`" :aria-disabled="props.disabled || undefined"
-    :tabindex="props.disabled ? -1 : 0" :data-size="props.size"
+    :aria-valuenow="selected" :aria-valuetext="`${selected}分`" :aria-disabled="disabled || undefined"
+    :tabindex="disabled ? -1 : 0" :data-size="props.size"
     :style="{ '--ym-rate-size': iconSize, '--ym-rate-active': typeof props.color === 'string' ? props.color : props.color?.[0],
       '--ym-rate-inactive': typeof props.color === 'string' ? undefined : props.color?.[1] }"
     @keydown="keydown" @blur="clearPreview">
