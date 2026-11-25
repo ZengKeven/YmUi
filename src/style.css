@@ -22,6 +22,7 @@
 @import './components/textarea/index.css';
 @import './components/time-picker/index.css';
 @import './components/tree-select/index.css';
+@import './components/upload/index.css';
 
 :where(:root) {
   --ym-light-primary: #006eff;

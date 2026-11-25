@@ -1,0 +1,52 @@
+.ym-upload {
+  box-sizing: border-box;
+  max-width: 100%;
+  color: var(--ym-color-text);
+  font-size: var(--ym-control-font-size);
+}
+.ym-upload[data-dragging] { outline: 2px dashed var(--ym-color-primary); outline-offset: 2px; }
+.ym-upload__controls { display: flex; flex-wrap: wrap; align-items: center; gap: .6em; }
+.ym-upload .ym-upload__list {
+  display: grid;
+  gap: .25em;
+  margin: .5em 0 0;
+  padding: 0;
+  list-style: none;
+}
+.ym-upload .ym-upload__item {
+  display: flex;
+  align-items: center;
+  gap: .45em;
+  min-height: var(--ym-control-height);
+  margin: 0;
+  padding-inline: .35em;
+  border-radius: var(--ym-radius);
+}
+.ym-upload__item:is(:hover, :focus-within) {
+  background: color-mix(in srgb, var(--ym-color-primary) 6%, var(--ym-color-surface));
+}
+.ym-upload__item > :is(.ym-icon, .ym-button) { flex: none; }
+.ym-upload__item > .ym-button { width: var(--ym-control-height); padding: 0; }
+.ym-upload__name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ym-upload a.ym-upload__name { color: var(--ym-color-primary); }
+.ym-upload__placeholder, .ym-upload__status {
+  color: color-mix(in srgb, var(--ym-color-text) 72%, var(--ym-color-surface));
+}
+.ym-upload__status {
+  display: inline-flex;
+  align-items: center;
+  gap: .3em;
+  font-size: .9em;
+  font-variant-numeric: tabular-nums;
+  max-width: 45%;
+  overflow-wrap: anywhere;
+}
+.ym-upload__item[data-status='success'] .ym-upload__status { color: var(--ym-color-success); }
+.ym-upload__item[data-status='fail'] .ym-upload__status, .ym-upload__message { color: var(--ym-color-danger); }
+.ym-upload .ym-upload__message { margin: .4em 0 0; }
