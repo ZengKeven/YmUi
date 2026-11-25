@@ -1,6 +1,6 @@
 # ym-ui-vapor
 
-基于 Vue `3.6.0-rc.15` 的 Vapor 组件库，使用 Node.js `>=26.0.0` 和 npm。包入口导出 `YmButton`、`YmIcon`、`YmLoading`、`ConfigProvider`、`version` 及其公开类型，主题样式从 `ym-ui-vapor/style.css` 引入。
+基于 Vue `3.6.0-rc.16` 的 Vapor 组件库，使用 Node.js `>=26.0.0` 和 npm。包入口导出 `YmButton`、`YmIcon`、`YmLoading`、`ConfigProvider`、`version` 及其公开类型，主题样式从 `ym-ui-vapor/style.css` 引入。
 
 ## 本地开发
 
@@ -109,7 +109,7 @@ category: 基础组件
 在库项目运行 `npm pack`，再在业务项目安装打出的文件和匹配的 Vue 版本。将示例中的相对路径替换为实际位置。
 
 ```sh
-npm install ../YmUi/ym-ui-vapor-0.1.0-alpha.0.tgz vue@3.6.0-rc.15
+npm install ../YmUi/ym-ui-vapor-0.1.0-alpha.0.tgz vue@3.6.0-rc.16
 ```
 
 ```ts
@@ -129,4 +129,4 @@ npm pack --dry-run
 npm publish --tag next --access public
 ```
 
-发布后，业务项目可以使用 `npm install ym-ui-vapor@next vue@3.6.0-rc.15` 安装。发布稳定版时，将版本号及 `publishConfig.tag` 更新为对应的稳定版本和 `latest`。
+发布后，业务项目可以使用 `npm install ym-ui-vapor@next vue@3.6.0-rc.16` 安装。发布稳定版时，将版本号及 `publishConfig.tag` 更新为对应的稳定版本和 `latest`。
