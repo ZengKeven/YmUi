@@ -982,7 +982,8 @@ test('the numeric input preview formats amounts and copies the selected precisio
   expect(source).toContain('size="large"')
 })
 
-test('the layout preview keeps its sidebar controls and brand in sync', async ({ page }) => {
+test('the layout preview syncs its sidebar and copies the edited multiline watermark', async ({ page, context }) => {
+  await context.grantPermissions(['clipboard-read', 'clipboard-write'])
   await page.goto('/button/')
   await page.locator('#VPSidebarNav').getByRole('link', { name: 'YmLayout 布局' }).click()
   await expect(page).toHaveURL('/layout/')
@@ -1002,6 +1003,18 @@ test('the layout preview keeps its sidebar controls and brand in sync', async ({
   await expect(preview.locator('.ym-layout__brand')).toHaveCSS('height', '64px')
   await collapsed.uncheck()
   await expect(name).toBeVisible()
+  const watermark = preview.locator('.ym-layout__watermark')
+  const showWatermark = page.getByRole('switch', { name: '显示水印' })
+  await expect(watermark).toHaveCount(0)
+  await showWatermark.check()
+  await expect(watermark.locator('tspan')).toHaveText(['仓储管理', '内部资料'])
+  await page.getByRole('textbox', { name: '水印文字' }).fill('采购部\n仅供内部使用')
+  await expect(watermark.locator('tspan')).toHaveText(['采购部', '仅供内部使用'])
+  const source = await copyPreview(page)
+  expect(source).toContain(' show-watermark')
+  expect(source).toContain('watermark-text="采购部\n仅供内部使用"')
+  await showWatermark.uncheck()
+  await expect(watermark).toHaveCount(0)
 })
 
 test('the menu preview selects pages from the collapsed layout sidebar', async ({ page }) => {

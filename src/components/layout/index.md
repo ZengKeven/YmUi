@@ -20,6 +20,8 @@ category: 基础组件
 | asideWidth | `number` | `232` | 展开时的侧栏宽度，单位为 px。 |
 | collapsedWidth | `number` | `48` | 收起时的侧栏宽度，单位为 px，可独立于顶栏高度设置。 |
 | collapsed | `boolean` | 初始为 `false` | 侧栏是否收起，可通过 `v-model:collapsed` 同步。省略时由组件管理。 |
+| showWatermark | `boolean` | `false` | 在内容区上方平铺倾斜的文字水印。滚动内容时水印保持在可视区域内。 |
+| watermarkText | `string \| readonly string[]` | `systemName`，系统名称为空时取「内部使用」 | 可传入带换行的字符串或逐行排列的文本数组。显式传入空文本或空数组时隐藏水印。 |
 
 ## 事件
 
@@ -46,7 +48,8 @@ import 'ym-ui-vapor/style.css'
 </script>
 
 <template>
-  <YmLayout logo="/logo.svg" system-name="仓储管理" :collapsed-width="56" style="height: 100dvh">
+  <YmLayout logo="/logo.svg" system-name="仓储管理" :collapsed-width="56" style="height: 100dvh"
+    show-watermark :watermark-text="['仓储管理', '内部资料']">
     <template #header>库存查询</template>
     <template #aside="{ collapsed }">
       <a href="/inventory" aria-label="库存查询">

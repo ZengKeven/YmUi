@@ -67,4 +67,26 @@
 
 .ym-layout__body { flex: 1; }
 .ym-layout__header { background: color-mix(in srgb, var(--ym-color-primary) 65%, var(--ym-color-surface)); }
+.ym-layout__content-area { display: contents; }
+.ym-layout__content-area:has(> .ym-layout__watermark) {
+  isolation: isolate;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+}
+.ym-layout__content:has(+ .ym-layout__watermark) { isolation: isolate; }
 .ym-layout__content { background: color-mix(in srgb, var(--ym-color-primary) 83%, var(--ym-color-surface)); }
+.ym-layout__watermark {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  user-select: none;
+  color: var(--ym-color-text);
+  opacity: .16;
+  font-size: 16px;
+}

@@ -28,7 +28,9 @@ const collapsed = useModel(props, 'collapsed')
     </LayoutAside>
     <div class="ym-layout__body">
       <LayoutHeader><slot name="header" /></LayoutHeader>
-      <LayoutContent><slot name="content" /></LayoutContent>
+      <LayoutContent :show-watermark="props.showWatermark" :watermark-text="props.watermarkText ?? (props.systemName?.trim() || undefined)">
+        <slot name="content" />
+      </LayoutContent>
     </div>
   </div>
 </template>

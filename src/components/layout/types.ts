@@ -11,4 +11,8 @@ export interface LayoutProps {
   collapsedWidth?: number
   /** 侧栏是否收起，支持 v-model:collapsed。 */
   collapsed?: boolean
+  /** 在主内容区平铺文字水印，默认关闭。 */
+  showWatermark?: boolean
+  /** 水印文字，支持换行或逐行传入数组。省略时使用系统名称或「内部使用」。 */
+  watermarkText?: string | readonly string[]
 }

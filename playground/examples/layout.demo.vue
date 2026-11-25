@@ -1,12 +1,14 @@
 <script setup lang="ts" vapor>
 import { ref } from 'vue'
-import { YmLayout, YmSwitch } from '../../src'
+import { YmLayout, YmSwitch, YmTextarea } from '../../src'
 import PreviewFrame from './PreviewFrame.vue'
 
 const systemName = ref('云明系统')
 const collapsed = ref(false)
 const headerHeight = ref(48)
 const collapsedWidth = ref(48)
+const showWatermark = ref(false)
+const watermarkText = ref('仓储管理\n内部资料')
 const logo = 'data:image/svg+xml,' + encodeURIComponent(
   '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">' +
   '<rect width="32" height="32" rx="7" fill="white"/>' +
@@ -18,7 +20,8 @@ const logo = 'data:image/svg+xml,' + encodeURIComponent(
   <PreviewFrame name="YmLayout">
     <template #preview>
       <YmLayout v-model:collapsed="collapsed" class="layout-demo" :logo="logo"
-        :system-name="systemName" :header-height="headerHeight" :aside-width="128" :collapsed-width="collapsedWidth">
+        :system-name="systemName" :header-height="headerHeight" :aside-width="128" :collapsed-width="collapsedWidth"
+        :show-watermark="showWatermark" :watermark-text="watermarkText">
         <template #header><span class="layout-demo__label">Header</span></template>
         <template #aside><span class="layout-demo__label">Aside</span></template>
         <template #content><span class="layout-demo__label">Content</span></template>
@@ -37,12 +40,18 @@ const logo = 'data:image/svg+xml,' + encodeURIComponent(
         </select>
       </label>
       <label>收起侧栏 <YmSwitch v-model="collapsed" /></label>
+      <label>显示水印 <YmSwitch v-model="showWatermark" /></label>
+      <label v-if="showWatermark">水印文字
+        <YmTextarea v-model="watermarkText" class="layout-demo__watermark-input" size="small" :rows="2"
+          aria-label="水印文字" placeholder="每行一段文字" />
+      </label>
     </template>
   </PreviewFrame>
 </template>
 
 <style scoped>
 .layout-demo { width: 100%; height: 200px; }
+.layout-demo__watermark-input { width: 6.4rem; }
 .layout-demo__label {
   display: grid;
   place-items: center;

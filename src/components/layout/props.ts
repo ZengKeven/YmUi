@@ -1,4 +1,4 @@
-import type { ComponentObjectPropsOptions } from 'vue'
+import type { ComponentObjectPropsOptions, PropType } from 'vue'
 import type { LayoutProps } from './types'
 
 export default {
@@ -14,4 +14,8 @@ export default {
   collapsedWidth: { type: Number, default: 48 },
   /** 侧栏是否收起。 */
   collapsed: Boolean,
+  /** 是否显示内容区水印。 */
+  showWatermark: Boolean,
+  /** 水印的单行或多行文字。 */
+  watermarkText: [String, Array] as PropType<LayoutProps['watermarkText']>,
 } satisfies ComponentObjectPropsOptions<LayoutProps>
