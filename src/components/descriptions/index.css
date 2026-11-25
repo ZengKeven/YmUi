@@ -1,0 +1,45 @@
+.ym-descriptions {
+  display: grid;
+  grid-template-columns: repeat(var(--ym-descriptions-columns), minmax(0, 1fr) minmax(0, 2fr));
+  grid-auto-rows: minmax(var(--ym-control-height), auto);
+  gap: 1px;
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+  overflow: clip;
+  border: 1px solid var(--ym-color-border);
+  border-radius: var(--ym-radius);
+  background: var(--ym-color-surface);
+  color: var(--ym-color-text);
+  font-size: var(--ym-control-font-size);
+  line-height: 1.5;
+}
+
+.ym-descriptions__item {
+  display: grid;
+  /* 每个描述列有标签和内容两条轨道，跨列时标签仍与同列其他项对齐。 */
+  grid-column: span calc(2 * min(var(--ym-descriptions-col-span), var(--ym-descriptions-columns)));
+  grid-template-columns: subgrid;
+  min-width: 0;
+  outline: 1px solid var(--ym-color-border);
+}
+
+.ym-descriptions__label, .ym-descriptions__content {
+  align-content: center;
+  min-width: 0;
+  margin: 0;
+  padding: calc(var(--ym-control-padding) / 2) var(--ym-control-padding);
+  overflow-wrap: anywhere;
+}
+
+.ym-descriptions__label {
+  background: color-mix(in srgb, var(--ym-color-border) 32%, var(--ym-color-surface));
+  box-shadow: 0 0 0 1px var(--ym-color-border);
+  font-weight: normal;
+}
+
+.ym-descriptions__content {
+  grid-column: 2 / -1;
+  background: var(--ym-color-surface);
+}

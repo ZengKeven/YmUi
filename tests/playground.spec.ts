@@ -72,6 +72,29 @@ test('the rate preview switches between half and whole stars and copies the acti
   expect(source).toContain(':allow-half="false"')
 })
 
+test('the descriptions preview copies the configured columns, spans and size', async ({ page, context }) => {
+  await context.grantPermissions(['clipboard-read', 'clipboard-write'])
+  await page.goto('/button/')
+  await page.locator('#VPSidebarNav').getByRole('link', { name: 'YmDescriptions 描述列表' }).click()
+  await expect(page).toHaveURL('/descriptions/')
+  const list = page.locator('.demo-canvas dl')
+  await expect(list.getByRole('term')).toHaveText(['供应商', '采购机构', '订单日期', '交货日期', '收货仓库', '采购员'])
+  await page.getByLabel('每行列数').selectOption('3')
+  await page.getByLabel('供应商占列').selectOption('2')
+  await page.getByLabel('供应商占行').selectOption('2')
+  await page.getByLabel('描述尺寸').selectOption('large')
+  const first = (await list.getByRole('definition').first().boundingBox())!
+  const second = (await list.getByRole('definition').nth(1).boundingBox())!
+  expect(first.width).toBeGreaterThan(second.width)
+  expect(first.height).toBeGreaterThan(second.height)
+  const source = await copyPreview(page)
+  expect(source).toContain('<YmDescriptions ')
+  expect(source).toContain(':column="3"')
+  expect(source).toContain(':col-span="2"')
+  expect(source).toContain(':row-span="2"')
+  expect(source).toContain('size="large"')
+})
+
 test('the form preview validates a real submission, resets it and copies the chosen layout', async ({ page, context }) => {
   await context.grantPermissions(['clipboard-read', 'clipboard-write'])
   await page.goto('/button/')

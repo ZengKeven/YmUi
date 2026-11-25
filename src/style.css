@@ -3,6 +3,7 @@
 @import './components/calendar/index.css';
 @import './components/checkbox/index.css';
 @import './components/color-picker/index.css';
+@import './components/descriptions/index.css';
 @import './components/form/index.css';
 @import './components/icon/index.css';
 @import './components/image-upload/index.css';
@@ -87,28 +88,28 @@
 :where(.ym-checkbox, .ym-radio)[data-theme='warning'] { --ym-choice-accent: var(--ym-color-warning); }
 :where(.ym-checkbox, .ym-radio)[data-theme='danger'] { --ym-choice-accent: var(--ym-color-danger); }
 
-:where(:root, :is(.ym-theme, .ym-badge__mark, .ym-button, .ym-calendar, .ym-checkbox, .ym-checkbox-group, .ym-color-picker__panel, .ym-form, .ym-input, .ym-menu, .ym-pagination, .ym-popup, .ym-radio, .ym-radio-group, .ym-rate, .ym-steps, .ym-switch, .ym-tabs, .ym-tag, .ym-textarea)[data-size='medium']) {
+:where(:root, :is(.ym-theme, .ym-badge__mark, .ym-button, .ym-calendar, .ym-checkbox, .ym-checkbox-group, .ym-color-picker__panel, .ym-descriptions, .ym-form, .ym-input, .ym-menu, .ym-pagination, .ym-popup, .ym-radio, .ym-radio-group, .ym-rate, .ym-steps, .ym-switch, .ym-tabs, .ym-tag, .ym-textarea)[data-size='medium']) {
   --ym-control-height: 2rem;
   --ym-tag-font-size: .75rem;
   --ym-control-font-size: 0.875rem;
   --ym-control-padding: 0.875rem;
 }
 
-:where(.ym-theme, .ym-badge__mark, .ym-button, .ym-calendar, .ym-checkbox, .ym-checkbox-group, .ym-color-picker__panel, .ym-form, .ym-input, .ym-menu, .ym-pagination, .ym-popup, .ym-radio, .ym-radio-group, .ym-rate, .ym-steps, .ym-switch, .ym-tabs, .ym-tag, .ym-textarea)[data-size='extra-small'] {
+:where(.ym-theme, .ym-badge__mark, .ym-button, .ym-calendar, .ym-checkbox, .ym-checkbox-group, .ym-color-picker__panel, .ym-descriptions, .ym-form, .ym-input, .ym-menu, .ym-pagination, .ym-popup, .ym-radio, .ym-radio-group, .ym-rate, .ym-steps, .ym-switch, .ym-tabs, .ym-tag, .ym-textarea)[data-size='extra-small'] {
   --ym-control-height: 1.25rem;
   --ym-tag-font-size: .625rem;
   --ym-control-font-size: 0.6875rem;
   --ym-control-padding: 0.375rem;
 }
 
-:where(.ym-theme, .ym-badge__mark, .ym-button, .ym-calendar, .ym-checkbox, .ym-checkbox-group, .ym-color-picker__panel, .ym-form, .ym-input, .ym-menu, .ym-pagination, .ym-popup, .ym-radio, .ym-radio-group, .ym-rate, .ym-steps, .ym-switch, .ym-tabs, .ym-tag, .ym-textarea)[data-size='small'] {
+:where(.ym-theme, .ym-badge__mark, .ym-button, .ym-calendar, .ym-checkbox, .ym-checkbox-group, .ym-color-picker__panel, .ym-descriptions, .ym-form, .ym-input, .ym-menu, .ym-pagination, .ym-popup, .ym-radio, .ym-radio-group, .ym-rate, .ym-steps, .ym-switch, .ym-tabs, .ym-tag, .ym-textarea)[data-size='small'] {
   --ym-control-height: 1.5rem;
   --ym-tag-font-size: .6875rem;
   --ym-control-font-size: 0.75rem;
   --ym-control-padding: 0.625rem;
 }
 
-:where(.ym-theme, .ym-badge__mark, .ym-button, .ym-calendar, .ym-checkbox, .ym-checkbox-group, .ym-color-picker__panel, .ym-form, .ym-input, .ym-menu, .ym-pagination, .ym-popup, .ym-radio, .ym-radio-group, .ym-rate, .ym-steps, .ym-switch, .ym-tabs, .ym-tag, .ym-textarea)[data-size='large'] {
+:where(.ym-theme, .ym-badge__mark, .ym-button, .ym-calendar, .ym-checkbox, .ym-checkbox-group, .ym-color-picker__panel, .ym-descriptions, .ym-form, .ym-input, .ym-menu, .ym-pagination, .ym-popup, .ym-radio, .ym-radio-group, .ym-rate, .ym-steps, .ym-switch, .ym-tabs, .ym-tag, .ym-textarea)[data-size='large'] {
   --ym-control-height: 2.5rem;
   --ym-tag-font-size: .875rem;
   --ym-control-font-size: 1rem;
