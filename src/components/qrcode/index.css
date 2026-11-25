@@ -1,0 +1,42 @@
+.ym-qrcode {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  box-sizing: border-box;
+  width: var(--ym-qrcode-size, calc(var(--ym-control-height) * 5));
+  height: var(--ym-qrcode-size, calc(var(--ym-control-height) * 5));
+  border: 1px solid var(--ym-color-border);
+  border-radius: var(--ym-radius);
+  background-color: var(--ym-color-surface);
+  color: var(--ym-color-text);
+  font-size: var(--ym-control-font-size);
+  vertical-align: middle;
+}
+.ym-qrcode[data-borderless] { border-color: transparent; }
+.ym-qrcode__code {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  border-radius: inherit;
+}
+canvas.ym-qrcode__code { image-rendering: pixelated; }
+.ym-qrcode__mask {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: .4em;
+  border-radius: inherit;
+  background-color: color-mix(in srgb, var(--ym-color-surface) 94%, transparent);
+}
+.ym-qrcode__message,
+.ym-qrcode__mask {
+  color: var(--ym-color-text);
+  text-align: center;
+}
+.ym-qrcode__scanned { display: inline-flex; align-items: center; gap: .4em; }
+.ym-qrcode__scanned .ym-icon { color: var(--ym-color-success); }

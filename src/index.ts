@@ -25,6 +25,7 @@ export { YmMenu, type MenuItem, type MenuLeaf, type MenuProps, type MenuValue } 
 export { YmPagination, type PageInfo, type PaginationProps } from './components/pagination'
 export { YmPopup, type PopupPlacement, type PopupProps, type PopupTrigger } from './components/popup'
 export { YmProgress, type ProgressColor, type ProgressProps, type ProgressStatus, type ProgressTheme } from './components/progress'
+export { YmQRCode, type QRCodeLevel, type QRCodeProps, type QRCodeStatus } from './components/qrcode'
 export { YmRadio, YmRadioGroup, type RadioGroupProps, type RadioOption, type RadioProps, type RadioValue } from './components/radio'
 export { YmRate, type RateProps } from './components/rate'
 export { YmSelect, type SelectKey, type SelectOption, type SelectProps, type SelectValue } from './components/select'
