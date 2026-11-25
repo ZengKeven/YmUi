@@ -10,7 +10,8 @@ export function positionPanel(anchor: HTMLElement, panel: HTMLElement, preferred
   const [direction, align] = preferred.split('-') as [keyof typeof opposite, string?]
   const other = opposite[direction]
   const gap = showArrow ? 7 : 0
-  const needed = (direction === 'top' || direction === 'bottom' ? height : width) + gap
+  const aboveOrBelow = direction === 'top' || direction === 'bottom'
+  const needed = (aboveOrBelow ? height : width) + gap
   const side = space[direction] < needed && space[other] > space[direction] ? other : direction
   let left = rect.left
   let top = rect.top
@@ -20,6 +21,10 @@ export function positionPanel(anchor: HTMLElement, panel: HTMLElement, preferred
   if (side === 'left') left -= width + gap
   if (align === 'right') left = rect.right - width
   if (align === 'bottom') top = rect.bottom - height
+  if (align === 'center') {
+    if (aboveOrBelow) left += (rect.width - width) / 2
+    else top += (rect.height - height) / 2
+  }
   left = Math.max(0, Math.min(left, clientWidth - width))
   top = Math.max(0, Math.min(top, clientHeight - height))
   panel.style.left = `${left}px`

@@ -2,7 +2,7 @@ import type { ClassValue, StyleValue } from 'vue'
 import type { ControlSize } from '../config-provider/types'
 
 export type PopupPlacement = 'top' | 'bottom' | 'left' | 'right'
-  | `${'top' | 'bottom'}-${'left' | 'right'}` | `${'left' | 'right'}-${'top' | 'bottom'}`
+  | `${'top' | 'bottom'}-${'left' | 'center' | 'right'}` | `${'left' | 'right'}-${'top' | 'center' | 'bottom'}`
 export type PopupTrigger = 'click' | 'hover' | 'manual' | 'focus' | 'mousedown' | 'context-menu'
 
 export interface PopupProps {

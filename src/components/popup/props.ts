@@ -16,7 +16,7 @@ export default {
   /** 优先展示方向，默认在锚点下方。 */
   placement: {
     type: String as PropType<PopupProps['placement']>, default: 'bottom',
-    validator: (value: string) => /^(?:(?:top|bottom)(?:-(?:left|right))?|(?:left|right)(?:-(?:top|bottom))?)$/.test(value),
+    validator: (value: string) => /^(?:(?:top|bottom)(?:-(?:left|center|right))?|(?:left|right)(?:-(?:top|center|bottom))?)$/.test(value),
   },
   /** 未提供 content 插槽时显示的文字。 */
   content: String,

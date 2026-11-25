@@ -38,6 +38,7 @@ export { YmTabs, YmTabPanel, type TabPanelProps, type TabsProps, type TabValue }
 export { YmTag, type TagProps } from './components/tag'
 export { YmTextarea, type TextareaAutosize, type TextareaProps } from './components/textarea'
 export { YmTimePicker, type TimePickerFormat, type TimePickerMode, type TimePickerProps, type TimePickerValue, type TimeRangeValue } from './components/time-picker'
+export { YmTooltip, type TooltipProps, type TooltipTheme } from './components/tooltip'
 export { YmTreeSelect, type TreeSelectOption, type TreeSelectProps, type TreeSelectValue } from './components/tree-select'
 export { YmUpload, uploadFiles, type UploadFile, type UploadFileEvent, type UploadFilesOptions, type UploadProps,
   type UploadRequestContext, type UploadRequestOptions, type UploadResponse, type UploadResult, type UploadValidation } from './components/upload'

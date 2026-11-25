@@ -16,7 +16,7 @@ category: 反馈组件
 | --- | --- | --- | --- |
 | trigger | `click / hover / focus / mousedown / context-menu / manual` | `click` | 通过点击、悬停、聚焦、按下鼠标或右键打开。手动模式由业务控制可见状态。 |
 | attach | `string / HTMLElement / function` | 触发器所在位置 | 指定面板挂载节点。可传 CSS 选择器、DOM 节点或接收触发器并返回挂载位置的函数。 |
-| placement | `PopupPlacement` | `bottom` | 支持 `top / bottom / left / right`，可指定对齐边缘，例如 `bottom-right` 或 `left-bottom`。靠近视口边缘时会调整位置。 |
+| placement | `PopupPlacement` | `bottom` | 支持 `top / bottom / left / right`。可指定边缘对齐（如 `bottom-right`）或相对触发器居中（如 `top-center`、`right-center`）。靠近视口边缘时会调整位置。 |
 | content | `string` | — | 面板中的文本，也可通过 `#content` 插槽提供内容。 |
 | visible | `boolean` | — | 控制浮层是否打开，支持 `v-model:visible`。 |
 | defaultVisible | `boolean` | `false` | 省略 `visible` 时的初始打开状态。 |

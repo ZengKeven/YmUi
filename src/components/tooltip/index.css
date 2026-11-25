@@ -1,0 +1,21 @@
+.ym-tooltip__trigger { display: contents; }
+.ym-tooltip__panel {
+  --ym-tooltip-fill: var(--ym-color-text);
+  max-width: min(480px, 100vw);
+  border-color: var(--ym-tooltip-fill);
+  background: var(--ym-tooltip-fill);
+  color: var(--ym-color-on-accent);
+  line-height: 1.5;
+}
+.ym-tooltip__panel--default { color: var(--ym-color-surface); }
+.ym-tooltip__panel--light {
+  --ym-tooltip-fill: var(--ym-color-surface);
+  color: var(--ym-color-text);
+  border-color: var(--ym-color-border);
+}
+.ym-tooltip__panel--primary { --ym-tooltip-fill: var(--ym-color-primary); }
+.ym-tooltip__panel--success { --ym-tooltip-fill: var(--ym-color-success); }
+.ym-tooltip__panel--warning { --ym-tooltip-fill: var(--ym-color-warning); }
+.ym-tooltip__panel--danger { --ym-tooltip-fill: var(--ym-color-danger); }
+.ym-tooltip__panel[data-arrow]::before { border-color: inherit; }
+.ym-tooltip__panel:has(.ym-tooltip__content:empty) { display: none; }
