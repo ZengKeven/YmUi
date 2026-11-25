@@ -1,0 +1,66 @@
+.ym-tree {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: .45em;
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+  max-height: 100%;
+  background: var(--ym-color-surface);
+  color: var(--ym-color-text);
+  font-size: var(--ym-control-font-size);
+}
+.ym-tree__filter { flex: none; }
+.ym-tree__list {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+}
+.ym-tree__node {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: .25em;
+  min-height: var(--ym-control-height);
+  padding-inline-start: min(45%, calc(.25em + (var(--ym-tree-level, 1) - 1) * 1.25em));
+  padding-inline-end: var(--ym-control-padding);
+  border-radius: var(--ym-radius);
+  line-height: 1.45;
+  cursor: pointer;
+}
+@media (hover: hover) {
+  .ym-tree__node:hover {
+    background: color-mix(in srgb, var(--ym-color-text) 6%, var(--ym-color-surface));
+  }
+  button.ym-tree__toggle:hover { background: color-mix(in srgb, currentColor 10%, transparent); }
+}
+.ym-tree__node[aria-selected='true'] {
+  background: color-mix(in srgb, var(--ym-color-primary) 12%, var(--ym-color-surface));
+  color: var(--ym-color-primary);
+  font-weight: 600;
+}
+.ym-tree__node:focus-visible, .ym-tree__toggle:focus-visible {
+  outline: 2px solid var(--ym-color-primary);
+  outline-offset: -2px;
+}
+.ym-tree__toggle {
+  --ym-icon-size: 1em;
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  width: 1.5em;
+  height: 1.5em;
+  padding: 0;
+  border: 0;
+  border-radius: var(--ym-radius);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: inherit;
+}
+.ym-tree__label { min-width: 0; overflow-wrap: anywhere; }
+.ym-tree__empty {
+  padding: .5em var(--ym-control-padding);
+  color: var(--ym-color-text);
+}
