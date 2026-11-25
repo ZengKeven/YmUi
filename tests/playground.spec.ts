@@ -31,6 +31,26 @@ test('every preview copies only the component markup', async ({ page, context })
   }
 })
 
+test('the badge preview updates its count, dot and copied markup', async ({ page, context }) => {
+  await context.grantPermissions(['clipboard-read', 'clipboard-write'])
+  await page.goto('/button/')
+  await page.locator('#VPSidebarNav').getByRole('link', { name: 'YmBadge 徽标' }).click()
+  await expect(page).toHaveURL('/badge/')
+  const mark = page.locator('.demo-canvas .ym-badge__mark')
+  await expect(mark).toHaveText('8')
+  await page.getByLabel('徽标内容').selectOption('128')
+  await expect(mark).toHaveText('99+')
+  await page.getByLabel('封顶数值').selectOption('9')
+  await expect(mark).toHaveText('9+')
+  await page.getByRole('switch', { name: '圆点模式' }).check()
+  await expect(mark).toBeVisible()
+  await expect(mark).toBeEmpty()
+  const source = await copyPreview(page)
+  expect(source).toContain(':count="128"')
+  expect(source).toContain(':max-count="9"')
+  expect(source).toMatch(/\sdot(?=\s|>)/)
+})
+
 test('the popup preview opens from its trigger and copies the configured placement and slots', async ({ page, context }) => {
   await context.grantPermissions(['clipboard-read', 'clipboard-write'])
   await page.goto('/button/')

@@ -1,0 +1,40 @@
+.ym-badge {
+  position: relative;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.ym-badge__mark {
+  --ym-badge-height: calc(var(--ym-control-height) * .5 + .25rem);
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--ym-badge-height);
+  height: var(--ym-badge-height);
+  padding-inline: .35em;
+  border-radius: 9999px;
+  background-color: var(--ym-color-danger);
+  color: var(--ym-color-on-accent);
+  font-size: max(.625rem, calc(var(--ym-control-font-size) - .125rem));
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.ym-badge[data-anchored] > .ym-badge__mark {
+  position: absolute;
+  top: 0;
+  right: 0;
+  transform: translate(50%, -50%);
+  pointer-events: none;
+}
+.ym-badge__mark[data-shape='round'] { border-radius: var(--ym-radius); }
+.ym-badge__mark[data-dot] {
+  --ym-badge-height: max(.25rem, calc(var(--ym-control-height) * .1875));
+  width: var(--ym-badge-height);
+  padding: 0;
+  border-radius: 50%;
+}

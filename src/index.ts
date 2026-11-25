@@ -1,5 +1,6 @@
 import { version as packageVersion } from '../package.json'
 
+export { YmBadge, type BadgeProps } from './components/badge'
 export { YmButton, type ButtonProps } from './components/button'
 export { YmCalendar, type CalendarCell, type CalendarProps } from './components/calendar'
 export { YmDatePicker, type DatePickerMode, type DatePickerProps, type DatePickerValue, type DateRangeValue } from './components/date-picker'
