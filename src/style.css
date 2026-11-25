@@ -14,6 +14,7 @@
 @import './components/layout/index.css';
 @import './components/loading/index.css';
 @import './components/menu/index.css';
+@import './components/message/index.css';
 @import './components/pagination/index.css';
 @import './components/popup/index.css';
 @import './components/progress/index.css';

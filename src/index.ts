@@ -22,6 +22,8 @@ export { YmInputNumber, type InputNumberProps } from './components/input-number'
 export { YmLayout, type LayoutProps } from './components/layout'
 export { YmLoading, type LoadingProps } from './components/loading'
 export { YmMenu, type MenuItem, type MenuLeaf, type MenuProps, type MenuValue } from './components/menu'
+export { YmMessage, Message, type MessageCloseContext, type MessageHandle, type MessageOptions, type MessagePlacement,
+  type MessageProps, type MessageTheme } from './components/message'
 export { YmPagination, type PageInfo, type PaginationProps } from './components/pagination'
 export { YmPopup, type PopupPlacement, type PopupProps, type PopupTrigger } from './components/popup'
 export { YmProgress, type ProgressColor, type ProgressProps, type ProgressStatus, type ProgressTheme } from './components/progress'

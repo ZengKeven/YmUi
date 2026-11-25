@@ -21,7 +21,7 @@ const variables = computed(() => {
 </script>
 
 <template>
-  <div class="ym-theme" :data-theme="mode" :data-size="size" :data-ym-palette="theme ? '' : undefined" :style="variables">
+  <div class="ym-theme" data-ym-provider :data-theme="mode" :data-size="size" :data-ym-palette="theme ? '' : undefined" :style="variables">
     <slot />
   </div>
 </template>
