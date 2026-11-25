@@ -3,7 +3,7 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, useTemplateRef, wa
 import { YmButton } from '../button'
 import { YmIcon } from '../icon'
 
-const props = defineProps<{ items: { key: string; name: string; url: string }[]; activeKey: string }>()
+const props = defineProps<{ items: { key: string; name: string; url: string }[]; activeKey: string; referrerpolicy?: ReferrerPolicy }>()
 const emit = defineEmits<{ close: []; navigate: [key: string] }>()
 const index = computed(() => props.items.findIndex(item => item.key === props.activeKey))
 const current = computed(() => props.items[index.value])
@@ -100,7 +100,7 @@ function endPan(event: PointerEvent) {
     </div>
     <div ref="stage" class="ym-image-upload__preview-stage" @click.self="emit('close')">
       <img v-if="current && !failed" :key="current.key" ref="image" class="ym-image-upload__preview-image"
-        :src="current.url" :alt="current.name" draggable="false" :data-turned="angle % 180 !== 0 || undefined"
+        :referrerpolicy="props.referrerpolicy" :src="current.url" :alt="current.name" draggable="false" :data-turned="angle % 180 !== 0 || undefined"
         :data-zoomed="zoom > 100 || undefined"
         :style="{ transform: `translate(${offset.x}px, ${offset.y}px) rotate(${angle}deg) scale(${zoom / 100})` }"
         @error="failed = true" @pointerdown="startPan" @pointermove="pan" @pointerup="endPan" @lostpointercapture="drag = undefined" />
