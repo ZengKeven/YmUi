@@ -1,0 +1,180 @@
+import { expect, test, type Locator } from '@playwright/test'
+
+const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVR4nGMInbkKAALfAZkmGEfvAAAAAElFTkSuQmCC', 'base64')
+const image = (name: string) => ({ name, mimeType: 'image/png', buffer: png })
+
+test.beforeEach(async ({ page }) => {
+  await page.goto('/tests/fixture/image-upload.html')
+})
+
+test('one local image can be previewed, removed and selected again', async ({ page }) => {
+  const upload = page.locator('#single')
+  const input = upload.locator('input[type=file]')
+  const add = upload.getByRole('button', { name: '上传图片' })
+  const preview = upload.getByRole('button', { name: '预览 receipt.png' })
+  const dialog = page.getByRole('dialog', { name: '图片预览' })
+  await expect(input).toHaveAttribute('accept', 'image/*')
+  await expect(input).not.toHaveAttribute('multiple')
+  const chooser = page.waitForEvent('filechooser')
+  await add.click()
+  await (await chooser).setFiles(image('receipt.png'))
+  await expect(add).toBeHidden()
+  await expect(page.locator('#local-files')).toContainText('receipt.png|waiting|')
+  await preview.click()
+  await expect(dialog).toBeVisible()
+  await expect.poll(() => dialog.locator('img').evaluate(img => (img as HTMLImageElement).naturalWidth)).toBe(1)
+  await page.keyboard.press('Escape')
+  await expect(dialog).toBeHidden()
+  await expect(preview).toBeFocused()
+  await upload.getByRole('button', { name: '删除 receipt.png' }).click()
+  await expect(add).toBeVisible()
+  await expect(page.locator('#local-files')).toBeEmpty()
+  const events = page.locator('#events')
+  await expect(events).toContainText('preview receipt.png 0')
+  await expect(events).toContainText('remove receipt.png 0')
+  await expect(events).toContainText('change 0')
+  await input.setInputFiles(image('receipt.png'))
+  await expect(preview).toBeVisible()
+
+  const locked = page.locator('#locked')
+  await locked.getByRole('button', { name: '预览 原图.png' }).hover()
+  await locked.getByRole('button', { name: '删除 原图.png' }).click()
+  await expect(locked.getByRole('button', { name: '预览 原图.png' })).toBeVisible()
+})
+
+test('gallery validates images, appends up to max and allows previews in disabled mode', async ({ page }) => {
+  const gallery = page.locator('#gallery')
+  const input = gallery.locator('input[type=file]')
+  await expect(input).toHaveAttribute('multiple')
+  await input.setInputFiles([
+    { name: 'notes.txt', mimeType: 'text/plain', buffer: Buffer.from('notes') },
+    { name: 'large.png', mimeType: 'image/png', buffer: Buffer.alloc(1025) },
+    image('one.png'),
+  ])
+  const rejected = page.locator('#rejected')
+  await expect(rejected).toContainText('notes.txt type')
+  await expect(rejected).toContainText('large.png size')
+  await expect(gallery.getByRole('button', { name: '预览 one.png' })).toBeVisible()
+  const transfer = await page.evaluateHandle(bytes => {
+    const data = new DataTransfer()
+    for (const name of ['two.png', 'three.png']) {
+      data.items.add(new File([new Uint8Array(bytes)], name, { type: 'image/png' }))
+    }
+    return data
+  }, Array.from(png))
+  await gallery.getByRole('button', { name: '上传图片' }).dispatchEvent('drop', { dataTransfer: transfer })
+  await transfer.dispose()
+  await expect(rejected).toContainText('three.png max')
+  await expect(gallery.getByRole('button', { name: '上传图片' })).toBeHidden()
+  await expect(gallery.getByRole('button', { name: /^预览 / })).toHaveCount(2)
+  await expect(gallery.getByText('two.png', { exact: true })).toBeVisible()
+  await page.getByLabel('显示文件名').uncheck()
+  await expect(gallery.getByText('two.png', { exact: true })).toBeHidden()
+  await page.getByLabel('禁用图库').check()
+  await expect(input).toBeDisabled()
+  await expect(gallery.getByRole('button', { name: /^删除 /, disabled: false })).toHaveCount(0)
+  const second = gallery.getByRole('button', { name: '预览 two.png' })
+  await second.click()
+  const dialog = page.getByRole('dialog', { name: '图片预览' })
+  await expect(dialog.getByText('two.png', { exact: true })).toBeVisible()
+  await dialog.getByRole('button', { name: '放大' }).click()
+  await expect(dialog.getByText('125%')).toBeVisible()
+  await dialog.getByRole('button', { name: '旋转' }).click()
+  await expect(dialog.locator('img')).toHaveCSS('transform', 'matrix(0, 1.25, -1.25, 0, 0, 0)')
+  await dialog.getByRole('button', { name: '上一张' }).click()
+  await expect(dialog.getByText('one.png', { exact: true })).toBeVisible()
+  await expect(dialog.getByText('100%')).toBeVisible()
+  await expect(dialog.locator('img')).toHaveCSS('transform', 'matrix(1, 0, 0, 1, 0, 0)')
+  await page.keyboard.press('ArrowRight')
+  await expect(dialog.getByText('two.png', { exact: true })).toBeVisible()
+  await dialog.getByRole('button', { name: '关闭预览' }).click()
+  await expect(dialog).toBeHidden()
+})
+
+test('manual concurrent uploads retry independently and ignore late successes after removal', async ({ page }) => {
+  const manual = page.locator('#manual')
+  await manual.locator('input[type=file]').setInputFiles([image('one.png'), image('two.png')])
+  const files = page.locator('#manual-files')
+  await expect(files).toContainText('one.png|waiting|')
+  await expect(files).toContainText('two.png|waiting|')
+  await expect(page.locator('#started')).toBeEmpty()
+  await manual.getByRole('button', { name: '开始上传' }).click()
+  await expect(page.locator('#started')).toHaveText('one.png,two.png')
+  await expect(manual.getByRole('status').filter({ hasText: '25%' })).toHaveCount(2)
+  await expect(page.locator('#percentages')).toHaveText('one.png 25,two.png 25')
+  await page.getByRole('button', { name: '第一张失败' }).click()
+  await expect(files).toContainText('one.png|fail|')
+  await expect(page.locator('#events')).toContainText('fail one.png')
+  await manual.getByRole('button', { name: '重试 one.png' }).click()
+  await expect(page.locator('#started')).toHaveText('one.png,two.png,one.png')
+  await manual.getByRole('button', { name: '删除 two.png' }).click()
+  await expect(page.locator('#aborted')).toContainText('two.png')
+  await page.getByRole('button', { name: '第二张完成' }).click()
+  await page.getByRole('button', { name: '第一张完成' }).click()
+  await expect(files).toHaveText('one.png|success|/uploads/one.png')
+  await expect(page.locator('#events')).toHaveText('fail one.png,success one.png')
+})
+
+test('simultaneous completions preserve selection order and independent parent updates', async ({ page }) => {
+  const manual = page.locator('#manual')
+  await manual.locator('input[type=file]').setInputFiles([image('one.png'), image('two.png')])
+  await manual.getByRole('button', { name: '开始上传' }).click()
+  await expect(page.locator('#started')).toHaveText('one.png,two.png')
+  await page.getByRole('button', { name: '追加已有图片' }).click()
+  await page.getByRole('button', { name: '同时完成' }).click()
+  await expect(page.locator('#manual-files')).toContainText('one.png|success|/uploads/one.png;two.png|success|/uploads/two.png;原图.png|')
+})
+
+test('action sends the original file as multipart data and displays the server URL', async ({ page }) => {
+  await page.route('**/upload-case', route => route.fulfill({ json: { url: '/saved/receipt.png' } }))
+  await page.route('**/saved/receipt.png', route => route.fulfill({ contentType: 'image/png', body: png }))
+  const request = page.waitForRequest('**/upload-case')
+  const upload = page.locator('#http')
+  await upload.locator('input[type=file]').setInputFiles(image('receipt.png'))
+  const sent = await request
+  expect(sent.method()).toBe('POST')
+  expect(sent.headers()['x-upload-case']).toBe('fixture')
+  const form = await new Response(new Uint8Array(sent.postDataBuffer()!), {
+    headers: { 'Content-Type': sent.headers()['content-type'] },
+  }).formData()
+  const file = form.get('file') as File
+  expect(file.name).toBe('receipt.png')
+  expect(file.type).toBe('image/png')
+  expect(Buffer.from(await file.arrayBuffer())).toEqual(png)
+  await expect(page.locator('#sent-files')).toHaveText('receipt.png|success|/saved/receipt.png')
+  await upload.getByRole('button', { name: '预览 receipt.png' }).click()
+  await expect(page.getByRole('dialog').locator('img')).toHaveAttribute('src', '/saved/receipt.png')
+})
+
+test('nested configuration updates image tiles and the open modal while an explicit size wins', async ({ page }) => {
+  const inherited = page.locator('#inherited')
+  const add = inherited.getByRole('button', { name: '上传图片' })
+  const override = page.locator('#override').getByRole('button', { name: '上传图片' })
+  await expect(override).toHaveText('选择凭证')
+  const width = async (el: Locator) => (await el.boundingBox())!.width
+  const big = await width(add)
+  const small = await width(override)
+  expect(big).toBeGreaterThan(small)
+  await expect(add).toHaveCSS('border-radius', '9px')
+  await expect(add).toHaveCSS('border-top-color', 'rgb(59, 88, 119)')
+  await page.getByLabel('边框色').fill('#2a6794')
+  await expect(add).toHaveCSS('border-top-color', 'rgb(42, 103, 148)')
+  await inherited.getByRole('button', { name: '预览 原图.png' }).click()
+  const dialog = page.getByRole('dialog', { name: '图片预览' })
+  await expect(dialog).toHaveCSS('background-color', 'rgb(240, 244, 248)')
+  await expect(dialog).toHaveCSS('border-radius', '9px')
+  // 模拟应用在模态预览打开期间更新 Provider 配置。
+  for (const label of ['深色', '紧凑直角']) {
+    await page.getByLabel(label).evaluate((input: HTMLInputElement) => {
+      input.checked = true
+      input.dispatchEvent(new Event('change', { bubbles: true }))
+    })
+  }
+  await expect(dialog).toHaveCSS('background-color', 'rgb(33, 50, 64)')
+  await expect(dialog).toHaveCSS('border-radius', '0px')
+  await page.keyboard.press('Escape')
+  await expect(add).toHaveCSS('border-radius', '0px')
+  await expect(add).toHaveCSS('background-color', 'rgb(33, 50, 64)')
+  expect(await width(add)).toBeLessThan(big)
+  expect(await width(override)).toBe(small)
+})

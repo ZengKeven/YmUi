@@ -8,6 +8,7 @@ export {
   type CheckboxOption, type CheckboxProps, type CheckboxValue,
 } from './components/checkbox'
 export { YmIcon, type IconName, type IconProps } from './components/icon'
+export { YmImageUpload, type ImageUploadFile, type ImageUploadProps, type ImageUploadRequestContext, type ImageUploadResponse, type ImageUploadResult } from './components/image-upload'
 export {
   YmColorPicker, YmColorPickerPanel, type ColorFormat, type ColorMode, type ColorObject,
   type ColorPickerChangeContext, type ColorPickerChangeTrigger, type ColorPickerPanelProps, type ColorPickerProps,

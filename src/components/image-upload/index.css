@@ -1,0 +1,102 @@
+@import './preview.css';
+
+.ym-image-upload {
+  --ym-image-tile: calc(3.5 * var(--ym-control-height));
+  --ym-image-mask: rgb(0 0 0 / .54);
+  display: block;
+  max-width: 100%;
+  color: var(--ym-color-text);
+  font-size: var(--ym-control-font-size);
+}
+.ym-image-upload__list { display: flex; flex-wrap: wrap; align-items: flex-start; gap: .75em; }
+.ym-image-upload__item { width: var(--ym-image-tile); max-width: 100%; }
+.ym-image-upload__tile,
+.ym-image-upload .ym-button.ym-image-upload__add {
+  box-sizing: border-box;
+  width: var(--ym-image-tile);
+  max-width: 100%;
+  height: var(--ym-image-tile);
+  border: 1px solid var(--ym-color-border);
+  border-radius: var(--ym-radius);
+  background: var(--ym-color-surface);
+  color: var(--ym-color-text);
+}
+.ym-image-upload .ym-button.ym-image-upload__add { border-style: dashed; }
+.ym-image-upload__add > .ym-button__text { flex-direction: column; gap: .5em; }
+.ym-image-upload__add .ym-icon { font-size: 1.6em; }
+.ym-image-upload[data-dragging] .ym-image-upload__list { outline: 2px dashed var(--ym-color-primary); outline-offset: 2px; }
+.ym-image-upload[data-dragging] .ym-image-upload__add,
+.ym-image-upload .ym-button.ym-image-upload__add:is(:hover, :focus-visible):not(:disabled) {
+  border-color: var(--ym-color-primary);
+  color: var(--ym-color-primary);
+}
+.ym-image-upload__tile { position: relative; display: grid; place-items: center; overflow: hidden; }
+.ym-image-upload__tile > img { width: 100%; height: 100%; object-fit: contain; min-height: 0; }
+.ym-image-upload__name {
+  display: block;
+  margin-top: .3em;
+  text-align: center;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.ym-image-upload__open {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: white;
+  cursor: zoom-in;
+}
+.ym-image-upload__open .ym-icon { opacity: 0; font-size: 1.45em; }
+.ym-image-upload__tile:is(:hover, :focus-within) .ym-image-upload__open { background: var(--ym-image-mask); }
+.ym-image-upload__tile:is(:hover, :focus-within) .ym-image-upload__open .ym-icon { opacity: 1; }
+.ym-image-upload__open:focus-visible { outline: 2px solid var(--ym-color-primary); outline-offset: -2px; }
+.ym-image-upload__actions {
+  position: absolute;
+  inset-block-start: .2em;
+  inset-inline-end: .2em;
+  display: flex;
+  gap: .15em;
+  opacity: 0;
+}
+.ym-image-upload__tile:is(:hover, :focus-within, [data-status='fail']) .ym-image-upload__actions { opacity: 1; }
+.ym-image-upload__actions > .ym-button {
+  width: var(--ym-control-height);
+  padding: 0;
+  background: var(--ym-image-mask);
+  color: white;
+}
+.ym-image-upload__actions > .ym-button:is(:hover, :focus-visible) { background: rgb(0 0 0 / .8); }
+@media (hover: none) {
+  .ym-image-upload__actions { opacity: 1; }
+}
+.ym-image-upload__status {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: .35em;
+  padding: .4em;
+  background: color-mix(in srgb, var(--ym-color-surface) 94%, transparent);
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+.ym-image-upload__tile[data-status='fail'] .ym-image-upload__status,
+.ym-image-upload__message { color: var(--ym-color-danger); }
+.ym-image-upload__waiting {
+  position: absolute;
+  inset-block-end: 0;
+  width: 100%;
+  text-align: center;
+  background: var(--ym-image-mask);
+  color: white;
+}
+.ym-image-upload .ym-image-upload__message { margin: .4em 0 0; }
+.ym-image-upload__submit { margin-top: .6em; }

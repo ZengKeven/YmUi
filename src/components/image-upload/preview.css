@@ -1,0 +1,77 @@
+.ym-image-upload__preview {
+  position: fixed;
+  inset: 0;
+  box-sizing: border-box;
+  width: min(56rem, calc(100vw - 2rem));
+  height: min(40rem, calc(100dvh - 2rem));
+  max-width: 100%;
+  max-height: 100dvh;
+  margin: auto;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--ym-color-border);
+  border-radius: var(--ym-radius);
+  background: var(--ym-color-surface);
+  color: var(--ym-color-text);
+  font: inherit;
+  font-size: var(--ym-control-font-size);
+  box-shadow: 0 1rem 4rem rgb(0 0 0 / .24);
+}
+.ym-image-upload__preview[open] {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+}
+.ym-image-upload__preview::backdrop { background: rgb(0 0 0 / .62); }
+.ym-image-upload__preview-header,
+.ym-image-upload__preview-tools {
+  display: flex;
+  align-items: center;
+  gap: .5em;
+  padding: .4em .7em;
+}
+.ym-image-upload__preview-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ym-image-upload__preview-count,
+.ym-image-upload__preview-scale {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.ym-image-upload__preview-stage {
+  position: relative;
+  display: grid;
+  place-items: center;
+  container-type: size;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--ym-color-text) 6%, var(--ym-color-surface));
+}
+.ym-image-upload__preview img.ym-image-upload__preview-image {
+  width: auto;
+  height: auto;
+  max-width: 100cqw;
+  max-height: 100cqh;
+  object-fit: contain;
+  touch-action: none;
+  user-select: none;
+}
+.ym-image-upload__preview img.ym-image-upload__preview-image[data-turned] {
+  max-width: 100cqh;
+  max-height: 100cqw;
+}
+.ym-image-upload__preview-image[data-zoomed] { cursor: grab; }
+.ym-image-upload__preview-image[data-zoomed]:active { cursor: grabbing; }
+.ym-image-upload__preview-stage > .ym-button {
+  position: absolute;
+  inset-block-start: 50%;
+  transform: translateY(-50%);
+  background: var(--ym-color-surface);
+  border-color: var(--ym-color-border);
+}
+.ym-image-upload__preview-prev { inset-inline-start: .6em; }
+.ym-image-upload__preview-next { inset-inline-end: .6em; }
+.ym-image-upload__preview-tools { justify-content: center; }
+.ym-image-upload__preview-scale { min-width: 4ch; text-align: center; }
