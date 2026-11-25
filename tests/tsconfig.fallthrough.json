@@ -1,5 +1,5 @@
 {
   "extends": "../tsconfig.json",
   "vueCompilerOptions": { "checkUnknownProps": false },
-  "include": ["../playground/examples/button.demo.vue", "types/date-picker.vue"]
+  "include": ["../playground/examples/button.demo.vue", "types/date-picker.vue", "types/time-picker.vue"]
 }

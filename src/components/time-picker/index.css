@@ -1,0 +1,66 @@
+@import './columns.css';
+
+.ym-time-picker {
+  width: 11.25rem;
+  font-size: var(--ym-control-font-size);
+}
+.ym-time-picker[data-mode='range'] { width: 21em; }
+.ym-time-picker__trigger {
+  --ym-time-picker-inset: max(.25rem, calc(var(--ym-control-padding) - .25rem));
+  position: relative;
+  display: block;
+  min-width: 0;
+  font-variant-numeric: tabular-nums;
+}
+.ym-time-picker__trigger > .ym-time-picker__field {
+  background: var(--ym-color-surface);
+  cursor: pointer;
+}
+.ym-time-picker__trigger[data-open] .ym-time-picker__field:not([data-borderless]) { border-color: var(--ym-color-primary); }
+.ym-time-picker__field .ym-input__control { cursor: inherit; }
+.ym-time-picker__field:not(.ym-time-picker__range) .ym-input__control {
+  padding-inline-end: calc(1.5em + var(--ym-time-picker-inset));
+}
+.ym-time-picker__trigger > .ym-time-picker__field[data-disabled] { cursor: not-allowed; }
+.ym-time-picker__range {
+  gap: .5em;
+  padding-inline: var(--ym-time-picker-inset) calc(1.5em + var(--ym-time-picker-inset));
+}
+.ym-time-picker__range .ym-input__control {
+  height: 1.5em;
+  padding-inline: .25em;
+  border-radius: 0;
+}
+.ym-time-picker__range .ym-input__control:is([data-active], :focus-visible) {
+  background: color-mix(in srgb, var(--ym-color-text) 9%, var(--ym-color-surface));
+}
+.ym-time-picker__icon {
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-end: var(--ym-time-picker-inset);
+  transform: translateY(-50%);
+  color: var(--ym-color-text);
+  pointer-events: none;
+}
+.ym-time-picker__trigger[data-open] .ym-time-picker__icon { color: var(--ym-color-primary); }
+.ym-time-picker__trigger:has(:disabled) .ym-time-picker__icon { opacity: .55; }
+
+.ym-popup__panel.ym-time-picker__panel { padding: 0; }
+.ym-time-picker__panels { display: flex; }
+.ym-time-picker__pane {
+  box-sizing: border-box;
+  width: 13em;
+  min-width: 0;
+  padding: .45em;
+}
+.ym-time-picker__pane + .ym-time-picker__pane { border-inline-start: 1px solid var(--ym-color-border); }
+.ym-time-picker__heading {
+  padding: .3em .5em;
+  font-weight: 600;
+}
+.ym-time-picker__footer {
+  display: flex;
+  justify-content: flex-end;
+  padding: .5em;
+  border-block-start: 1px solid var(--ym-color-border);
+}

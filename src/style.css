@@ -19,6 +19,7 @@
 @import './components/tabs/index.css';
 @import './components/tag/index.css';
 @import './components/textarea/index.css';
+@import './components/time-picker/index.css';
 @import './components/tree-select/index.css';
 
 :where(:root) {
