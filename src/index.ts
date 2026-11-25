@@ -8,6 +8,7 @@ export { YmDatePicker, type DatePickerMode, type DatePickerProps, type DatePicke
 export { YmDescriptions, YmDescriptionsItem, type DescriptionsProps, type DescriptionsItemProps } from './components/descriptions'
 export { YmDialog, type DialogActionContext, type DialogActionHandler, type DialogCloseTrigger,
   type DialogPlacement, type DialogProps } from './components/dialog'
+export { YmDropdown, type DropdownItemTheme, type DropdownOption, type DropdownProps, type DropdownTrigger } from './components/dropdown'
 export {
   YmCheckbox, YmCheckboxGroup, type CheckboxGroupChangeContext, type CheckboxGroupProps,
   type CheckboxOption, type CheckboxProps, type CheckboxValue,
