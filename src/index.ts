@@ -30,6 +30,7 @@ export { YmRadio, YmRadioGroup, type RadioGroupProps, type RadioOption, type Rad
 export { YmRate, type RateProps } from './components/rate'
 export { YmSelect, type SelectKey, type SelectOption, type SelectProps, type SelectValue } from './components/select'
 export { YmSpace, type SpaceProps, type SpaceSize } from './components/space'
+export { YmStatistic, type StatisticAnimation, type StatisticInstance, type StatisticProps } from './components/statistic'
 export { YmSteps, type StepOption, type StepsProps, type StepStatus, type StepValue } from './components/steps'
 export { YmSwitch, type SwitchProps, type SwitchValue } from './components/switch'
 export { YmTabs, YmTabPanel, type TabPanelProps, type TabsProps, type TabValue } from './components/tabs'
