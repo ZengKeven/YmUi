@@ -12,6 +12,8 @@ category: 表单组件
 
 将「选择模式」切换为「日期范围」，点击起止日期输入框打开双月日历。在左侧选择月末的一天，再把鼠标移到右侧下月的日期上，即可预览跨月区间。点击第二个日期后面板收起，开始日期和结束日期分别回填。示例中「休」表示放假，「班」表示调休补班。
 
+面板底部的「近 3 天」「近 7 天」「近 15 天」「近 30 天」都包含今天。每次点击时按本地日期重新计算，页面跨天打开也能选到新的范围。
+
 ## 属性
 
 | 名称 | 类型 | 默认值 | 说明 |
@@ -19,6 +21,7 @@ category: 表单组件
 | mode | `'single' \| 'range'` | `'single'` | `single` 显示一个日期输入框和一张日历，`range` 分开显示起止日期，并排展示两张日历。 |
 | modelValue | `string \| DateRangeValue \| null` | — | 支持 `v-model`。单选传入 `YYYY-MM-DD` 字符串，范围传入起止日期元组 `[start, end]`，两个日期均为同一格式。`null` 表示未选择。 |
 | defaultValue | `string \| DateRangeValue` | — | 非受控模式下的初始值，格式与对应模式的 `modelValue` 一致。值为空时，单选展示本月，范围展示本月和下月。 |
+| presets | `DateRangePresets` | — | 范围模式的快捷项，以按钮文字为键。值可以是固定的 `[start, end]`，也可以是点击时返回日期对的函数。两端均使用本地 `YYYY-MM-DD` 格式，受 `disabledDate` 约束。 |
 | placeholder | `string` | `请选择日期` | 日期为空时显示的提示文字。范围模式的开始和结束输入框使用同一提示。 |
 | showLunar | `boolean` | `false` | 在公历日号下方显示农历，农历初一显示月名。 |
 | showHoliday | `boolean` | `false` | 使用日历内置的中国大陆节假日安排，标记休假和补班日期。假期首日优先显示节名，其他日期按 `showLunar` 设置显示农历。 |
@@ -51,16 +54,30 @@ category: 表单组件
 ```vue
 <script setup lang="ts" vapor>
 import { ref } from 'vue'
-import { YmDatePicker, type DateRangeValue } from 'ym-ui-vapor'
+import { YmDatePicker, type DateRangePresets, type DateRangeValue } from 'ym-ui-vapor'
 import 'ym-ui-vapor/style.css'
 
 const deliveryDate = ref<string | null>(null)
 const deliveryRange = ref<DateRangeValue | null>(null)
+function localDate(date: Date) {
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${date.getFullYear()}-${month}-${day}`
+}
+const presets: DateRangePresets = {
+  '国庆假期': ['2026-10-01', '2026-10-07'],
+  '近 7 天': () => {
+    const end = new Date()
+    const start = new Date(end)
+    start.setDate(start.getDate() - 6)
+    return [localDate(start), localDate(end)]
+  },
+}
 </script>
 
 <template>
   <YmDatePicker v-model="deliveryDate" aria-label="收货日期" show-lunar show-holiday />
-  <YmDatePicker v-model="deliveryRange" mode="range" aria-label="收货日期范围" />
+  <YmDatePicker v-model="deliveryRange" mode="range" aria-label="收货日期范围" :presets="presets" />
 </template>
 ```
 

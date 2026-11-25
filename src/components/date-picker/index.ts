@@ -2,7 +2,7 @@ import type { HTMLAttributes } from 'vue'
 import DatePicker from './date-picker.vue'
 import type { DatePickerMode, DatePickerProps } from './types'
 
-export type { DatePickerMode, DatePickerProps, DatePickerValue, DateRangeValue } from './types'
+export type { DatePickerMode, DatePickerProps, DatePickerValue, DateRangePresets, DateRangeValue } from './types'
 
 type DatePickerComponent = <Mode extends DatePickerMode = 'single'>(
   props: DatePickerProps<NoInfer<Mode>> & { mode?: Mode }

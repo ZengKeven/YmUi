@@ -1,12 +1,23 @@
 <script setup lang="ts" vapor>
 import { computed, ref } from 'vue'
-import { YmDatePicker, YmSwitch, type ControlSize, type DatePickerMode, type DateRangeValue } from '../../src'
+import { YmDatePicker, YmSwitch, type ControlSize, type DatePickerMode, type DateRangePresets, type DateRangeValue } from '../../src'
+import { addDays, dateKey } from '../../src/components/calendar/dates'
 import PreviewFrame from './PreviewFrame.vue'
 import { sizes } from './settings'
 
 const mode = ref<DatePickerMode>('single')
 const deliveryDate = ref('2026-10-01')
 const deliveryRange = ref<DateRangeValue>(['2026-10-01', '2026-10-07'])
+function recentDays(days: number): DateRangeValue {
+  const end = new Date()
+  return [dateKey(addDays(end, 1 - days)), dateKey(end)]
+}
+const presets: DateRangePresets = {
+  '近 3 天': () => recentDays(3),
+  '近 7 天': () => recentDays(7),
+  '近 15 天': () => recentDays(15),
+  '近 30 天': () => recentDays(30),
+}
 const delivery = computed({
   get: () => mode.value === 'range' ? deliveryRange.value : deliveryDate.value,
   set(value: string | DateRangeValue) {
@@ -26,10 +37,10 @@ const disabled = ref(false)
 <template>
   <PreviewFrame name="YmDatePicker">
     <template #preview>
-      <YmDatePicker v-if="disableWeekends === false" v-model="delivery" :mode="mode"
+      <YmDatePicker v-if="disableWeekends === false" v-model="delivery" :mode="mode" :presets="presets"
         :aria-label="mode === 'range' ? '收货日期范围' : '收货日期'" :size="size" :first-day-of-week="firstDayOfWeek"
         :show-lunar="showLunar" :show-holiday="showHoliday" :borderless="borderless" :disabled="disabled" />
-      <YmDatePicker v-if="disableWeekends" v-model="delivery" :mode="mode" :disabled-date="date => [0, 6].includes(date.getDay())"
+      <YmDatePicker v-if="disableWeekends" v-model="delivery" :mode="mode" :presets="presets" :disabled-date="date => [0, 6].includes(date.getDay())"
         :aria-label="mode === 'range' ? '收货日期范围' : '收货日期'" :size="size" :first-day-of-week="firstDayOfWeek"
         :show-lunar="showLunar" :show-holiday="showHoliday" :borderless="borderless" :disabled="disabled" />
     </template>

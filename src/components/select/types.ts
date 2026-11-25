@@ -24,6 +24,8 @@ export interface SelectProps<Option extends SelectOption = SelectOption> extends
   options?: readonly Option[]
   /** 是否允许选择多个值。 */
   multiple?: boolean
+  /** 是否允许一键清空选择和搜索词。多选时保留已禁用的选项。 */
+  clearable?: boolean
   /** 多选数量上限，0 表示不限。 */
   max?: number
   /** 允许按选项名称过滤。 */

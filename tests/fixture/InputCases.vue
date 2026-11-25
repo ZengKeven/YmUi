@@ -8,6 +8,8 @@ const autofocusText = ref('原有别名')
 const field = useTemplateRef<{ focus(): void; blur(): void }>('field')
 const updates = ref<string[]>([])
 const changes = ref<string[]>([])
+const clearable = ref(false)
+const clears = ref<string[]>([])
 const events = ref<string[]>([])
 const rejected = ref('')
 const type = ref<'text' | 'password'>('password')
@@ -38,19 +40,21 @@ function setUnsupportedType() {
     <form id="input-form" @submit.prevent>
       <label for="input-alias">账户别名</label>
       <YmInput id="input-alias" ref="field" v-model="text" value="旧别名" name="alias" required maxlength="12"
-        class="alias-field" style="width: 240px"
+        class="alias-field" style="width: 240px" :clearable="clearable"
         placeholder="输入别名" autocomplete="nickname" :readonly="readOnly" :disabled="disabled" :borderless="borderless"
         @update:model-value="updates.push($event)"
         @change="recordChange"
+        @clear="clears.push($event.e.type)"
         @focus="recordEvent" @blur="recordEvent" @input="recordEvent" @keydown="recordEvent" />
-      <YmInput aria-label="访问口令" :type="type" name="passcode" :disabled="disabled"
-        default-value="initial" autocomplete="current-password" @change="passwordChanges++" />
     </form>
+    <YmInput aria-label="访问口令" :type="type" name="passcode" form="input-form" :disabled="disabled"
+      default-value="initial" :clearable="clearable" autocomplete="current-password" @change="passwordChanges++" />
     <button type="reset" form="input-form">重置输入表单</button>
     <button @click="text = '外部修改'">设置账户别名</button>
     <button @mousedown.prevent @click="field?.focus()">聚焦账户别名</button>
     <button @mousedown.prevent @click="field?.blur()">移开别名焦点</button>
     <button @click="readOnly = !readOnly">切换别名只读</button>
+    <button @click="clearable = !clearable">切换输入框清空按钮</button>
     <button @click="disabled = !disabled">切换输入框禁用</button>
     <button @click="borderless = !borderless">切换输入框边框</button>
     <button @click="type = type === 'password' ? 'text' : 'password'">切换口令类型</button>
@@ -58,9 +62,10 @@ function setUnsupportedType() {
     <output id="input-model">{{ text }}</output>
     <output id="input-updates">{{ JSON.stringify(updates) }}</output>
     <output id="input-changes">{{ JSON.stringify(changes) }}</output>
+    <output id="input-clears">{{ JSON.stringify(clears) }}</output>
     <output id="input-events">{{ events.join(' ') }}</output>
     <output id="input-password-changes">{{ passwordChanges }}</output>
-    <YmInput value="审核中" aria-label="受控别名" @update:model-value="rejected = $event" />
+    <YmInput value="审核中" :clearable="clearable" aria-label="受控别名" @update:model-value="rejected = $event" />
     <output id="input-rejected">{{ rejected }}</output>
 
     <button @click="autofocusType = 'text'">打开别名编辑框</button>

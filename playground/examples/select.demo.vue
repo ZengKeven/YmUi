@@ -16,6 +16,7 @@ const max = ref(2)
 const limit = computed(() => multiple.value ? max.value : undefined)
 const searchMode = ref('local')
 const custom = ref(true)
+const clearable = ref(false)
 const borderless = ref(false)
 const disabled = ref(false)
 const size = ref<ControlSize>()
@@ -38,14 +39,14 @@ async function searchWarehouses(query: string, signal: AbortSignal) {
   <PreviewFrame name="YmSelect">
     <template #preview>
       <YmSelect v-if="searchMode !== 'remote'" v-model="warehouse" :options="warehouses" :multiple="multiple" :max="limit"
-        :filterable="searchMode === 'local'" :borderless="borderless" :disabled="disabled" :size="size"
+        :filterable="searchMode === 'local'" :clearable="clearable" :borderless="borderless" :disabled="disabled" :size="size"
         aria-label="配送仓库" placeholder="选择配送仓库">
         <template v-if="custom" #option="{ option }">
           <span>{{ option.label }}</span> <small>{{ option.code }}</small>
         </template>
       </YmSelect>
       <YmSelect v-if="searchMode === 'remote'" v-model="warehouse" :remote-method="searchWarehouses" :options="warehouses"
-        :multiple="multiple" :max="limit" :borderless="borderless" :disabled="disabled" :size="size"
+        :multiple="multiple" :max="limit" :clearable="clearable" :borderless="borderless" :disabled="disabled" :size="size"
         aria-label="配送仓库" placeholder="搜索仓名或代码">
         <template v-if="custom" #option="{ option }">
           <span>{{ option.label }}</span> <small>{{ option.code }}</small>
@@ -65,6 +66,7 @@ async function searchWarehouses(query: string, signal: AbortSignal) {
         </select>
       </label>
       <label>显示仓库代码 <YmSwitch v-model="custom" /></label>
+      <label>允许清空 <YmSwitch v-model="clearable" /></label>
       <label>选择器尺寸
         <select v-model="size">
           <option :value="undefined">继承</option>

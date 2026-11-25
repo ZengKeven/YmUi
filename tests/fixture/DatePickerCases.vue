@@ -1,6 +1,6 @@
 <script setup lang="ts" vapor>
 import { ref } from 'vue'
-import { ConfigProvider, YmDatePicker, type DateRangeValue } from 'ym-ui-vapor'
+import { ConfigProvider, YmDatePicker, type DateRangePresets, type DateRangeValue } from 'ym-ui-vapor'
 
 const selected = ref<string | null>('2026-10-01')
 const updates = ref<string[]>([])
@@ -9,6 +9,22 @@ const range = ref<DateRangeValue | null>(null)
 const rangeUpdates = ref<DateRangeValue[]>([])
 const rangeChanges = ref<DateRangeValue[]>([])
 const rangeDisabled = ref(false)
+const presetCalls = ref(0)
+function localDay(date: Date) {
+  return [date.getFullYear(), String(date.getMonth() + 1).padStart(2, '0'), String(date.getDate()).padStart(2, '0')].join('-')
+}
+const presets: DateRangePresets = {
+  '近 3 天': () => {
+    presetCalls.value++
+    const end = new Date()
+    const start = new Date(end)
+    start.setDate(start.getDate() - 2)
+    return [localDay(start), localDay(end)]
+  },
+  跨周末: ['2026-10-05', '2026-10-02'],
+  周日止: ['2026-10-01', '2026-10-04'],
+  无效日期: () => ['2026-02-28', '2026-02-30'],
+}
 const switchMode = ref<'single' | 'range'>('range')
 const compact = ref(false)
 const dark = ref(false)
@@ -36,18 +52,19 @@ const disableSunday = (date: Date) => date.getDay() === 0
   <YmDatePicker aria-label="禁用日期" disabled />
   <button type="button">外部操作</button>
   <section>
-    <YmDatePicker v-model="range" mode="range" aria-label="配送范围" :disabled="rangeDisabled" name="window" form="order"
+    <YmDatePicker v-model="range" mode="range" aria-label="配送范围" :disabled="rangeDisabled" :presets="presets" name="window" form="order"
       :disabled-date="disableSunday" show-lunar show-holiday
       @update:model-value="rangeUpdates.push($event)" @change="rangeChanges.push($event)" />
     <output id="range-model">{{ JSON.stringify(range) }}</output>
     <output id="range-updates">{{ JSON.stringify(rangeUpdates) }}</output>
     <output id="range-changes">{{ JSON.stringify(rangeChanges) }}</output>
+    <output id="preset-calls">{{ presetCalls }}</output>
     <button @click="range = ['2027-01-05', '2027-01-09']">外部设置范围</button>
     <button @click="range = null">外部重置范围</button>
     <label><input v-model="rangeDisabled" type="checkbox" />禁用范围</label>
     <YmDatePicker mode="range" aria-label="默认范围" :default-value="['2026-10-01', '2026-10-03']" form="order" />
     <YmDatePicker mode="range" aria-label="固定范围" :model-value="['2026-10-01', '2026-10-03']" />
-    <YmDatePicker :mode="switchMode" aria-label="切换模式的日期" />
+    <YmDatePicker :mode="switchMode" aria-label="切换模式的日期" :presets="presets" />
     <button @click="switchMode = switchMode === 'single' ? 'range' : 'single'">切换选择模式</button>
   </section>
   <label><input v-model="compact" type="checkbox" />紧凑尺寸和直角</label>

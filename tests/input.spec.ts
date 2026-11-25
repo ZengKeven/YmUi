@@ -101,6 +101,7 @@ test('text editing syncs the model, forwards input attributes and supports nativ
 
 test('IME text is published once when the composition is committed', async ({ page }) => {
   const alias = page.getByLabel('账户别名', { exact: true })
+  await page.getByRole('button', { name: '切换输入框清空按钮' }).click()
   await alias.focus()
   await alias.evaluate((el: HTMLInputElement) => {
     el.dispatchEvent(new CompositionEvent('compositionstart', { bubbles: true }))
@@ -118,6 +119,68 @@ test('IME text is published once when the composition is committed', async ({ pa
   await expect(page.locator('#input-model')).toHaveText('拼')
   await expect(page.locator('#input-updates')).toHaveText('["拼"]')
   await expect(page.locator('#input-changes')).toHaveText('["拼"]')
+  await alias.evaluate((el: HTMLInputElement) => {
+    el.dispatchEvent(new CompositionEvent('compositionstart', { bubbles: true }))
+    el.value = '拼yin'
+    el.dispatchEvent(new InputEvent('input', { data: 'yin', isComposing: true, bubbles: true }))
+  })
+  await page.locator('.alias-field').getByRole('button', { name: '清空内容' }).click()
+  await expect(alias).toBeFocused()
+  await alias.press('A')
+  await expect(page.locator('#input-updates')).toHaveText('["拼","","A"]')
+  await expect(page.locator('#input-changes')).toHaveText('["拼","","A"]')
+})
+
+test('clearable text requests one empty value, restores focus and respects readonly and disabled', async ({ page }) => {
+  const alias = page.getByLabel('账户别名', { exact: true })
+  const clear = page.locator('.alias-field').getByRole('button', { name: '清空内容' })
+  await alias.fill('SKU-93')
+  await expect(clear).toHaveCount(0)
+  await page.getByRole('button', { name: '切换输入框清空按钮' }).click()
+  await alias.focus()
+  await clear.click()
+  await expect(alias).toBeFocused()
+  await expect(alias).toHaveValue('')
+  await expect(page.locator('#input-updates')).toHaveText('["SKU-93",""]')
+  await expect(page.locator('#input-changes')).toHaveText('["SKU-93",""]')
+  await expect(page.locator('#input-clears')).toHaveText('["click"]')
+  await expect(clear).toHaveCount(0)
+
+  await page.getByRole('button', { name: '设置账户别名' }).click()
+  await expect(clear).toBeVisible()
+  await page.getByRole('button', { name: '切换别名只读' }).click()
+  await expect(clear).toHaveCount(0)
+  await page.getByRole('button', { name: '切换别名只读' }).click()
+  await page.getByRole('button', { name: '切换输入框禁用' }).click()
+  await expect(clear).toHaveCount(0)
+
+  const locked = page.getByLabel('受控别名')
+  const lockedClear = page.locator('.ym-input').filter({ has: locked }).getByRole('button', { name: '清空内容' })
+  await locked.fill('新名称')
+  await expect(page.locator('#input-rejected')).toHaveText('新名称')
+  await lockedClear.press('Space')
+  await expect(page.locator('#input-rejected')).toBeEmpty()
+  await expect(locked).toHaveValue('审核中')
+  await expect(locked).toBeFocused()
+  await expect(lockedClear).toBeVisible()
+})
+
+test('an uncontrolled password can be cleared by keyboard and restored by a native form reset', async ({ page }) => {
+  const password = page.getByLabel('访问口令')
+  const clear = page.locator('.ym-input').filter({ has: password }).getByRole('button', { name: '清空内容' })
+  await page.getByRole('button', { name: '切换输入框清空按钮' }).click()
+  await password.press('Tab')
+  await expect(clear).toBeFocused()
+  await clear.press('Enter')
+  await expect(password).toBeFocused()
+  await expect(password).toHaveValue('')
+  await expect(password).toHaveJSProperty('type', 'password')
+  await expect(clear).toHaveCount(0)
+  await expect(page.locator('#input-password-changes')).toHaveText('1')
+  await page.getByRole('button', { name: '重置输入表单' }).click()
+  await expect(password).toHaveValue('initial')
+  await expect(clear).toBeVisible()
+  await expect(page.getByRole('button', { name: '显示密码' })).toBeVisible()
 })
 
 test('password visibility is keyboard accessible and preserves the uncontrolled value', async ({ page }) => {

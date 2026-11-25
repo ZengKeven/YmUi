@@ -17,6 +17,7 @@ category: 表单组件
 | type | `text / password` | `text` | 设置输入类型。 |
 | align | `left / center / right` | `left` | 设置输入文本和占位文字的水平对齐方式。 |
 | borderless | `boolean` | `false` | 开启无边框模式，隐藏输入框边框。 |
+| clearable | `boolean` | `false` | 有内容且可编辑时，在输入框右侧显示清空按钮。支持文本和密码。 |
 | modelValue | `string` | — | 当前内容，支持 `v-model`。同时传入 `value` 时，以 `modelValue` 为准。 |
 | value | `string` | — | 可选的受控值，可配合 `change` 事件管理文本。 |
 | defaultValue | `string` | 空字符串 | 省略 `modelValue` 和 `value` 时使用的初始内容。 |
@@ -37,6 +38,7 @@ category: 表单组件
 | --- | --- | --- |
 | update:modelValue | `value: string` | 用户编辑内容时同步新的字符串。使用中文输入法时，确认候选词后同步。 |
 | change | `(value: string, context: { e: Event })` | 用户编辑产生新值时，传出文本和触发本次更新的事件。 |
+| clear | `context: { e: MouseEvent }` | 通过清空按钮请求清空时触发。清空值为空字符串，同时通过 `update:modelValue` 和 `change` 通知调用方。 |
 
 可在组件上监听 `input`、`focus`、`blur`、`keydown` 等原生输入框事件。
 
@@ -46,7 +48,7 @@ category: 表单组件
 
 ## 使用指南
 
-用 `v-model` 绑定字符串。登录表单可分别为账号和密码设置 `autocomplete`，供浏览器自动填充。通过组件引用调用 `focus()` 或 `blur()` 可控制输入焦点。
+用 `v-model` 绑定字符串。启用 `clearable` 后，点击清空按钮或聚焦按钮按 Enter、空格，可清空内容并继续在输入框中输入。登录表单可分别为账号和密码设置 `autocomplete`，供浏览器自动填充。通过组件引用调用 `focus()` 或 `blur()` 可控制输入焦点。
 
 ```vue
 <script setup lang="ts" vapor>
@@ -60,7 +62,7 @@ const password = ref('')
 
 <template>
   <label for="username">账号</label>
-  <YmInput id="username" v-model="username" name="username" autocomplete="username" />
+  <YmInput id="username" v-model="username" name="username" autocomplete="username" clearable />
   <label for="password">密码</label>
   <YmInput id="password" v-model="password" type="password" name="password" autocomplete="current-password" />
 </template>

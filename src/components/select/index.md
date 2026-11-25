@@ -20,6 +20,7 @@ category: 表单组件
 | modelValue | `SelectValue` | — | 当前选中值，支持 `v-model`。单选使用字符串或数字，多选使用值数组。 |
 | defaultValue | `SelectValue` | 单选为空，多选为空数组 | 省略 `modelValue` 时的初始值。 |
 | multiple | `boolean` | `false` | 开启多选，每个已选项在输入框内显示为一个直角 `YmTag` 标签。点击标签的移除按钮可取消选择，禁用项会保留。 |
+| clearable | `boolean` | `false` | 有可移除的选择或搜索词时显示清空按钮。清空后单选值为 `null`，多选值为 `[]`；多选中原已禁用的项会保留。搜索词同时清空，焦点回到选择器。 |
 | max | `number` | `0` | 多选数量上限，`0` 表示不限。达到上限后可以移除已选项，再选其他项。 |
 | placeholder | `string` | `请选择` | 空值时的提示文字。 |
 | filterable | `boolean` | `false` | 启用本地搜索，按 `label` 进行忽略大小写的包含匹配。 |
@@ -40,9 +41,10 @@ category: 表单组件
 
 | 名称 | 参数 | 触发时机 |
 | --- | --- | --- |
-| update:modelValue | `value: SelectValue` | 用户选择或移除选项时，同步新的选中值。 |
+| update:modelValue | `value: SelectValue` | 用户选择、移除或清空选项时，同步新的选中值。 |
 | change | `value: SelectValue` | 用户改变选择时触发，单选传出一个值，多选传出值数组。 |
-| search | `query: string` | 用户输入搜索词时触发。 |
+| clear | `context: { e: MouseEvent }` | 用户激活清空按钮时触发一次。 |
+| search | `query: string` | 用户输入搜索词时触发。清空已有搜索词时传出空字符串。 |
 
 ## 插槽
 

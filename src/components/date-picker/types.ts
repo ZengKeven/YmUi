@@ -8,6 +8,9 @@ export type DatePickerMode = 'single' | 'range'
 /** 起始和结束日期，均以本地 YYYY-MM-DD 字符串表示。 */
 export type DateRangeValue = [start: string, end: string]
 
+/** 范围快捷项，以按钮文字为键，值为固定日期对或在点击时返回日期对的函数。 */
+export type DateRangePresets = Readonly<Record<string, Readonly<DateRangeValue> | (() => Readonly<DateRangeValue>)>>
+
 /** 选择完成后提交的值。 */
 export type DatePickerValue<Mode extends DatePickerMode = DatePickerMode> =
   Mode extends 'range' ? DateRangeValue : string
@@ -21,6 +24,8 @@ export interface DatePickerProps<Mode extends DatePickerMode = DatePickerMode> e
   modelValue?: DatePickerValue<Mode> | null
   /** 非受控模式下的初始日期或起止日期。 */
   defaultValue?: DatePickerValue<Mode>
+  /** 范围模式下显示在双月面板底部的快捷项。 */
+  presets?: DateRangePresets
   /** 配置日历浮层的位置、挂载容器和外观。 */
   popupProps?: Pick<PopupProps, 'placement' | 'attach' | 'showArrow' | 'zIndex' | 'overlayClassName' | 'overlayStyle'>
 }

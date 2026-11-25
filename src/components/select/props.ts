@@ -31,6 +31,8 @@ export default {
   form: inputProps.form,
   /** 是否禁用选择器。 */
   disabled: inputProps.disabled,
+  /** 是否允许一键清空选择和搜索词。 */
+  clearable: Boolean,
   /** 隐藏选择框边框。 */
   borderless: inputProps.borderless,
   /** 尺寸，省略时继承 ConfigProvider。 */

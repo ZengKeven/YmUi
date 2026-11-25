@@ -16,6 +16,8 @@ export default {
   autofocus: Boolean,
   /** 开启无边框模式。 */
   borderless: Boolean,
+  /** 有内容且可编辑时显示清空按钮。 */
+  clearable: Boolean,
   /** 双向绑定的字符串。 */
   modelValue: String,
   /** 外部控制的字符串，modelValue 优先。 */

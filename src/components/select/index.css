@@ -33,6 +33,13 @@
 .ym-select__values:has(> .ym-tag) > .ym-select__field { height: 1.4em; }
 .ym-select__field .ym-input__control { padding: 0; text-overflow: ellipsis; }
 .ym-select__field .ym-input__control:read-only { cursor: inherit; }
+.ym-select__control > .ym-select__clear {
+  flex: none;
+  width: 1.5em;
+  height: 1.5em;
+  padding: 0;
+}
+.ym-select__clear:focus-visible { outline-offset: -2px; }
 .ym-select__arrow { display: inline-flex; align-items: center; align-self: stretch; }
 .ym-popup__panel.ym-select__panel {
   min-width: min(var(--ym-popup-trigger-width), 100vw);

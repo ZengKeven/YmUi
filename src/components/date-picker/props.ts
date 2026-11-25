@@ -13,6 +13,8 @@ export default {
   modelValue: [String, Array] as PropType<DatePickerProps['modelValue']>,
   /** 非受控选择器的初始日期或日期对。 */
   defaultValue: [String, Array] as PropType<DatePickerProps['defaultValue']>,
+  /** 范围模式下的固定或动态快捷日期。 */
+  presets: Object as PropType<DatePickerProps['presets']>,
   /** 空值时的提示文字。 */
   placeholder: String,
   /** 在日期下方显示农历。 */

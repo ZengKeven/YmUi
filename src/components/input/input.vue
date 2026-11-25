@@ -13,11 +13,13 @@ const { disabled, readOnly } = useFormControlState(props, 'text')
 const emit = defineEmits<{
   'update:modelValue': [value: string]
   change: [value: string, context: { e: Event }]
+  clear: [context: { e: MouseEvent }]
 }>()
 
 const field = useTemplateRef<HTMLInputElement>('field')
 const controlled = computed(() => props.modelValue ?? props.value)
 const initialValue = props.defaultValue
+const hasText = ref(false)
 const revealed = ref(false)
 watch([() => props.type, disabled], () => { revealed.value = false })
 
@@ -26,6 +28,7 @@ let committedComposition: string | undefined
 
 function setText(input: HTMLInputElement, value: string) {
   if (input.value !== value) input.value = value
+  hasText.value = input.value !== ''
 }
 
 onFormFieldReset(type => {
@@ -56,15 +59,15 @@ watch([field, () => props.form], ([input], _, onCleanup) => {
       if (e.defaultPrevented || field.value !== input || input.form !== form) return
       compositionStartValue = undefined
       committedComposition = undefined
-      if (controlled.value !== undefined) setText(input, controlled.value)
+      setText(input, controlled.value ?? input.value)
     }, 0)
   }
   form.addEventListener('reset', reset)
   onCleanup(() => form.removeEventListener('reset', reset))
 }, { flush: 'post' })
 
-async function publish(e: Event) {
-  const input = e.currentTarget as HTMLInputElement
+async function publish(input: HTMLInputElement, e: Event) {
+  hasText.value = input.value !== ''
   if (disabled.value || readOnly.value || input.value === controlled.value) return
   const value = input.value
   emit('update:modelValue', value)
@@ -76,10 +79,10 @@ async function publish(e: Event) {
 
 function onInput(e: Event) {
   if (compositionStartValue !== undefined || (e as InputEvent).isComposing) return
-  const value = (e.currentTarget as HTMLInputElement).value
-  const alreadyCommitted = value === committedComposition
+  const input = e.currentTarget as HTMLInputElement
+  const alreadyCommitted = input.value === committedComposition
   committedComposition = undefined
-  if (!alreadyCommitted) publish(e)
+  if (!alreadyCommitted) publish(input, e)
 }
 
 function startComposition(e: CompositionEvent) {
@@ -94,8 +97,20 @@ function finishComposition(e: Event) {
   // 部分浏览器会在 compositionend 后再发送一次相同的 input。
   const input = e.currentTarget as HTMLInputElement
   committedComposition = input.value
-  if (committedComposition !== previous) publish(e)
+  if (committedComposition !== previous) publish(input, e)
   else if (controlled.value !== undefined) setText(input, controlled.value)
+}
+
+function clear(e: MouseEvent) {
+  e.stopPropagation()
+  const input = field.value
+  if (!input || !input.value || disabled.value || readOnly.value) return
+  compositionStartValue = undefined
+  committedComposition = undefined
+  setText(input, '')
+  input.focus()
+  publish(input, e)
+  emit('clear', { e })
 }
 
 function keepInputFocus(e: MouseEvent) {
@@ -117,6 +132,10 @@ defineExpose({
       :autofocus="props.autofocus" :disabled="disabled" :readonly="readOnly"
       @input="onInput" @compositionstart="startComposition" @compositionend="finishComposition"
       @change="finishComposition" />
+    <YmButton v-if="props.clearable && hasText && !disabled && !readOnly" class="ym-input__clear" type="button"
+      variant="text" theme="default" shape="square" aria-label="清空内容" @click="clear">
+      <YmIcon name="close" />
+    </YmButton>
     <YmButton v-if="props.type === 'password'" class="ym-input__visibility" type="button" variant="text"
       theme="default" shape="square" :disabled="disabled" :aria-label="revealed ? '隐藏密码' : '显示密码'"
       @click="revealed = !revealed">

@@ -10,6 +10,8 @@ export interface InputProps {
   autofocus?: boolean
   /** 隐藏输入框边框。 */
   borderless?: boolean
+  /** 有内容且可编辑时显示清空按钮。 */
+  clearable?: boolean
   /** 当前字符串，支持 v-model。 */
   modelValue?: string
   /** 受控文本，modelValue 优先。 */

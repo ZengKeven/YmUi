@@ -3,6 +3,7 @@ import { useFormControlState } from '../form/control-state'
 import { onFormFieldReset } from '../form/field-reset'
 import type { FormResetType } from '../form/types'
 import { computed, nextTick, provide, ref, shallowRef, useId, useTemplateRef, watch } from 'vue'
+import { YmButton } from '../button'
 import { YmCalendar, type CalendarCell } from '../calendar'
 import { parseDate } from '../calendar/dates'
 import { calendarRangeKey, type CalendarRange } from '../calendar/range'
@@ -12,7 +13,7 @@ import { YmPopup } from '../popup'
 import pickerProps from './props'
 import RangeField from './range-field.vue'
 import RangePanel from './range-panel.vue'
-import type { DatePickerMode, DatePickerValue, DateRangeValue } from './types'
+import type { DatePickerMode, DatePickerValue, DateRangePresets, DateRangeValue } from './types'
 
 defineOptions({ name: 'YmDatePicker', inheritAttrs: false })
 const props = defineProps(pickerProps)
@@ -27,6 +28,8 @@ const initial = Array.isArray(props.defaultValue) ? orderedRange(...props.defaul
 const local = shallowRef(initial)
 const value = computed(() => props.modelValue === undefined ? local.value : props.modelValue)
 const isRange = computed(() => props.mode === 'range')
+const presetEntries = computed(() => Object.entries(props.presets ?? {}))
+const presetUnavailable = ref(false)
 const singleDate = computed(() => typeof value.value === 'string' ? value.value : null)
 const committedRange = computed(() => {
   const dates = value.value
@@ -54,6 +57,7 @@ function orderedRange(first: string, second: string): DateRangeValue {
 }
 
 function resetDraft() {
+  presetUnavailable.value = false
   anchor.value = null
   preview.value = null
   active.value = 'start'
@@ -77,14 +81,7 @@ provide(calendarRangeKey, computed<CalendarRange | undefined>(() => isRange.valu
   },
 } : undefined))
 
-function select(date: string, close: () => void) {
-  if (disabled.value) return
-  if (isRange.value && !anchor.value) {
-    anchor.value = date
-    active.value = active.value === 'start' ? 'end' : 'start'
-    return
-  }
-  const next = isRange.value && anchor.value ? orderedRange(anchor.value, date) : date
+function commit(next: string | DateRangeValue, close: () => void) {
   const changed = typeof next === 'string' ? singleDate.value !== next
     : next[0] !== committedRange.value?.[0] || next[1] !== committedRange.value?.[1]
   if (changed) {
@@ -94,6 +91,36 @@ function select(date: string, close: () => void) {
     emit('change', result)
   }
   close()
+}
+
+function select(date: string, close: () => void) {
+  if (disabled.value) return
+  presetUnavailable.value = false
+  if (isRange.value && !anchor.value) {
+    anchor.value = date
+    active.value = active.value === 'start' ? 'end' : 'start'
+    return
+  }
+  commit(isRange.value && anchor.value ? orderedRange(anchor.value, date) : date, close)
+}
+
+function validRange(range: Readonly<DateRangeValue>) {
+  if (!Array.isArray(range) || range.length !== 2) return false
+  for (const value of range) {
+    const date = typeof value === 'string' && parseDate(value)
+    if (!date || props.disabledDate?.(date)) return false
+  }
+  return true
+}
+
+function selectPreset(preset: DateRangePresets[string], close: () => void) {
+  if (!isRange.value || disabled.value) return
+  const range = typeof preset === 'function' ? preset() : preset
+  if (!validRange(range)) {
+    presetUnavailable.value = true
+    return
+  }
+  commit(orderedRange(...range), close)
 }
 
 function activateRange(endpoint: Endpoint, keyboard: boolean) {
@@ -181,7 +208,13 @@ watch([trigger, () => props.form, isRange], ([element], _, onCleanup) => {
           :first-day-of-week="props.firstDayOfWeek" :disabled-date="props.disabledDate" @select="select($event, close)">
           <template v-if="$slots.cell" #cell="cell"><slot name="cell" v-bind="cell" /></template>
         </YmCalendar>
-        <div v-if="isRange" class="ym-date-picker__range-hint" role="status">{{ active === 'start' ? '请选择开始日期' : '请选择结束日期' }}</div>
+        <div v-if="isRange && presetEntries.length" class="ym-date-picker__presets" role="group" aria-label="快捷日期范围">
+          <YmButton v-for="([label, preset]) in presetEntries" :key="label" variant="text" theme="primary"
+            :disabled="typeof preset !== 'function' && !validRange(preset)" @click="selectPreset(preset, close)">{{ label }}</YmButton>
+        </div>
+        <div v-if="isRange" :class="presetUnavailable ? 'ym-date-picker__preset-error' : 'ym-date-picker__range-hint'" role="status">
+          {{ presetUnavailable ? '该快捷范围包含无效或禁用的日期，请重新选择。' : active === 'start' ? '请选择开始日期' : '请选择结束日期' }}
+        </div>
       </div>
     </template>
   </YmPopup>

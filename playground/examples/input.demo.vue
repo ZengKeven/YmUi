@@ -9,6 +9,7 @@ const type = ref<InputProps['type']>('text')
 const align = ref<InputProps['align']>('left')
 const size = ref<ControlSize>()
 const borderless = ref(false)
+const clearable = ref(false)
 const autofocus = ref(false)
 const readOnly = ref(false)
 const disabled = ref(false)
@@ -17,7 +18,7 @@ const disabled = ref(false)
 <template>
   <PreviewFrame name="YmInput">
     <template #preview>
-      <YmInput v-model="value" :type="type" :align="align" :size="size" :borderless="borderless"
+      <YmInput v-model="value" :type="type" :align="align" :size="size" :borderless="borderless" :clearable="clearable"
         :readonly="readOnly" :disabled="disabled" :autofocus="autofocus" aria-label="示例输入框" placeholder="请输入内容" />
     </template>
     <template #controls>
@@ -38,6 +39,7 @@ const disabled = ref(false)
         </select>
       </label>
       <label>无边框 <YmSwitch v-model="borderless" /></label>
+      <label>允许清空 <YmSwitch v-model="clearable" /></label>
       <label>自动聚焦 <YmSwitch v-model="autofocus" /></label>
       <label>只读 <YmSwitch v-model="readOnly" /></label>
       <label>禁用 <YmSwitch v-model="disabled" /></label>

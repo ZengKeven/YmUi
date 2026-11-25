@@ -13,6 +13,7 @@ const borderless = ref(false)
 const many = ref<SelectValue>([])
 const updates = ref<SelectValue[]>([])
 const changes = ref<SelectValue[]>([])
+const clears = ref<string[]>([])
 const searches = ref<string[]>([])
 const remoteCompleted = ref('')
 const locations = Array.from({ length: 40 }, (_, value) => ({ value, label: `货位 ${value}` }))
@@ -36,14 +37,16 @@ async function remoteSearch(query: string): Promise<SelectOption[]> {
 
 <template>
   <section id="select-cases">
-    <YmSelect v-model="selected" aria-label="单选仓库" :options="options" :borderless="borderless"
-      @update:model-value="updates.push($event)" @change="changes.push($event)" />
+    <YmSelect v-model="selected" aria-label="单选仓库" clearable :options="options" :borderless="borderless"
+      @update:model-value="updates.push($event)" @change="changes.push($event)" @clear="clears.push($event.e.type)" />
     <output id="select-updates">{{ JSON.stringify(updates) }}</output>
     <output id="select-changes">{{ JSON.stringify(changes) }}</output>
+    <output id="select-clears">{{ JSON.stringify(clears) }}</output>
     <button @click="selected = 3">切换默认仓库</button>
     <button @click="borderless = !borderless">切换单选仓库边框</button>
-    <YmSelect aria-label="锁定仓库" :model-value="0" :options="options" />
-    <YmSelect aria-label="禁用仓库" disabled multiple :options="options" :default-value="[3]" />
+    <YmSelect aria-label="锁定仓库" clearable :model-value="0" :options="options" />
+    <YmSelect aria-label="禁用仓库" clearable disabled multiple :options="options" :default-value="[3]" />
+    <YmSelect aria-label="保留停用仓库" clearable multiple :default-value="[0,'paused']" :options="options" />
 
     <YmCheckboxGroup name="notification-settings" :model-value="[3]">
       <YmSelect v-model="many" aria-label="多选仓库" multiple :max="2" :options="options"
@@ -55,11 +58,13 @@ async function remoteSearch(query: string): Promise<SelectOption[]> {
     <YmSelect aria-label="按名称筛选" filterable :options="options" @search="searches.push($event)" />
     <output id="select-searches">{{ JSON.stringify(searches) }}</output>
     <YmSelect aria-label="按编码筛选" :filter="filterByCode" :options="options" />
-    <YmSelect aria-label="远程仓库" :remote-method="remoteSearch" />
+    <YmSelect aria-label="远程仓库" clearable :remote-method="remoteSearch" @search="searches.push($event)"
+      @update:model-value="updates.push($event)" @clear="clears.push($event.e.type)" />
     <output id="select-remote-completed">{{ remoteCompleted }}</output>
 
     <form id="select-form"><button type="reset">重置货位</button></form>
-    <YmSelect form="select-form" name="location" aria-label="货位" multiple filterable :options="locations" :default-value="[34]" />
+    <YmSelect form="select-form" name="location" aria-label="货位" clearable multiple filterable :options="locations" :default-value="[34]"
+      @change="changes.push($event)" />
 
     <button @click="compact = !compact">切换选择器尺寸圆角</button>
     <button @click="dark = !dark">切换选择器模式</button>

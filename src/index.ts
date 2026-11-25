@@ -4,7 +4,7 @@ export { YmBadge, type BadgeProps } from './components/badge'
 export { YmButton, type ButtonProps } from './components/button'
 export { YmCalendar, type CalendarCell, type CalendarProps } from './components/calendar'
 export * from './components/form'
-export { YmDatePicker, type DatePickerMode, type DatePickerProps, type DatePickerValue, type DateRangeValue } from './components/date-picker'
+export { YmDatePicker, type DatePickerMode, type DatePickerProps, type DatePickerValue, type DateRangePresets, type DateRangeValue } from './components/date-picker'
 export { YmDescriptions, YmDescriptionsItem, type DescriptionsProps, type DescriptionsItemProps } from './components/descriptions'
 export { YmDialog, type DialogActionContext, type DialogActionHandler, type DialogCloseTrigger,
   type DialogPlacement, type DialogProps } from './components/dialog'

@@ -1,8 +1,9 @@
-<script setup lang="ts" vapor generic="Option extends SelectOption = SelectOption, Multiple extends boolean = false">
+<script setup lang="ts" vapor generic="Option extends SelectOption = SelectOption, Multiple extends boolean = false, Clearable extends boolean = false">
 import { useFormControlState } from '../form/control-state'
 import { onFormFieldReset } from '../form/field-reset'
 import type { FormResetType } from '../form/types'
 import { computed, nextTick, provide, ref, shallowRef, useId, useTemplateRef, watch } from 'vue'
+import { YmButton } from '../button'
 import { YmCheckbox } from '../checkbox'
 import { checkboxGroupKey } from '../checkbox/context'
 import { YmIcon } from '../icon'
@@ -19,10 +20,11 @@ const props = defineProps(selectProps)
 const { disabled, nativeDisabled, readOnly } = useFormControlState(props, 'choice')
 // 下拉选项由 Select 管理，即使它位于外部复选框组内。
 provide(checkboxGroupKey, undefined)
-type Choice = Multiple extends true ? Option['value'][] : Option['value']
+type Choice = Multiple extends true ? Option['value'][] : Option['value'] | (Clearable extends true ? null : never)
 const emit = defineEmits<{
   'update:modelValue': [value: Choice]
   change: [value: Choice]
+  clear: [context: { e: MouseEvent }]
   search: [query: string]
 }>()
 defineSlots<{
@@ -58,6 +60,9 @@ const selectedItems = computed<SelectOption[]>((previous) => {
 const label = computed(() => props.multiple ? '' : selectedItems.value[0]?.label ?? '')
 const inputText = computed(() => open.value && searchable.value ? query.value : label.value)
 const placeholder = computed(() => props.multiple && selectedItems.value.length ? '' : label.value || props.placeholder)
+const lockedValues = computed(() => props.multiple ? selectedItems.value.filter(item => item.disabled).map(item => item.value) : [])
+const hasRemovableValue = computed(() => selection.value.length > lockedValues.value.length)
+const showClear = computed(() => props.clearable && !disabled.value && (hasRemovableValue.value || query.value.length > 0))
 
 function blocked(option: SelectOption) {
   return Boolean(option.disabled || (atLimit.value && !selected.value.has(option.value)))
@@ -119,15 +124,38 @@ function beforeInput(e: Event) {
   setOpen(true)
 }
 
+function updateSelection(next: SelectValue) {
+  if (props.modelValue === undefined) local.value = next
+  emit('update:modelValue', next as Choice)
+  emit('change', next as Choice)
+}
+
+function clear(e: MouseEvent) {
+  e.stopPropagation()
+  if (!showClear.value) return
+  const hadQuery = query.value.length > 0
+  editor.value?.focus()
+  setOpen(false)
+  if (hasRemovableValue.value) updateSelection(props.multiple ? [...lockedValues.value] : null)
+  if (hadQuery) emit('search', '')
+  emit('clear', { e })
+}
+
+function leaveControl(e: FocusEvent) {
+  if (!(e.relatedTarget instanceof Node && control.value?.contains(e.relatedTarget))) setOpen(false)
+}
+
+function keepEditorFocus(e: MouseEvent) {
+  if (e.target instanceof Element && e.target.closest('.ym-select__clear')) e.preventDefault()
+}
+
 function choose(option: SelectOption) {
   if (disabled.value || blocked(option)) return
   const exists = selected.value.has(option.value)
   if (props.multiple || !exists) {
     let next: SelectValue = option.value
     if (props.multiple) next = exists ? selection.value.filter(value => value !== option.value) : [...selection.value, option.value]
-    if (props.modelValue === undefined) local.value = next
-    emit('update:modelValue', next as Choice)
-    emit('change', next as Choice)
+    updateSelection(next)
   }
   if (!props.multiple) setOpen(false)
 }
@@ -160,8 +188,6 @@ function keydown(e: KeyboardEvent) {
     e.preventDefault()
     if (!open.value) setOpen(true)
     else if (activeIndex.value >= 0) choose(options.value[activeIndex.value])
-  } else if (e.key === 'Tab') {
-    setOpen(false)
   }
 }
 </script>
@@ -171,7 +197,7 @@ function keydown(e: KeyboardEvent) {
     :size="props.size ?? props.popupProps?.size" trigger="manual" :visible="open" :disabled="disabled"
     :overlay-class-name="['ym-select__panel', props.popupProps?.overlayClassName]" @update:visible="setOpen">
     <div ref="control" class="ym-select__control" :data-open="open || undefined" :data-disabled="nativeDisabled || undefined"
-      :data-borderless="props.borderless || undefined" @click="activate(!searchable)">
+      :data-borderless="props.borderless || undefined" @click="activate(!searchable)" @focusout="leaveControl" @mousedown="keepEditorFocus">
       <div class="ym-select__values">
         <template v-if="props.multiple">
           <YmTag v-for="item in selectedItems" :key="item.value" :content="item.label"
@@ -184,8 +210,10 @@ function keydown(e: KeyboardEvent) {
           :aria-activedescendant="open && activeIndex >= 0 ? `${listId}-${activeIndex}` : undefined"
           :aria-autocomplete="searchable ? 'list' : 'none'"
           @update:model-value="search" @beforeinput="beforeInput" @focus="searchable && setOpen(true)"
-          @blur="setOpen(false)" @keydown="keydown" />
+          @keydown="keydown" />
       </div>
+      <YmButton v-if="showClear" class="ym-select__clear" type="button" variant="text" theme="default" shape="square"
+        aria-label="清空选择" @click="clear"><YmIcon name="close" /></YmButton>
       <span class="ym-select__arrow" aria-hidden="true" @mousedown.prevent @click.stop="activate(true)">
         <YmIcon :name="open ? 'chevron-up' : 'chevron-down'" />
       </span>

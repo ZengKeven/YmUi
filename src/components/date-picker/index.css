@@ -39,6 +39,19 @@
   max-width: calc(100vw - 2px);
 }
 .ym-date-picker__calendars > .ym-calendar { width: 100%; }
+.ym-date-picker__presets {
+  display: flex;
+  flex-wrap: wrap;
+  contain: inline-size;
+  gap: .25em;
+  align-items: center;
+  padding: .375em .5em;
+  border-block-start: 1px solid var(--ym-color-border);
+}
+.ym-date-picker__preset-error {
+  padding: 0 .75em .5em;
+  color: var(--ym-color-danger);
+}
 @media (max-width: 35rem) {
   .ym-date-picker__calendars { grid-template-columns: minmax(0, 1fr); width: 20em; }
 }
