@@ -6,6 +6,8 @@ export { YmCalendar, type CalendarCell, type CalendarProps } from './components/
 export * from './components/form'
 export { YmDatePicker, type DatePickerMode, type DatePickerProps, type DatePickerValue, type DateRangeValue } from './components/date-picker'
 export { YmDescriptions, YmDescriptionsItem, type DescriptionsProps, type DescriptionsItemProps } from './components/descriptions'
+export { YmDialog, type DialogActionContext, type DialogActionHandler, type DialogCloseTrigger,
+  type DialogPlacement, type DialogProps } from './components/dialog'
 export {
   YmCheckbox, YmCheckboxGroup, type CheckboxGroupChangeContext, type CheckboxGroupProps,
   type CheckboxOption, type CheckboxProps, type CheckboxValue,

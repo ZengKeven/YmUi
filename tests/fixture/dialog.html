@@ -1,0 +1,14 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head><meta charset="UTF-8" /><title>对话框测试</title></head>
+  <body>
+    <div id="app"></div>
+    <div id="external"></div>
+    <script type="module">
+      import { createVaporApp } from 'vue'
+      import 'ym-ui-vapor/style.css'
+      import App from './DialogCases.vue'
+      createVaporApp(App).mount('#app')
+    </script>
+  </body>
+</html>

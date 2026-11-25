@@ -1,0 +1,55 @@
+.ym-dialog__mount, .ym-dialog__theme { display: contents; }
+
+.ym-dialog {
+  --ym-dialog-gap: min(1rem, 4vw);
+  --ym-dialog-padding: calc(var(--ym-control-padding) + .5em);
+  position: fixed;
+  inset: 0;
+  box-sizing: border-box;
+  width: var(--ym-dialog-width, 480px);
+  height: fit-content;
+  max-width: calc(100% - 2 * var(--ym-dialog-gap));
+  max-height: calc(100dvh - 2 * var(--ym-dialog-gap));
+  margin: auto;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--ym-color-border);
+  border-radius: var(--ym-radius);
+  background: var(--ym-color-surface);
+  color: var(--ym-color-text);
+  font-family: inherit;
+  font-size: var(--ym-control-font-size);
+  line-height: 1.5;
+  box-shadow: 0 12px 40px rgb(0 0 0 / .2);
+}
+.ym-dialog[open] { display: flex; flex-direction: column; }
+.ym-dialog[data-placement='top'] {
+  top: var(--ym-dialog-top, 12dvh);
+  bottom: auto;
+  margin-block: 0;
+  max-height: calc(100dvh - var(--ym-dialog-top, 12dvh) - var(--ym-dialog-gap));
+}
+.ym-dialog::backdrop { background: rgb(0 0 0 / .4); }
+.ym-dialog__header,
+.ym-dialog__footer {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: .65em;
+  padding: var(--ym-control-padding) var(--ym-dialog-padding);
+}
+.ym-dialog__header { border-bottom: 1px solid color-mix(in srgb, var(--ym-color-border) 60%, transparent); }
+.ym-dialog__title { font-size: 1.15em; font-weight: 600; overflow-wrap: anywhere; }
+.ym-dialog__close { margin-inline-start: auto; flex: none; }
+.ym-dialog__body {
+  min-height: 0;
+  padding: var(--ym-dialog-padding);
+  overflow: auto;
+  overscroll-behavior: contain;
+  overflow-wrap: anywhere;
+}
+.ym-dialog__footer {
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  border-top: 1px solid color-mix(in srgb, var(--ym-color-border) 60%, transparent);
+}
