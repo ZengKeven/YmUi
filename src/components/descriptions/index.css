@@ -1,6 +1,7 @@
 .ym-descriptions {
+  --ym-descriptions-label-width: 1fr;
   display: grid;
-  grid-template-columns: repeat(var(--ym-descriptions-columns), minmax(0, 1fr) minmax(0, 2fr));
+  grid-template-columns: repeat(var(--ym-descriptions-columns), minmax(0, var(--ym-descriptions-label-width)) minmax(0, 2fr));
   grid-auto-rows: minmax(var(--ym-control-height), auto);
   gap: 1px;
   box-sizing: border-box;
@@ -34,6 +35,8 @@
 }
 
 .ym-descriptions__label {
+  padding-inline: min(var(--ym-control-padding), 25%);
+  overflow: clip;
   background: color-mix(in srgb, var(--ym-color-border) 32%, var(--ym-color-surface));
   box-shadow: 0 0 0 1px var(--ym-color-border);
   font-weight: normal;

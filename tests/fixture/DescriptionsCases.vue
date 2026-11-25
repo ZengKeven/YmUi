@@ -5,6 +5,8 @@ import { ConfigProvider, YmDescriptions, YmDescriptionsItem, type ControlSize } 
 const column = ref<number>()
 const rowSpan = ref<number>()
 const colSpan = ref<number>()
+const labelWidth = ref<number | string>()
+const customNestedWidth = ref(false)
 const dark = ref(false)
 const square = ref(false)
 const surface = ref('#fff2e3')
@@ -30,6 +32,25 @@ const sequence = ref(0)
       </YmDescriptionsItem>
       <YmDescriptionsItem label="备注" content="备用备注"><em>优先收货</em></YmDescriptionsItem>
       <YmDescriptionsItem :label="0" :content="0" />
+    </YmDescriptions>
+    <label>标签宽度
+      <select v-model="labelWidth">
+        <option :value="undefined">默认比例</option><option :value="80">80 像素</option>
+        <option value="6rem">6rem</option><option value="20">20 像素</option>
+      </select>
+    </label>
+    <label><input v-model="customNestedWidth" type="checkbox" /> 自定义内层宽度</label>
+    <YmDescriptions id="sizing" :column="3" :label-width="labelWidth" style="width: 660px">
+      <YmDescriptionsItem label="收货说明" :col-span="2" :row-span="2">
+        {{ '连续收货批号20261125'.repeat(16) }}
+      </YmDescriptionsItem>
+      <YmDescriptionsItem label="仓库" content="一号仓" />
+      <YmDescriptionsItem label="收货人" content="林悦" />
+      <YmDescriptionsItem :col-span="3" label="配送详情">
+        <YmDescriptions id="inner" :column="1" :label-width="customNestedWidth ? 60 : undefined">
+          <YmDescriptionsItem label="配送方式" content="自提" />
+        </YmDescriptions>
+      </YmDescriptionsItem>
     </YmDescriptions>
     <label>全局尺寸
       <select v-model="size"><option>extra-small</option><option>small</option><option>medium</option><option>large</option></select>

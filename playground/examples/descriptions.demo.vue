@@ -5,6 +5,7 @@ import PreviewFrame from './PreviewFrame.vue'
 import { sizes } from './settings'
 
 const column = ref(2)
+const labelWidth = ref<DescriptionsProps['labelWidth']>()
 const colSpan = ref(1)
 const rowSpan = ref(1)
 const size = ref<DescriptionsProps['size']>()
@@ -13,7 +14,7 @@ const size = ref<DescriptionsProps['size']>()
 <template>
   <PreviewFrame name="YmDescriptions">
     <template #preview>
-      <YmDescriptions :column="column" :size="size">
+      <YmDescriptions :column="column" :label-width="labelWidth" :size="size">
         <YmDescriptionsItem label="供应商" content="杭州青禾纸业有限公司" :col-span="colSpan" :row-span="rowSpan" />
         <YmDescriptionsItem label="采购机构" content="华东采购中心" />
         <YmDescriptionsItem label="订单日期"><time datetime="2026-11-25">2026-11-25</time></YmDescriptionsItem>
@@ -25,6 +26,13 @@ const size = ref<DescriptionsProps['size']>()
     <template #controls>
       <label>每行列数
         <select v-model="column"><option v-for="n in 3" :key="n" :value="n">{{ n }} 列</option></select>
+      </label>
+      <label>标签宽度
+        <select v-model="labelWidth">
+          <option :value="undefined">默认比例</option>
+          <option :value="80">80 px</option>
+          <option value="6rem">6 rem</option>
+        </select>
       </label>
       <label>供应商占列
         <select v-model="colSpan"><option v-for="n in 3" :key="n" :value="n">{{ n }} 列</option></select>

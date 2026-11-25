@@ -9,6 +9,8 @@ export function isPositiveInteger(value: number) {
 export default {
   /** 每行的描述列数，默认 2。 */
   column: { type: Number, default: 2, validator: isPositiveInteger },
+  /** 统一标签宽度，省略时标签与内容按 1:2 分配。 */
+  labelWidth: [Number, String] as PropType<DescriptionsProps['labelWidth']>,
   /** 局部尺寸，优先于全局尺寸。 */
   size: buttonProps.size,
 } satisfies ComponentObjectPropsOptions<DescriptionsProps>

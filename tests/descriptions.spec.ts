@@ -65,6 +65,52 @@ test('a spanning item leaves room beside both rows and stays within a changed co
   expect(below.top).toBeGreaterThan(reset.top)
 })
 
+test('label widths accept pixels and CSS lengths while a spanning value fills the remaining space', async ({ page }) => {
+  const list = page.locator('#sizing')
+  const labels = list.locator(':scope > div > dt')
+  const values = list.locator(':scope > div > dd')
+  const width = page.getByRole('combobox', { name: '标签宽度', exact: true })
+  const items = await boxes(list.locator(':scope > div'))
+  const [initial] = await boxes(labels)
+  const [, ordinaryValue] = await boxes(values)
+  expect(Math.abs(ordinaryValue.width - 2 * initial.width)).toBeLessThan(1)
+
+  for (const [choice, pixels] of [['80 像素', 80], ['6rem', 96], ['20 像素', 20]] as const) {
+    await width.selectOption({ label: choice })
+    for (const label of await boxes(labels)) expect(label.width).toBe(pixels)
+    const [wide, right, below] = await boxes(values)
+    expect(wide.bottom).toBe(below.bottom)
+    expect(wide.top).toBe(right.top)
+    expect(wide.right).toBe(items[0].right)
+    expect(wide.width).toBeCloseTo(items[0].width - pixels - 1, 1)
+    expect(right.width).toBeCloseTo(items[1].width - pixels - 1, 1)
+    expect(await values.first().evaluate(el => el.scrollWidth <= el.clientWidth)).toBe(true)
+  }
+  await width.selectOption({ label: '默认比例' })
+  expect((await boxes(labels))[0].width).toBe(initial.width)
+})
+
+test('a nested list resolves its own label widths independently of the outer list', async ({ page }) => {
+  const nested = page.locator('#inner')
+  const term = nested.getByRole('term')
+  const definition = nested.getByRole('definition')
+  const width = page.getByRole('combobox', { name: '标签宽度', exact: true })
+  const custom = page.getByLabel('自定义内层宽度')
+  await width.selectOption({ label: '80 像素' })
+  const [label] = await boxes(term)
+  const [value] = await boxes(definition)
+  expect(Math.abs(label.width * 2 - value.width)).toBeLessThan(1)
+  await custom.check()
+  expect((await boxes(term))[0].width).toBe(60)
+  await width.selectOption({ label: '6rem' })
+  expect((await boxes(term))[0].width).toBe(60)
+  expect((await boxes(page.locator('#sizing > div > dt')))[0].width).toBe(96)
+  await custom.uncheck()
+  const [restored] = await boxes(term)
+  const [remaining] = await boxes(definition)
+  expect(Math.abs(restored.width * 2 - remaining.width)).toBeLessThan(1)
+})
+
 test('named and default slots override props and keep their content interactive', async ({ page }) => {
   const list = page.locator('#slots')
   await expect(list.getByRole('term')).toHaveText(['送货次数', '备注', '0'])

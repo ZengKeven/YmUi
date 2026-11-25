@@ -3,6 +3,8 @@ import type { ControlSize } from '../config-provider/types'
 export interface DescriptionsProps {
   /** 每行可容纳的描述项数量，默认 2。 */
   column?: number
+  /** 每个标签的宽度，数值按像素计算，也可传入 CSS 长度。 */
+  labelWidth?: number | string
   /** 标签和内容的尺寸，省略时继承全局设置。 */
   size?: ControlSize
 }

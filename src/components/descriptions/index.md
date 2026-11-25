@@ -15,6 +15,7 @@ category: 基础组件
 | 名称 | 类型 | 默认值 | 说明 |
 | --- | --- | --- | --- |
 | YmDescriptions.column | `number` | `2` | 每行可容纳的描述项数。标签和内容合为一列。 |
+| YmDescriptions.labelWidth | `number` 或 `string` | 标签与内容按 1∶2 分配 | 统一设置标签宽度。数值按像素计算，字符串可传 CSS 长度，如 `6rem`。跨列项的标签与其他标签同宽，内容占满剩余空间。 |
 | YmDescriptions.size | `extra-small / small / medium / large` | 继承，初始为 `medium` | 设置文字大小和单元格内边距。 |
 | YmDescriptionsItem.label | `string` 或 `number` | — | 左侧的字段名称，可通过 `#label` 插槽自定义。 |
 | YmDescriptionsItem.content | `string` 或 `number` | — | 右侧的字段值，支持数字 `0`。也可通过插槽传入内容。 |
@@ -38,7 +39,7 @@ category: 基础组件
 
 ## 使用指南
 
-下例将收货仓库跨两行显示，右侧依次排列交货日期和采购员。最后一项用两列展示收货说明。
+下例将标签宽度统一设为 80 像素。收货仓库跨两行显示，右侧排列交货日期和采购员。最后一项用两列展示收货说明。
 
 ```vue
 <script setup lang="ts" vapor>
@@ -47,7 +48,7 @@ import 'ym-ui-vapor/style.css'
 </script>
 
 <template>
-  <YmDescriptions :column="2">
+  <YmDescriptions :column="2" :label-width="80">
     <YmDescriptionsItem label="收货仓库" content="杭州一号仓" :row-span="2" />
     <YmDescriptionsItem label="交货日期">
       <time datetime="2026-11-30">2026-11-30</time>
