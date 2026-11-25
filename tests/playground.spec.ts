@@ -51,6 +51,27 @@ test('the badge preview updates its count, dot and copied markup', async ({ page
   expect(source).toMatch(/\sdot(?=\s|>)/)
 })
 
+test('the rate preview switches between half and whole stars and copies the active settings', async ({ page, context }) => {
+  await context.grantPermissions(['clipboard-read', 'clipboard-write'])
+  await page.goto('/button/')
+  await page.locator('#VPSidebarNav').getByRole('link', { name: 'YmRate 评分' }).click()
+  await expect(page).toHaveURL('/rate/')
+  const rating = page.getByRole('slider', { name: '服务评分' })
+  await expect(rating).toHaveAttribute('aria-valuenow', '3.5')
+  await rating.press('ArrowRight')
+  await expect(rating).toHaveAttribute('aria-valuenow', '4')
+  await page.getByRole('switch', { name: '允许半星' }).uncheck()
+  await rating.press('ArrowLeft')
+  await expect(rating).toHaveAttribute('aria-valuenow', '3')
+  await page.getByLabel('星星数量').selectOption('7')
+  await expect(rating).toHaveAttribute('aria-valuemax', '7')
+  const source = await copyPreview(page)
+  expect(source).toContain('<YmRate v-model="score"')
+  expect(source).toContain(':count="7"')
+  expect(source).toMatch(/\sshow-text(?=\s|\/?>)/)
+  expect(source).toContain(':allow-half="false"')
+})
+
 test('the popup preview opens from its trigger and copies the configured placement and slots', async ({ page, context }) => {
   await context.grantPermissions(['clipboard-read', 'clipboard-write'])
   await page.goto('/button/')

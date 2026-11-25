@@ -22,6 +22,7 @@ export { YmMenu, type MenuItem, type MenuLeaf, type MenuProps, type MenuValue } 
 export { YmPagination, type PageInfo, type PaginationProps } from './components/pagination'
 export { YmPopup, type PopupPlacement, type PopupProps, type PopupTrigger } from './components/popup'
 export { YmRadio, YmRadioGroup, type RadioGroupProps, type RadioOption, type RadioProps, type RadioValue } from './components/radio'
+export { YmRate, type RateProps } from './components/rate'
 export { YmSelect, type SelectKey, type SelectOption, type SelectProps, type SelectValue } from './components/select'
 export { YmSpace, type SpaceProps, type SpaceSize } from './components/space'
 export { YmSteps, type StepOption, type StepsProps, type StepStatus, type StepValue } from './components/steps'
