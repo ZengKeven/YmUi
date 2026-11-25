@@ -15,7 +15,7 @@ category: 表单组件
 | 名称 | 类型 | 默认值 | 说明 |
 | --- | --- | --- | --- |
 | YmForm.data | `object` | `{}` | 响应式业务数据。重置时会写回已注册的字段。 |
-| YmForm.rules | `FormRules` | — | 字段的规则数组。支持路径键 `'items[0].code'`，也支持与数据结构一致的嵌套规则。 |
+| YmForm.rules | [`FormRules`](#form-rules) | — | 整张表单的校验规则，按 `YmFormItem.name` 查找对应字段的规则数组。 |
 | YmForm.errorMessage | `FormErrorMessage` | 中文内置提示 | 按规则名提供文案模板，例如 `{ required: '请填写${name}' }`。`${validate}` 可插入规则参数。 |
 | YmForm.layout | `vertical / inline` | `vertical` | 逐行排列或行内排列，行内布局可自动换行。 |
 | YmForm.labelAlign / labelWidth | `left / right / top`、`number / string` | `right`、`100px` | 标签的位置和宽度，数值按像素计算。宽度为零时隐藏标签。 |
@@ -29,7 +29,7 @@ category: 表单组件
 | YmForm.size | `extra-small / small / medium / large` | 继承 | 影响文字、字段间距及内部控件尺寸。 |
 | YmFormItem.name | `string` | — | 数据路径，例如 `contact.email` 或 `items[0].code`。未命名的项可放置操作按钮。 |
 | YmFormItem.label / for | `string` | — | 字段标签、与标签关联的控件 ID。也可用默认插槽提供的属性自动关联。 |
-| YmFormItem.rules | `FormRule[]` | 继承同路径规则 | 非空时优先使用字段自身的规则。 |
+| YmFormItem.rules | [`FormRule[]`](#form-rule) | 继承同路径规则 | 传入非空数组时，该字段只使用这组规则。 |
 | YmFormItem.labelAlign / labelWidth / requiredMark | 同表单 | 继承 | 单独覆盖该字段的标签和必填标记。 |
 | YmFormItem.showErrorMessage / statusIcon | `boolean` | 继承 | 单独设置字段反馈和状态图标。 |
 | YmFormItem.status / successBorder | `error / warning / success`、`boolean` | —、`false` | 手动设置状态，或在校验成功时显示成功色边框。 |
@@ -37,17 +37,42 @@ category: 表单组件
 
 表单继承最近的 `ConfigProvider`，嵌套配置逐项覆盖。局部 `size` 优先。全局 `mode`、`theme` 控制标签、必填标记、输入边框和反馈的配色，`radius` 作用于内部控件的圆角，设为 `0` 即显示直角。
 
-**规则写法**
+### FormRules 字段规则表 {#form-rules}
 
-每个规则对象写一个约束。规则数组依次定义显示顺序，异步规则可并行执行。空值跳过可选的内置规则，`0` 和 `false` 均视为已填写。
+`FormRules` 把字段路径映射到规则数组。普通字段可以直接用字段名作键。嵌套字段可以写成完整路径，也可以按 `data` 的对象和数组层级组织。两种写法同时匹配同一个 `name` 时，优先使用完整路径键。
 
-| 约束 | 用法 |
-| --- | --- |
-| 必填和类型 | `required`、`whitespace`、`number`、`boolean`。仅含空格的字符串可用 `whitespace: true` 检查。 |
-| 大小和长度 | `min`、`max` 对数字比较大小，对数组比较元素个数，对字符串按 ASCII 字符 1、其他码点 2 计算长度。`len` 指定长度。 |
-| 枚举和格式 | `enum`、`pattern`、`date`、`email`、`url`、`telnumber`、`idcard`。身份证规则检查号码格式。 |
-| 自定义校验 | `validator(value, { formData, name })` 支持跨字段检查。返回布尔值、`{ result, message, type }` 或相应 Promise。 |
-| 触发和反馈 | `trigger` 支持 `change`（默认）、`blur`、`submit` 和 `all`。常规提交检查所有规则。带 `type: 'warning'` 的失败结果也会出现在校验结果中。 |
+```ts
+import type { FormRules } from 'ym-ui-vapor'
+
+const rules: FormRules = {
+  contact: [{ required: true, message: '请填写联系人' }],
+  'delivery.email': [{ email: true, trigger: 'blur', message: '请输入有效邮箱' }],
+  items: [
+    { code: [{ required: true, message: '请填写商品编号' }] }, // 对应 name="items[0].code"
+  ],
+}
+```
+
+### FormRule 单条校验规则 {#form-rule}
+
+同一规则对象只执行第一个启用的约束。字段有多个约束时，请在数组中分开写。异步规则可以并行执行，字段按数组顺序显示第一条失败提示。空值会跳过可选的内置规则，自定义 `validator` 仍会收到空值。
+
+| 属性 | 类型 | 说明 |
+| --- | --- | --- |
+| `required` | `boolean` | 必填。`0` 和 `false` 均视为已填写。 |
+| `whitespace` | `boolean` | 拒绝仅含空白的字符串。要同时拒绝空字符串，另加一条 `required` 规则。 |
+| `number`、`boolean` | `boolean` | 分别要求字段值为有限数字或布尔值。 |
+| `min`、`max`、`len` | `number` | `min` 和 `max` 对数字比较大小，对数组比较元素个数，对字符串比较长度。`len` 指定确切长度。字符串中每个 ASCII 字符计 1，其他 Unicode 码点计 2。 |
+| `enum` | `readonly unknown[]` | 字段值必须是数组成员，例如 `{ enum: ['快递', '自提'] }`。 |
+| `pattern` | `RegExp` 或 `string` | 字段值须匹配指定的正则表达式。 |
+| `date` | `boolean` 或配置对象 | 校验日期。可设置 `format`、`delimiters`、`strictMode`，例如 `{ date: { format: 'YYYY-MM-DD', strictMode: true } }`。 |
+| `email` | `boolean` 或配置对象 | 校验邮箱。可设置 `require_tld`、`allow_utf8_local_part` 和 `ignore_max_length`。 |
+| `url` | `boolean` 或配置对象 | 校验网址。可设置 `protocols`、`require_protocol` 和 `require_tld`。 |
+| `telnumber`、`idcard` | `boolean` | 分别检查中国大陆手机号、身份证号码的格式。 |
+| `validator` | `(value, { formData, name }) => …` | 自定义校验。可读取其他字段，返回布尔值、`{ result, message?, type? }` 或对应的 Promise。 |
+| `trigger` | `'change'`、`'blur'`、`'submit'` 或 `'all'` | 默认 `'change'`。表单提交时会检查所有规则。 |
+| `message` | `string` | 该规则失败时的提示文字。省略时使用表单的 `errorMessage` 或内置文案。 |
+| `type` | `'error'` 或 `'warning'` | 失败提示的级别，默认 `'error'`。警告也会计入校验失败。 |
 
 ## 事件
 
