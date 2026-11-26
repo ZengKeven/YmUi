@@ -34,6 +34,7 @@ category: 聊天组件
 | scroll | `{ e: Event }` | 消息区域滚动时触发，`e.target` 为滚动容器。 |
 | update:data | `ChatMessageData[]` | 确认清空后传出空数组，用于同步 `v-model:data`。 |
 | clear | `{ e: Event }` | 确认清空后触发，可在此取消当前回复或更新由业务页面管理的历史记录。 |
+| source-click | `(href: string, context: ChatMessageSearchContext)` | 用户激活内置消息中的搜索来源链接时触发。`href` 是过滤后的地址，`context` 含来源所属的消息 `message`、原始项 `item`、该项在原数组中的下标 `index` 和原生点击事件 `e`。可用 `e.preventDefault()` 接管跳转。 |
 | suggestion-click | `(prompt: string, context: ChatMessageSuggestionContext)` | 用户在内置消息中激活推荐问题时触发。`context.message` 是来源消息，`item` 是推荐项，`index` 是问题在该推荐块原数组中的下标，`e` 是原生点击事件。 |
 
 ## 插槽

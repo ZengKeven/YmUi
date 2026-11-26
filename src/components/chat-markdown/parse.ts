@@ -1,5 +1,6 @@
 import { decodeHTMLStrict } from 'entities'
 import { Lexer, type MarkedToken, type Token } from 'marked'
+import { safeHref } from '../../utils/safe-href'
 
 const headings = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'] as const
 type Tag = typeof headings[number] | 'p' | 'ul' | 'ol' | 'li' | 'blockquote' | 'a' | 'pre' | 'code' |
@@ -8,17 +9,6 @@ type Attributes = { href?: string; title?: string; start?: number }
 export type MarkdownNode = string | { tag: Tag; children: MarkdownNode[]; attrs?: Attributes }
 
 const protocols = new Set(['https:', 'http:', 'mailto:', 'tel:'])
-
-function safeHref(raw: string) {
-  const href = decodeHTMLStrict(raw).trim()
-  if (!href || href.startsWith('//') || /[\\\u0000-\u001f\u007f]/.test(href)) return
-  try {
-    const url = new URL(href, 'https://ym.invalid/')
-    if (protocols.has(url.protocol)) return href
-  } catch {
-    // 无法解析的地址只显示链接文字。
-  }
-}
 
 function element(tag: Tag, children: MarkdownNode[] = [], attrs?: Attributes): MarkdownNode {
   return { tag, children, attrs }
@@ -38,7 +28,7 @@ function nodes(tokens: Token[], looseListItem = false): MarkdownNode[] {
       case 'list_item': return element('li', nodes(token.tokens, token.loose))
       case 'link': {
         const children = nodes(token.tokens)
-        const href = safeHref(token.href)
+        const href = safeHref(token.href, protocols)
         return href ? element('a', children, { href, title: token.title ? decodeHTMLStrict(token.title) : undefined }) : children
       }
       case 'code': return element('pre', [element('code', [token.text])])

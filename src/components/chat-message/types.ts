@@ -1,4 +1,5 @@
 import type { ControlSize } from '../config-provider/types'
+import type { ChatSearchData, ChatSearchSourceContext } from '../chat-search/types'
 import type { ChatSuggestionItem, ChatSuggestionSelectContext } from '../chat-suggestion/types'
 import type { ChatThinkingData, ChatThinkingStatus } from '../chat-thinking/types'
 
@@ -37,7 +38,16 @@ export interface ChatSuggestionContent {
   status?: ChatMessageStatus
 }
 
-export type ChatMessageContent = ChatTextContent | ChatMarkdownContent | ChatThinkingContent | ChatSuggestionContent
+export interface ChatSearchContent {
+  /** 搜索结果列表块。 */
+  type: 'search'
+  /** 面板标题和按顺序显示的来源。 */
+  data: ChatSearchData
+  /** 搜索块自身的状态，已收到的结果可立即展示。 */
+  status?: ChatMessageStatus
+}
+
+export type ChatMessageContent = ChatTextContent | ChatMarkdownContent | ChatThinkingContent | ChatSearchContent | ChatSuggestionContent
 
 export interface ChatMessageAvatar {
   /** 头像的图片地址。 */
@@ -78,5 +88,10 @@ export interface ChatMessageProps extends Omit<ChatMessageData, 'id'> {
 
 export interface ChatMessageSuggestionContext extends ChatSuggestionSelectContext {
   /** 产生此次追问的消息，通过 message 属性提供时可用。 */
+  message?: ChatMessageData
+}
+
+export interface ChatMessageSearchContext extends ChatSearchSourceContext {
+  /** 来源所属的消息，通过 message 属性提供时可用。 */
   message?: ChatMessageData
 }

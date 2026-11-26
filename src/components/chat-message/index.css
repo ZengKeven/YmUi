@@ -29,8 +29,8 @@
 }
 .ym-chat-message__bubble { box-sizing: border-box; max-width: 100%; }
 .ym-chat-message__text { white-space: pre-wrap; }
-.ym-chat-message__bubble > .ym-chat-thinking + * { margin-block-start: .5em; }
-.ym-chat-message__bubble > * + .ym-chat-suggestion { margin-block-start: .5em; }
+.ym-chat-message__bubble > :is(.ym-chat-thinking, .ym-chat-search) + *,
+.ym-chat-message__bubble > * + :is(.ym-chat-suggestion, .ym-chat-search) { margin-block-start: .5em; }
 .ym-chat-message:is([data-variant='base'], [data-variant='outline']) .ym-chat-message__bubble {
   padding: .5em var(--ym-control-padding);
   border-radius: var(--ym-radius);

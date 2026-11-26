@@ -8,7 +8,9 @@ export { YmChatList, type ChatListProps, type ChatListInstance } from './compone
 export { YmChatMarkdown, type ChatMarkdownProps } from './components/chat-markdown'
 export { YmChatMessage, type ChatMessageProps, type ChatMessageData, type ChatMessageRole,
   type ChatMessageStatus, type ChatMessageContent, type ChatTextContent, type ChatMarkdownContent,
-  type ChatThinkingContent, type ChatSuggestionContent, type ChatMessageSuggestionContext, type ChatMessageAvatar } from './components/chat-message'
+  type ChatThinkingContent, type ChatSearchContent, type ChatMessageSearchContext,
+  type ChatSuggestionContent, type ChatMessageSuggestionContext, type ChatMessageAvatar } from './components/chat-message'
+export { YmChatSearch, type ChatSearchProps, type ChatSearchData, type ChatSearchReference, type ChatSearchSourceContext } from './components/chat-search'
 export { YmChatSender, type ChatSenderProps } from './components/chat-sender'
 export { YmChatSuggestion, type ChatSuggestionProps, type ChatSuggestionItem, type ChatSuggestionSelectContext } from './components/chat-suggestion'
 export { YmChatThinking, type ChatThinkingProps, type ChatThinkingData, type ChatThinkingStatus } from './components/chat-thinking'

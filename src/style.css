@@ -5,6 +5,7 @@
 @import './components/chat-list/index.css';
 @import './components/chat-markdown/index.css';
 @import './components/chat-message/index.css';
+@import './components/chat-search/index.css';
 @import './components/chat-sender/index.css';
 @import './components/chat-suggestion/index.css';
 @import './components/chat-thinking/index.css';
