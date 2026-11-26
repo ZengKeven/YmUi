@@ -12,6 +12,6 @@ export default defineConfig({
   ],
   webServer: [
     { command: 'vite --host 127.0.0.1 --port 4186 --strictPort', url: `${components}/tests/fixture/` },
-    { command: 'npm run preview:playground -- --host 127.0.0.1 --port 4187 --strictPort', url: `${playground}/button/` },
+    { command: 'vitepress preview playground --host 127.0.0.1 --port 4187', url: `${playground}/button/` },
   ],
 })

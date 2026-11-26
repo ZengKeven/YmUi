@@ -12,7 +12,7 @@ export default defineConfig({
       cssFileName: 'style',
     },
     rolldownOptions: {
-      external: (id) => id === 'marked' || id === 'entities' || id === 'vue' || id.startsWith('vue/') || id.startsWith('@vue/'),
+      external: (id) => id === 'vue' || id.startsWith('vue/') || id.startsWith('@vue/'),
     },
   },
 })

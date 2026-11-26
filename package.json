@@ -34,7 +34,6 @@
     "typecheck": "vue-tsc --noEmit && vue-tsc --noEmit -p tests/tsconfig.fallthrough.json",
     "build": "vite build && vue-tsc -p tsconfig.build.json",
     "build:playground": "vitepress build playground",
-    "preview:playground": "vite preview --config playground/.vitepress/chat-service.ts --outDir playground/dist",
     "test:browser": "npm run build && npm run build:playground && playwright test",
     "prepack": "npm run typecheck && npm run build"
   },
@@ -53,9 +52,5 @@
     "vitepress": "2.0.0-alpha.21",
     "vue": "3.6.0-rc.16",
     "vue-tsc": "3.3.14"
-  },
-  "dependencies": {
-    "entities": "7.0.1",
-    "marked": "16.4.2"
   }
 }
