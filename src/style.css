@@ -1,6 +1,7 @@
 @import './components/badge/index.css';
 @import './components/button/index.css';
 @import './components/calendar/index.css';
+@import './components/chat-message/index.css';
 @import './components/chat-sender/index.css';
 @import './components/checkbox/index.css';
 @import './components/color-picker/index.css';
