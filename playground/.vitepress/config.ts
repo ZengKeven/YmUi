@@ -1,5 +1,6 @@
 import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'vitepress'
+import { chatService } from './chat-service'
 import { previewSource } from './preview-source'
 
 export default defineConfig({
@@ -11,7 +12,7 @@ export default defineConfig({
   cleanUrls: true,
   vite: {
     resolve: { dedupe: ['vue'] },
-    plugins: [previewSource(), {
+    plugins: [previewSource(), chatService(), {
       name: 'watch-playground-examples',
       configureServer(server) {
         // 示例目录位于 srcDir 之外，新增示例时也要更新 ComponentDemo 的导入列表。

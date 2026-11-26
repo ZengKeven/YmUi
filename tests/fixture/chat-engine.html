@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head><meta charset="UTF-8" /><title>流式请求测试</title></head>
+  <body>
+    <div id="app"></div>
+    <script type="module">
+      import { createVaporApp } from 'vue'
+      import { ChatEngine } from 'ym-ui-vapor'
+      import 'ym-ui-vapor/style.css'
+      import App from './ChatEngineCases.vue'
+      window.ChatEngineForTest = ChatEngine
+      createVaporApp(App).mount('#app')
+    </script>
+  </body>
+</html>

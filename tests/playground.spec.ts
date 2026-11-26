@@ -1714,8 +1714,7 @@ test('the attachment preview sends the selected files and reopens the image from
   await expect(page.getByRole('dialog')).toHaveCount(0)
 })
 
-test('the chatbot preview sends a file, stops a partial reply, regenerates it and clears the conversation', async ({ page }) => {
-  await page.clock.install({ time: new Date('2026-01-01T12:00:00Z') })
+test('the chatbot preview sends attachment metadata, stops the SSE reply, regenerates and clears', async ({ page }) => {
   await page.goto('/chat-list/')
   await page.locator('#VPSidebarNav').getByRole('link', { name: /YmChatbot/ }).click()
   await expect(page).toHaveURL('/chatbot/')
@@ -1730,28 +1729,35 @@ test('the chatbot preview sends a file, stops a partial reply, regenerates it an
 
   await sender.locator('input[type=file]').setInputFiles({ name: '送货单.txt', mimeType: 'text/plain', buffer: Buffer.from('两件货物') })
   await sender.getByRole('textbox').fill('请确认收货安排')
-  await page.clock.pauseAt(new Date('2026-01-01T12:01:00Z'))
+  const response = page.waitForResponse(res => new URL(res.url()).pathname === '/api/chat/sse')
   await sender.getByRole('button', { name: '发送消息' }).click()
+  const first = await response
+  expect(first.status()).toBe(200)
+  expect(first.headers()['content-type']).toContain('text/event-stream')
+  expect(first.request().method()).toBe('POST')
+  expect(first.request().postDataJSON()).toMatchObject({
+    prompt: '请确认收货安排', trigger: 'send', attachments: [{ name: '送货单.txt' }],
+  })
   await expect(rows).toHaveCount(2)
   await expect(user).toContainText('请确认收货安排')
   await expect(user.getByText('送货单.txt', { exact: true })).toBeVisible()
   await expect(sender.getByRole('textbox')).toHaveValue('')
-  await expect(reply).toHaveAttribute('data-status', 'pending')
   const replyId = await reply.getAttribute('data-message-id')
   expect(replyId).toBeTruthy()
-  await page.clock.runFor(400)
   await expect(reply).toHaveAttribute('data-status', 'streaming')
   await expect(reply).toContainText('已收到你的消息。')
+  const aborted = page.waitForEvent('requestfailed', req => req === first.request())
   await sender.getByRole('button', { name: '停止生成' }).click()
-  await page.clock.runFor(1600)
+  await aborted
   await expect(reply).toHaveAttribute('data-status', 'stop')
   await expect(reply).not.toContainText('请在北门登记后前往收货区。')
 
+  const retry = page.waitForRequest(req => new URL(req.url()).pathname === '/api/chat/sse')
   await reply.getByRole('button', { name: '重新生成' }).click()
-  await expect(reply).toHaveAttribute('data-status', 'pending')
-  await page.clock.runFor(400)
+  expect((await retry).postDataJSON()).toMatchObject({
+    prompt: '请确认收货安排', trigger: 'regenerate', attachments: [{ name: '送货单.txt' }],
+  })
   await expect(reply).toContainText('已重新核对这条消息。')
-  await page.clock.runFor(800)
   await expect(reply).toHaveAttribute('data-status', 'complete')
   await expect(reply).toContainText('送货单.txt')
   await expect(reply).toContainText('请在北门登记后前往收货区。')
@@ -1762,4 +1768,21 @@ test('the chatbot preview sends a file, stops a partial reply, regenerates it an
   await page.getByRole('dialog').getByRole('button', { name: '清空', exact: true }).click()
   await expect(rows).toHaveCount(0)
   await expect(sender.getByRole('button', { name: '发送消息' })).toBeDisabled()
+})
+
+test('a server error after the first SSE chunk retains the partial answer for a retry', async ({ page }) => {
+  await page.goto('/chatbot/')
+  const bot = page.locator('.demo-canvas .ym-chatbot')
+  const reply = bot.locator('[data-role=assistant]')
+  await page.getByLabel('模拟服务').selectOption('error')
+  await bot.getByRole('textbox').fill('核对收货单')
+  await bot.getByRole('button', { name: '发送消息' }).click()
+  await expect(reply).toHaveAttribute('data-status', 'error')
+  await expect(reply).toContainText('已收到你的消息。')
+  await expect(reply.getByRole('alert')).toBeVisible()
+  await page.getByLabel('模拟服务').selectOption('normal')
+  await reply.getByRole('button', { name: '重新生成' }).click()
+  await expect(reply).toHaveAttribute('data-status', 'complete')
+  await expect(reply).toContainText('已重新核对这条消息。')
+  await expect(bot.getByRole('article')).toHaveCount(2)
 })

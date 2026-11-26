@@ -1,5 +1,6 @@
 <script setup lang="ts" vapor>
 import { computed, onScopeDispose, ref, shallowRef, useId } from 'vue'
+import { ChatEngine } from '../../chat-engine'
 import { YmChatActionbar } from '../chat-actionbar'
 import type { ChatAttachmentItem } from '../chat-attachments'
 import { YmChatList } from '../chat-list'
@@ -16,6 +17,13 @@ const messages = shallowRef<ChatMessageData[]>(props.defaultMessages.slice())
 const draft = ref('')
 const attachments = ref<ChatAttachmentItem[]>([])
 const active = shallowRef<AbortController>()
+const transport = computed(() => {
+  if (props.request) return props.request
+  if (props.chatServiceConfig?.endpoint) {
+    const engine = new ChatEngine(props.chatServiceConfig)
+    return (context: ChatbotRequestContext) => engine.send(context)
+  }
+})
 const prefix = useId()
 let sequence = 0
 
@@ -47,6 +55,8 @@ const lastTurn = computed(() => {
 
 async function generate(history: ChatMessageData[], assistant: ChatMessageData,
   input: Required<ChatbotSendOptions>, trigger: ChatbotRequestContext['trigger']) {
+  const execute = transport.value
+  if (!execute) return
   const controller = new AbortController()
   const { signal } = controller
   active.value = controller
@@ -64,7 +74,7 @@ async function generate(history: ChatMessageData[], assistant: ChatMessageData,
   signal.addEventListener('abort', onAbort, { once: true })
   let status: 'complete' | 'error' = 'complete'
   try {
-    const request = props.request({
+    const request = execute({
       ...input, attachments: input.attachments.slice(), messages: history.slice(), trigger, signal,
       onChunk(delta) {
         if (active.value !== controller || !delta) return
@@ -87,7 +97,7 @@ async function generate(history: ChatMessageData[], assistant: ChatMessageData,
 async function send(input: ChatbotSendOptions, fromDraft = false) {
   const prompt = input.prompt?.trim() ? input.prompt : ''
   const files = input.attachments?.slice() ?? []
-  if (active.value || (!prompt && !files.length)) return
+  if (!transport.value || active.value || (!prompt && !files.length)) return
   const content: ChatMessageContent[] = []
   if (prompt) content.push({ type: 'text', data: prompt })
   if (files.length) content.push({ type: 'attachment', data: files })
@@ -136,11 +146,11 @@ defineExpose({ sendUserMessage: input => send(input), regenerate, abortChat, cle
     <template #actionbar="{ item }">
       <span v-if="item.status === 'stop' && (item.role ?? 'assistant') === 'assistant'"
         class="ym-chatbot__stopped" role="status">已停止生成</span>
-      <YmChatActionbar v-if="!active && item.id === lastTurn?.reply.id" :action-bar="['replay']" @actions="regenerate" />
+      <YmChatActionbar v-if="transport && !active && item.id === lastTurn?.reply.id" :action-bar="['replay']" @actions="regenerate" />
     </template>
     <template #footer>
       <YmChatSender v-model="draft" v-model:attachments="attachments" :placeholder="props.placeholder"
-        :loading="!!active" :send-btn-disabled="!draft.trim() && !attachments.length"
+        :loading="!!active" :send-btn-disabled="!transport || (!draft.trim() && !attachments.length)"
         @send="(prompt, context) => send({ prompt, attachments: context.attachments }, true)" @stop="abortChat" />
     </template>
   </YmChatList>

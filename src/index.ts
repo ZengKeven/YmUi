@@ -1,5 +1,6 @@
 import { version as packageVersion } from '../package.json'
 
+export { ChatEngine, type ChatEngineRequestContext, type ChatRequestParams, type ChatServiceConfig, type SSEChunkData } from './chat-engine'
 export { YmBadge, type BadgeProps } from './components/badge'
 export { YmButton, type ButtonProps } from './components/button'
 export { YmCalendar, type CalendarCell, type CalendarProps } from './components/calendar'

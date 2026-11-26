@@ -4,7 +4,9 @@ import type { ChatbotProps } from './types'
 
 export default {
   /** 接收用户提问并逐段返回回复的函数。 */
-  request: { type: Function as PropType<ChatbotProps['request']>, required: true },
+  request: Function as PropType<ChatbotProps['request']>,
+  /** 对话服务地址和 SSE 分片处理回调。 */
+  chatServiceConfig: Object as PropType<ChatbotProps['chatServiceConfig']>,
   /** 组件创建时载入的历史消息。 */
   defaultMessages: { type: Array as PropType<ChatbotProps['defaultMessages']>, default: () => [] },
   /** 消息编辑区的占位文字。 */

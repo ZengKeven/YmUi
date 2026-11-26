@@ -1,3 +1,4 @@
+import type { ChatEngineRequestContext, ChatServiceConfig } from '../../chat-engine/types'
 import type { ChatAttachmentItem } from '../chat-attachments'
 import type { ChatMessageData } from '../chat-message'
 import type { ControlSize } from '../config-provider/types'
@@ -9,24 +10,13 @@ export interface ChatbotSendOptions {
   attachments?: readonly ChatAttachmentItem[]
 }
 
-export interface ChatbotRequestContext {
-  /** 本轮用户输入的原文，仅含附件时为空字符串。 */
-  prompt: string
-  /** 本轮用户消息携带的附件。 */
-  attachments: readonly ChatAttachmentItem[]
-  /** 截至本轮用户消息的会话快照，供服务生成回复。 */
-  messages: readonly ChatMessageData[]
-  /** 区分新提问与重新生成最后一轮回复。 */
-  trigger: 'send' | 'regenerate'
-  /** 停止、清空或组件卸载时中止，可传给底层请求。 */
-  signal: AbortSignal
-  /** 追加一段 Markdown 源文。 */
-  onChunk: (delta: string) => void
-}
+export interface ChatbotRequestContext extends ChatEngineRequestContext {}
 
 export interface ChatbotProps {
-  /** 生成一轮回复，返回的 Promise 完成时结束接收。 */
-  request: (context: ChatbotRequestContext) => void | Promise<void>
+  /** 自定义回复函数，与 chatServiceConfig 同时设置时优先。 */
+  request?: (context: ChatbotRequestContext) => void | Promise<void>
+  /** 使用 ChatEngine 发送请求并读取 SSE 回复。 */
+  chatServiceConfig?: ChatServiceConfig
   /** 按会话顺序排列的初始历史，只在创建时读取。 */
   defaultMessages?: readonly ChatMessageData[]
   /** 发送框占位文字。 */
