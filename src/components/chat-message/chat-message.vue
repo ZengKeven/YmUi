@@ -10,6 +10,7 @@ import { YmIcon } from '../icon'
 import { YmImage } from '../image'
 import { YmLoading } from '../loading'
 import chatMessageProps from './props'
+import ToolCallContent from './toolcall-content.vue'
 import type { ChatMessageSearchContext, ChatMessageStatus, ChatMessageSuggestionContext } from './types'
 
 defineOptions({ name: 'YmChatMessage' })
@@ -43,7 +44,8 @@ const segments = computed(() => {
   const content = props.content ?? props.message?.content
   if (typeof content === 'string') return [{ type: 'text' as const, data: content }]
   return content?.filter(block => block.type === 'text' || block.type === 'markdown' ||
-    block.type === 'thinking' || block.type === 'search' || block.type === 'suggestion' || block.type === 'attachment') ?? []
+    block.type === 'thinking' || block.type === 'search' || block.type === 'suggestion' ||
+    block.type === 'attachment' || block.type === 'toolcall') ?? []
 })
 const answerBlocks = computed(() => segments.value.filter(block => block.type === 'text' || block.type === 'markdown'))
 const thinkingStatus = computed<ChatThinkingStatus>(() =>
@@ -51,7 +53,7 @@ const thinkingStatus = computed<ChatThinkingStatus>(() =>
 const loading = computed(() => {
   if (status.value !== 'pending' && status.value !== 'streaming') return false
   if (slots.content || slots.default) return status.value === 'pending'
-  if (segments.value.some(block => block.type === 'thinking' ||
+  if (segments.value.some(block => block.type === 'thinking' || block.type === 'toolcall' ||
     (block.type === 'attachment' && block.data.length > 0) ||
     (block.type === 'search' && block.data?.references?.some(hasSearchTitle)))) return false
   return status.value === 'pending' || !answerBlocks.value.some(block => block.data)
@@ -93,6 +95,7 @@ function selectSuggestion(prompt: string, context: ChatSuggestionSelectContext) 
             <YmChatAttachments v-else-if="block.type === 'attachment'" :items="block.data" :removable="false" />
             <YmChatThinking v-else-if="block.type === 'thinking'" :content="block.data" :status="block.status ?? thinkingStatus" />
             <YmChatSearch v-else-if="block.type === 'search'" :content="block.data" @source-click="openSource" />
+            <ToolCallContent v-else-if="block.type === 'toolcall'" :block="block" />
             <template v-else-if="block.type === 'suggestion'">
               <YmChatSuggestion v-if="status === 'complete' && (block.status ?? 'complete') === 'complete'"
                 :content="block.data" :disabled="props.suggestionDisabled" @select="selectSuggestion" />

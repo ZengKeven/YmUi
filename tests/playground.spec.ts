@@ -1910,6 +1910,51 @@ test('the local SSE service delivers previewable attachments before the Markdown
   await expect(file.locator('body')).toContainText('核对送货单与采购单号')
 })
 
+for (const outcome of ['success', 'failure'] as const) {
+  test(`the local SSE tool call updates in place on ${outcome}`, async ({ page }) => {
+    const succeeded = outcome === 'success'
+    const finalStatus = succeeded ? '成功' : '失败'
+    await page.goto('/chatbot/')
+    await page.getByLabel('模拟服务').selectOption({ label: '工具调用' + finalStatus })
+    const bot = page.locator('.demo-canvas .ym-chatbot')
+    const reply = bot.locator('[data-role=assistant]')
+    const toolName = 'lookup_receiving_slot'
+    const card = reply.getByRole('region', { name: toolName })
+    const answer = reply.locator('.ym-chat-markdown')
+    const beforeAnswer = reply.filter({ hasNot: page.locator('.ym-chat-markdown') }).getByRole('region', { name: toolName })
+    const prompt = '查询北仓的收货时段'
+    const slot = '北仓的收货时段为 09:00–11:00。'
+    const instructions = '到仓后请在北门登记。'
+    await bot.getByRole('textbox').fill(prompt)
+    const [response, initialCard] = await Promise.all([
+      page.waitForResponse('**/api/chat/sse?toolcall=' + outcome),
+      beforeAnswer.filter({ hasText: '北仓', has: page.getByText('进行中', { exact: true }) }).evaluateHandle(el => el),
+      beforeAnswer.filter({ hasText: succeeded ? '09:00–11:00' : '预约服务暂时不可用' })
+        .getByText(finalStatus, { exact: true }).waitFor(),
+      succeeded && answer.filter({ hasNotText: instructions }).getByText(slot).waitFor(),
+      bot.getByRole('button', { name: '发送消息' }).click(),
+    ])
+    expect(response.headers()['content-type']).toContain('text/event-stream')
+    expect(response.request().postDataJSON()).toMatchObject({ prompt, trigger: 'send' })
+    await expect(reply).toHaveAttribute('data-status', 'complete')
+    await expect(reply.locator('.ym-chat-message__toolcall')).toHaveCount(1)
+    expect(await card.evaluate((el, initial) => el === initial, initialCard)).toBe(true)
+    await initialCard.dispose()
+    await expect(card.getByText(toolName, { exact: true })).toBeVisible()
+    await expect(card.getByRole('status')).toHaveText(finalStatus)
+    expect(JSON.parse(await card.locator('.ym-chat-message__toolcall-args').innerText())).toEqual({ warehouse: '北仓' })
+    const result = card.locator('.ym-chat-message__toolcall-result')
+    if (succeeded) {
+      expect(JSON.parse(await result.innerText())).toEqual({ gate: '北门', slot: '09:00–11:00' })
+      await expect(answer.getByRole('heading')).toHaveText('收货时段')
+      await expect(answer.locator('p')).toHaveText([slot, instructions])
+    } else {
+      await expect(result).toHaveText('预约服务暂时不可用')
+      await expect(answer).toHaveCount(0)
+    }
+  })
+}
+
 test('a server error after the first SSE Markdown chunk retains the partial answer for a retry', async ({ page }) => {
   await page.goto('/chatbot/')
   const bot = page.locator('.demo-canvas .ym-chatbot')

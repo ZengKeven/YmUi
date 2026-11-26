@@ -1,6 +1,7 @@
 <script setup lang="ts" vapor>
-import { reactive, ref } from 'vue'
-import { ConfigProvider, YmChatMessage, type ChatMessageData, type ChatMessageProps } from 'ym-ui-vapor'
+import { computed, reactive, ref } from 'vue'
+import { ConfigProvider, YmChatMessage, type ChatMessageData, type ChatMessageProps,
+  type ChatToolCallContent } from 'ym-ui-vapor'
 
 const content: ChatMessageProps['content'] = [
   { type: 'text', data: '第一行\n第二行' },
@@ -25,6 +26,22 @@ const compact = ref(false)
 const dark = ref(false)
 const square = ref(false)
 const textColor = ref('#403429')
+const toolStatus = ref<ChatToolCallContent['status']>()
+const toolMessage = computed<ChatMessageData>(() => {
+  const current: ChatToolCallContent = {
+    type: 'toolcall', status: toolStatus.value,
+    data: { toolCallId: 'stock-1', toolCallName: '查询库存', args: { skus: ['<em>零件</em>'] } },
+  }
+  if (toolStatus.value === 'complete') current.data.result = false
+  if (toolStatus.value === 'error') current.data.result = '查询失败\n<em>请重试</em>'
+  return {
+    id: 'tools', status: 'streaming', content: [
+      current,
+      { type: 'toolcall', status: 'complete', data: { toolCallId: 'count', args: null, result: 0 } },
+      ...(toolStatus.value === 'complete' ? [{ type: 'markdown' as const, data: '## 库存回复' }] : []),
+    ],
+  }
+})
 </script>
 
 <template>
@@ -75,6 +92,15 @@ const textColor = ref('#403429')
     <ConfigProvider :radius="square ? 0 : 9">
       <section id="inherited"><YmChatMessage variant="outline" content="继承配置" /></section>
       <section id="local"><YmChatMessage size="small" variant="outline" content="局部尺寸" /></section>
+      <section id="toolcalls">
+        <label>调用状态<select v-model="toolStatus">
+          <option value="executing">进行中</option><option value="complete">成功</option>
+          <option value="error">失败</option><option value="stop">已中断</option>
+        </select></label>
+        <YmChatMessage :message="toolMessage">
+          <template #actionbar="{ copyText }"><span class="copy-text">{{ copyText }}</span></template>
+        </YmChatMessage>
+      </section>
     </ConfigProvider>
   </ConfigProvider>
 </template>

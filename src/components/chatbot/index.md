@@ -4,7 +4,7 @@ category: 聊天组件
 
 # YmChatbot 聊天机器人
 
-在同一个对话窗口发送文字和附件，查看助手返回的文件、思考过程、搜索来源和流式 Markdown 回复，并可点击推荐问题继续对话。
+在同一个对话窗口发送文字和附件，查看助手的工具调用、文件、思考过程、搜索来源和流式 Markdown 回复，并可点击推荐问题继续对话。
 
 ## 交互示例
 
@@ -15,6 +15,8 @@ category: 聊天组件
 将「模拟服务」切换为「搜索来源与回复」，发送「如何在消息中展示搜索来源？」。面板先显示一条来源，随后更新它的摘要并增加两条来源，最后逐段显示 Markdown 接入步骤。可打开「对话搜索」查看文档，也可收起来源列表继续读正文。「归档说明」的文件地址被过滤，标题和摘要仍可阅读。
 
 选择「附件与回复」，发送「请发我配送日历和收货清单」。回复先列出附件，再逐段写出收货步骤。点击「配送日历.png」的缩略图可以预览大图，点击「收货清单.txt」可以打开清单。「内部底图.png」的地址被过滤，卡片仍显示文件名和说明。
+
+选择「工具调用成功」，发送「查询北仓的收货时段」。工具 `lookup_receiving_slot` 先显示「进行中」和仓库参数，随后在原位显示「成功」、登记地点和时段。助手接着逐段生成「收货时段」的 Markdown 回复。切换到「工具调用失败」并重新生成，可以看到同一查询显示「失败」及原因「预约服务暂时不可用」。
 
 生成时可点击「停止生成」保留已收到的附件、来源、思考与正文，再点击「重新生成」让同一条回复从头生成。确认「清空历史」会移除所有消息并结束当前请求。
 
@@ -87,11 +89,31 @@ data: [DONE]
 
 | 分片类型 | 如何更新本轮回复 |
 | --- | --- |
-| `thinking` | 连续分片的 `data.text` 追加到同一思考面板。`data.title` 可选，每次传入都会更新面板标题。首次展示来源或附件、开始正文或本轮结束时显示思考完成，也可用 `status: 'complete'` 提前结束思考。 |
+| `thinking` | 连续分片的 `data.text` 追加到同一思考面板。`data.title` 可选，每次传入都会更新面板标题。首次展示来源、附件或工具调用、开始正文或本轮结束时显示思考完成，也可用 `status: 'complete'` 提前结束思考。 |
 | `search` | 首个分片确定来源面板在消息中的位置。每次提供 `data.references` 都用当前完整列表替换上一版，传 `[]` 清空。省略 `references`、`data.title` 或块的 `status` 时沿用原值。收到有效来源即展示，正文开始后仍可更新同一面板。 |
 | `attachment` | `data` 是本轮助手返回的完整附件列表。第一帧确定列表位置，收到后立即展示。后续附件帧在原位替换列表，传 `[]` 清空。正文开始后也可更新附件。 |
+| `toolcall` | 按本轮内的 `data.toolCallId` 更新同一张工具卡片。首次出现确定显示位置，同名工具可以用不同 ID 并行调用。 |
 | `markdown` | `data` 是本次新增的 Markdown 字符串。相邻正文分片会拼接到同一个 Markdown 块。纯文本、JSON 字符串和旧格式 `{"delta":"新增文字"}` 也按 Markdown 增量处理。 |
 | `suggestion` | `data` 是完整问题数组，以最近一组为准，传 `[]` 可撤下推荐。可以在回复中途发送，组件会在本轮成功完成后展示。若显式传入块的 `status`，取值为 `complete` 时才展示。 |
+
+工具由服务端执行。下面的 SSE 响应先发送工具名和参数，再用同一个 ID 回传结果，最后逐段生成 Markdown。
+
+```text
+data: {"type":"toolcall","status":"executing","data":{"toolCallId":"receiving-slot-1","toolCallName":"lookup_receiving_slot","args":{"warehouse":"北仓"}}}
+
+data: {"type":"toolcall","status":"complete","data":{"toolCallId":"receiving-slot-1","result":{"gate":"北门","slot":"09:00–11:00"}}}
+
+data: {"type":"markdown","data":"## 收货时段\n\n"}
+
+data: {"type":"markdown","data":"到仓后请在北门登记。"}
+
+data: [DONE]
+
+```
+
+`toolCallId` 必须是非空白字符串。省略名称时卡片显示 ID。后续分片只需携带 ID 和变更字段。传入 `args` 或 `result` 会整体替换该字段，省略则保留原值。两者都接受 JSON 值，包括字符串、对象、数组、`false`、`0` 和 `null`，并按文本展示。
+
+首帧省略 `status` 时显示「进行中」（`executing`）。工具成功用 `complete`，失败用 `error` 并在 `data.result` 中返回原因。工具失败只更新这次调用，服务仍可发送后续分片。SSE 的 `event: error` 会结束整轮请求并触发 `onError`。调用一旦成功、失败或中断，随后带有其他状态的分片会被忽略。停止生成、连接报错或读到流末尾时，仍在进行中的调用显示「已中断」（`stop`）。
 
 每条来源使用 `ChatSearchReference`，必填 `title`，可用 `url`、`site`、`date` 和 `content` 提供地址、站点、日期和纯文本摘要。空白标题会被跳过。`YmChatSearch` 在每次更新后检查来源地址，允许 HTTP、HTTPS、站内相对路径、查询串和页内锚点。其他协议、以 `//` 开头、含反斜杠或控制字符的地址只展示来源文字。[来源列表与链接规则](/chat-search/)
 
@@ -130,7 +152,7 @@ const config: ChatServiceConfig = {
 }
 ```
 
-独立使用 `ChatEngine` 时，可只提供 `onContent` 接收全部内容块，包括转换为 Markdown 的普通文字。两种回调都提供时，引擎使用 `onContent`。仅提供 `onChunk` 的调用仍可消费 Markdown，如果服务返回附件、思考、搜索或推荐问题，引擎会报告缺少 `onContent`。调用 `controller.abort()` 可取消请求，失败或取消时 `send` 返回的 Promise 拒绝。
+独立使用 `ChatEngine` 时，可只提供 `onContent` 接收全部内容块，包括转换为 Markdown 的普通文字。两种回调都提供时，引擎使用 `onContent`。仅提供 `onChunk` 的调用仍可消费 Markdown，如果服务返回附件、工具调用、思考、搜索或推荐问题，引擎会报告缺少 `onContent`。调用 `controller.abort()` 可取消请求，失败或取消时 `send` 返回的 Promise 拒绝。
 
 ```ts
 import { ChatEngine, type ChatStreamContent } from 'ym-ui-vapor'
@@ -156,7 +178,7 @@ await engine.send({
 | trigger | 发送时为 `send`，重新生成时为 `regenerate`。 |
 | signal | 本次请求的 `AbortSignal`。将它传给 `fetch`，或监听 `abort` 来清理定时器、结束数据读取。 |
 | onChunk | `(delta: string) => void`，将新增的 Markdown 正文追加到当前回复。 |
-| onContent | `(block: ChatStreamContent) => void`，传入一个思考、搜索来源、附件、Markdown 或推荐问题分片，使用与 SSE 相同的合并和展示规则。 |
+| onContent | `(block: ChatStreamContent) => void`，传入一个思考、搜索来源、附件、工具调用、Markdown 或推荐问题分片，使用与 SSE 相同的合并和展示规则。 |
 
 下面的最小示例直接答复文字与附件。接入异步服务时，返回覆盖整段回复过程的 Promise。
 

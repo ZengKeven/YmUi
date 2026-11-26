@@ -133,6 +133,11 @@ test('custom SSE events update sources, merge thinking and Markdown and reveal q
   await expect(sources).toHaveCount(0)
   await write(page, 'event: document\ndata: /checklist.txt\n\n')
   await expect(reply.getByRole('link', { name: '收货清单.txt' })).toHaveAttribute('href', '/checklist.txt')
+  await write(page, 'id: receipt-1\nevent: inspection\ndata: 签收人一致\n\n')
+  const inspection = reply.getByRole('region', { name: '核验单据' })
+  await expect(inspection).toHaveAttribute('data-tool-call-id', 'receipt-1')
+  await expect(inspection.getByRole('status')).toHaveText('成功')
+  await expect(inspection).toContainText('签收人一致')
   await write(page, frame({ piece: '# 安排' }))
   await expect(thinking).toHaveAttribute('data-status', 'complete')
   await expect(markdown.getByRole('heading')).toHaveText('安排')
@@ -247,6 +252,48 @@ test('reply attachments appear before Markdown, update in place and carry the la
   ])
 })
 
+test('interleaved tool calls retain their position, independent status and latest values in history', async ({ page }) => {
+  await captureStreams(page)
+  await page.goto(fixture)
+  await send(page)
+  await expect.poll(() => page.evaluate(() => window.chatStreams.length)).toBe(1)
+  const reply = assistant(page)
+  const first = reply.locator('[data-tool-call-id="a"]')
+  const second = reply.locator('[data-tool-call-id="b"]')
+  const lookup = { toolCallName: 'lookup', args: { warehouse: '北仓' } }
+  await write(page, frame({ type: 'thinking', data: { text: '分别核对。' } })
+    + frame({ type: 'toolcall', data: { toolCallId: 'a', ...lookup } }))
+  await expect(reply.locator('.ym-chat-thinking')).toHaveAttribute('data-status', 'complete')
+  await expect(first).toHaveAttribute('data-status', 'executing')
+  await write(page, frame({ type: 'markdown', data: '正在核对。' })
+    + frame({ type: 'toolcall', data: { toolCallId: 'b', toolCallName: 'lookup', args: false } })
+    + frame({ type: 'toolcall', status: 'error', data: { toolCallId: 'b', result: '未找到' } }))
+  await expect(second).toHaveAttribute('data-status', 'error')
+  await expect(second).toContainText('未找到')
+  await expect(first).toHaveAttribute('data-status', 'executing')
+  await write(page, frame({ type: 'toolcall', status: 'complete', data: { toolCallId: 'a', result: 0 } })
+    + frame({ type: 'toolcall', status: 'executing', data: { toolCallId: 'a', result: '过期进度' } })
+    + frame({ type: 'toolcall', data: { toolCallId: 'b', args: null } })
+    + frame({ type: 'markdown', data: '核对完毕。' }) + 'data: [DONE]\n\n')
+  await expect(reply).toHaveAttribute('data-status', 'complete')
+  await expect(first).toHaveAttribute('data-status', 'complete')
+  await expect(first.locator('.ym-chat-message__toolcall-result')).toHaveText('0')
+  await expect(second.locator('.ym-chat-message__toolcall-args')).toHaveText('null')
+  await expect(reply.locator('[data-tool-call-id]')).toHaveCount(2)
+  await expect(page.locator('#errors')).toHaveText('[]')
+
+  await send(page, '继续')
+  await expect.poll(() => page.evaluate(() => window.chatStreams.length)).toBe(2)
+  const history = await page.evaluate(async () => (await window.chatStreams[1].request.json()).messages[1].content)
+  expect(history).toEqual([
+    { type: 'thinking', status: 'complete', data: { text: '分别核对。' } },
+    { type: 'toolcall', status: 'complete', data: { toolCallId: 'a', ...lookup, result: 0 } },
+    { type: 'markdown', data: '正在核对。' },
+    { type: 'toolcall', status: 'error', data: { toolCallId: 'b', toolCallName: 'lookup', args: null, result: '未找到' } },
+    { type: 'markdown', data: '核对完毕。' },
+  ])
+})
+
 test('a suggested turn keeps the draft and stops mid-thought without enabling concurrent follow-ups', async ({ page }) => {
   await captureStreams(page)
   await page.goto(fixture)
@@ -306,6 +353,7 @@ test('stopping a body read aborts the fetch signal and regenerates the same assi
   await write(page, frame({ type: 'thinking', data: { text: '已查清单。' } })
     + frame({ type: 'search', data: { references: [{ title: '收货记录' }] } })
     + frame({ type: 'attachment', data: [{ name: '已收到.txt' }] })
+    + frame({ type: 'toolcall', data: { toolCallId: 'pending-lookup', toolCallName: 'lookup' } })
     + 'data: 已收到的文字\n\n' + frame({ type: 'suggestion', data: [{ title: '过期的追问' }] }) + 'data: 半个')
   await expect(reply).toHaveAttribute('data-status', 'streaming')
   await page.getByRole('button', { name: '停止生成' }).click()
@@ -313,6 +361,7 @@ test('stopping a body read aborts the fetch signal and regenerates the same assi
   await expect(reply.locator('.ym-chat-thinking')).toContainText('已查清单。')
   await expect(reply.locator('.ym-chat-search').getByText('收货记录')).toBeVisible()
   await expect(reply.getByText('已收到.txt')).toBeVisible()
+  await expect(reply.locator('[data-tool-call-id="pending-lookup"]')).toHaveAttribute('data-status', 'stop')
   await expect(reply.getByRole('button', { name: '过期的追问' })).toHaveCount(0)
   await expect(reply.locator('.ym-chat-markdown')).toHaveText('已收到的文字')
   await expect.poll(() => page.evaluate(() => {
@@ -330,6 +379,7 @@ test('stopping a body read aborts the fetch signal and regenerates the same assi
   await expect(reply.locator('.ym-chat-thinking')).toHaveCount(0)
   await expect(reply.locator('.ym-chat-search')).toHaveCount(0)
   await expect(reply.getByRole('list', { name: '附件列表' })).toHaveCount(0)
+  await expect(reply.locator('[data-tool-call-id]')).toHaveCount(0)
   await expect(reply.getByRole('list', { name: '推荐问题' })).toHaveCount(0)
   await expect(page.getByRole('article')).toHaveCount(2)
   await expect(page.locator('#errors')).toHaveText('[]')
@@ -397,12 +447,15 @@ test('invalid structured data fails the stream without losing earlier blocks or 
     { type: 'attachment', data: {} },
     { type: 'attachment', data: [{ name: '  ' }] },
     { type: 'attachment', data: [{ name: '清单.png', raw: { type: 'image/png' } }] },
+    { type: 'toolcall', data: { toolCallId: '  ' } },
+    { type: 'toolcall', status: 'invalid', data: { toolCallId: 'call' } },
   ]
   let attempt = 0
   await page.route('**' + endpoint, route => {
     const body = frame({ type: 'thinking', data: { title: '核对清单', text: '共三项。' } })
       + frame({ type: 'search', data: { references: [{ title: '已查到的单据' }] } })
       + frame({ type: 'attachment', data: [{ name: '签收记录.txt' }] })
+      + frame({ type: 'toolcall', data: { toolCallId: 'pending-lookup' } })
       + frame({ type: 'markdown', data: '已核对。' })
       + frame({ type: 'suggestion', data: [{ title: '提前到达的推荐' }] })
       + frame(invalid[attempt++]) + 'data: 后续内容\n\ndata: [DONE]\n\n'
@@ -418,6 +471,7 @@ test('invalid structured data fails the stream without losing earlier blocks or 
     await expect(reply.locator('.ym-chat-thinking')).toContainText('共三项。')
     await expect(reply.locator('.ym-chat-search').getByText('已查到的单据')).toBeVisible()
     await expect(reply.getByText('签收记录.txt')).toBeVisible()
+    await expect(reply.locator('[data-tool-call-id="pending-lookup"]')).toHaveAttribute('data-status', 'stop')
     await expect(reply.locator('.ym-chat-markdown')).toHaveText('已核对。')
     await expect(reply.getByRole('list', { name: '推荐问题' })).toHaveCount(0)
   }
@@ -427,12 +481,13 @@ test('invalid structured data fails the stream without losing earlier blocks or 
 test('standalone callbacks receive normalized blocks once and text-only callers keep legacy behavior', async ({ page }) => {
   const thinking: ChatStreamContent = { type: 'thinking', status: 'complete', data: { text: '已核对。' } }
   const markdown: ChatStreamContent = { type: 'markdown', data: '。' }
+  const toolcall: ChatStreamContent = { type: 'toolcall', data: { toolCallId: 'receipt-1', args: [false, 0, null] } }
   const search: ChatStreamContent = { type: 'search', data: { references: [{ title: '签收须知', url: '/guide' }] } }
   const attachment: ChatStreamContent = { type: 'attachment', data: [{ fileType: 'pdf', name: '回执.pdf', url: '/receipt.pdf' }] }
   const suggestion: ChatStreamContent = { type: 'suggestion', data: [{ title: '下一项', prompt: '查看下一项' }] }
   await page.route('**' + endpoint, route => route.fulfill({
     contentType: 'text/event-stream',
-    body: 'data: 答\n\n' + frame({ delta: '案' }) + frame(markdown) + frame(attachment) + frame(search) + frame(thinking) + frame(suggestion) + 'data: [DONE]\n\n',
+    body: 'data: 答\n\n' + frame({ delta: '案' }) + [markdown, toolcall, attachment, search, thinking, suggestion].map(frame).join('') + 'data: [DONE]\n\n',
   }))
   await page.goto(fixture)
   const result = await page.evaluate(async () => {
@@ -452,10 +507,10 @@ test('standalone callbacks receive normalized blocks once and text-only callers 
       return { blocks, onlyContent, duplicateChunks, chunks, error: (error as Error).message }
     }
   })
-  const expected = [{ type: 'markdown', data: '答' }, { type: 'markdown', data: '案' }, markdown, attachment, search, thinking, suggestion]
+  const expected = [{ type: 'markdown', data: '答' }, { type: 'markdown', data: '案' }, markdown, toolcall, attachment, search, thinking, suggestion]
   expect(result).toEqual({
     blocks: expected, onlyContent: expected,
-    duplicateChunks: [], chunks: ['答', '案', '。'], error: expect.stringContaining('onContent'),
+    duplicateChunks: [], chunks: ['答', '案', '。'], error: expect.stringMatching(/toolcall.*onContent/),
   })
 })
 
@@ -545,4 +600,16 @@ test('a custom request takes precedence while a bot without either transport can
   await expect(page.getByRole('button', { name: '发送消息' })).toBeDisabled()
   await page.getByRole('textbox').press('Enter')
   await expect(page.getByRole('article')).toHaveCount(0)
+})
+
+test('a mapped tool call with cyclic arguments reports a validation error and stops delivery', async ({ page }) => {
+  await page.route('**' + endpoint, route => route.fulfill({ contentType: 'text/event-stream',
+    body: 'id: bad-1\nevent: cyclic-tool\ndata: 核验\n\ndata: 后续回复\n\ndata: [DONE]\n\n',
+  }))
+  await page.goto(fixture + '?map')
+  await send(page)
+  await expect(assistant(page)).toHaveAttribute('data-status', 'error')
+  await expect(page.locator('#errors')).toContainText('SSE 内容块格式无效')
+  await expect(assistant(page).locator('[data-tool-call-id], .ym-chat-markdown')).toHaveCount(0)
+  await expect(page.locator('#events')).toHaveText('[]')
 })

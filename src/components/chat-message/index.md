@@ -4,7 +4,7 @@ category: 聊天组件
 
 # YmChatMessage 对话消息
 
-展示单条消息的发送者、时间和回复正文，可在回复中展示思考过程、搜索来源和推荐问题。
+展示单条消息的发送者、时间和回复正文，可在回复中展示思考过程、工具调用、搜索来源和推荐问题。
 
 ## 交互示例
 
@@ -15,9 +15,9 @@ category: 聊天组件
 | 名称 | 类型 | 默认值 | 说明 |
 | --- | --- | --- | --- |
 | message | `ChatMessageData` | — | 整条消息。包含稳定的字符串 `id`，以及可选的 `role`、`status`、`content`、`avatar`、`name` 和 `datetime`。单独传入的同名属性优先。 |
-| content | `string \| readonly ChatMessageContent[]` | — | 字符串按纯文本显示。数组按顺序展示内容块。`text` 块保留原文和换行，`markdown` 块渲染 Markdown，`attachment` 块展示附件，`thinking` 块展示思考过程，`search` 块展示搜索来源，`suggestion` 块在回复完成后展示推荐问题。 |
+| content | `string \| readonly ChatMessageContent[]` | — | 字符串按纯文本显示。数组按顺序展示内容块。`text` 保留原文和换行，`markdown` 渲染 Markdown，`attachment` 展示附件，`thinking` 展示思考过程，`toolcall` 展示工具调用，`search` 展示搜索来源，`suggestion` 在回复完成后展示推荐问题。 |
 | role | `assistant / user / system` | `assistant` | 标识助手、用户或系统消息。 |
-| status | `pending / streaming / complete / stop / error` | `complete` | 等待回复或接收中的空消息显示加载指示。消息包含思考块时由它展示进度。完成或停止后保留正文，出错时在正文旁提示「消息出错」。 |
+| status | `pending / streaming / complete / stop / error` | `complete` | 等待回复或接收中的空消息显示加载指示。消息包含思考或工具调用块时由块展示进度。完成或停止后保留正文，消息出错时在正文旁提示「消息出错」。 |
 | avatar | `string \| { src: string, alt?: string, fallback?: string }` | — | 头像图片地址，或含替代文本及备用地址的配置。省略时隐藏头像。图片及备用地址均加载失败时显示角色图标。 |
 | name | `string` | — | 发送者昵称，显示在正文上方。 |
 | datetime | `string` | — | 时间的显示文字，由业务页面格式化，例如「今天 09:30」。 |
@@ -26,7 +26,7 @@ category: 聊天组件
 | suggestionDisabled | `boolean` | `false` | 禁用本条消息的推荐问题按钮，保留问题列表。 |
 | size | `extra-small / small / medium / large` | 继承，初始为 `medium` | 控制消息字号、头像尺寸和间距。 |
 
-嵌套的 `ConfigProvider` 按项继承配置。显式设置的 `size` 优先于全局尺寸。`mode` 和 `theme` 决定当前模式下的文字、气泡和状态颜色。`radius` 设置气泡圆角，为 `0` 时呈直角。
+嵌套的 `ConfigProvider` 按项继承配置。显式设置的 `size` 优先于全局尺寸，工具调用卡片也随之调整字号和内边距。`mode` 和 `theme` 决定当前模式下的文字、卡片背景和状态标签颜色。`radius` 设置气泡和工具调用卡片的圆角，为 `0` 时呈直角。
 
 ## 事件
 
@@ -64,6 +64,10 @@ const reply: ChatMessageData = {
   datetime: '今天 09:30',
   content: [
     { type: 'thinking', status: 'complete', data: { text: '已核对订单和仓库预约。' } },
+    { type: 'toolcall', status: 'complete', data: {
+      toolCallId: 'arrival-1', toolCallName: '查询到货日期',
+      args: { order: 'PO-231' }, result: { arrival: '周五' },
+    } },
     { type: 'search', data: { title: '排期依据', references: [
       { title: '本周收货预约', url: '/warehouse/appointments' },
     ] } },
@@ -85,7 +89,11 @@ const reply: ChatMessageData = {
 </template>
 ```
 
-`ChatMessageContent` 包含纯文本块 `ChatTextContent`、Markdown 块 `ChatMarkdownContent`、附件块 `ChatAttachmentContent`、思考块 `ChatThinkingContent`、搜索块 `ChatSearchContent` 和推荐问题块 `ChatSuggestionContent`。思考块的 `data` 接受 `{ title?: string; text?: string }`，其中 `text` 用于累积进度。省略块状态时，思考面板跟随消息的等待或接收状态，展示已完成的历史消息时显示「思考完成」。
+`ChatMessageContent` 包含纯文本块 `ChatTextContent`、Markdown 块 `ChatMarkdownContent`、附件块 `ChatAttachmentContent`、思考块 `ChatThinkingContent`、工具调用块 `ChatToolCallContent`、搜索块 `ChatSearchContent` 和推荐问题块 `ChatSuggestionContent`。思考块的 `data` 接受 `{ title?: string; text?: string }`，其中 `text` 用于累积进度。省略块状态时，思考面板跟随消息的等待或接收状态，展示已完成的历史消息时显示「思考完成」。
+
+工具调用块使用 `data.toolCallId` 标识一次调用，卡片标题优先显示 `data.toolCallName`，省略名称时显示标识。可选的 `data.args` 和 `data.result` 分别展示参数和结果。字符串保留原文和换行，对象或数组按 JSON 缩进显示。`false`、`0` 和 `null` 均会显示。卡片将内容渲染为纯文本。
+
+调用状态独立于消息状态。块的 `status` 取 `executing`（进行中，默认）、`complete`（成功）、`error`（失败）或 `stop`（已中断）。工具成功后，可以在同一条消息里追加 Markdown 块来显示回复。使用 `chatServiceConfig` 接收更新的示例见[对话机器人](/chatbot/)。
 
 附件块的 `data` 接受 `readonly ChatAttachmentItem[]`。处理发送框的 `send` 事件时可以直接使用 `context.attachments`。消息以只读列表展示这些文件，图片加载后可打开预览。复制正文时只包含文本和 Markdown 源文。参见[对话附件](/chat-attachments/)。
 

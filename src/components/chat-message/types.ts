@@ -55,8 +55,33 @@ export interface ChatAttachmentContent {
   data: readonly ChatAttachmentItem[]
 }
 
+/** 工具参数和结果可包含任意 JSON 值。 */
+export type ChatToolCallValue = string | number | boolean | null |
+  readonly ChatToolCallValue[] | { readonly [key: string]: ChatToolCallValue }
+
+export type ChatToolCallStatus = 'executing' | 'complete' | 'error' | 'stop'
+
+export interface ChatToolCallData {
+  /** 同一条消息中标识一次工具调用，后续分片沿用此值。 */
+  toolCallId: string
+  /** 工具名称，后续更新可以省略。 */
+  toolCallName?: string
+  /** 当前参数的完整值。 */
+  args?: ChatToolCallValue
+  /** 当前结果的完整值，也可包含工具返回的错误。 */
+  result?: ChatToolCallValue
+}
+
+export interface ChatToolCallContent {
+  /** 展示工具的名称、参数、结果与调用状态。 */
+  type: 'toolcall'
+  data: ChatToolCallData
+  /** 首个分片默认进行中，后续分片省略时沿用此前的状态。 */
+  status?: ChatToolCallStatus
+}
+
 export type ChatMessageContent = ChatTextContent | ChatMarkdownContent | ChatThinkingContent | ChatSearchContent |
-  ChatSuggestionContent | ChatAttachmentContent
+  ChatSuggestionContent | ChatAttachmentContent | ChatToolCallContent
 
 export interface ChatMessageAvatar {
   /** 头像的图片地址。 */

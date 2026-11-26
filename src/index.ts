@@ -12,6 +12,7 @@ export { YmChatMarkdown, type ChatMarkdownProps } from './components/chat-markdo
 export { YmChatMessage, type ChatMessageProps, type ChatMessageData, type ChatMessageRole,
   type ChatMessageStatus, type ChatMessageContent, type ChatTextContent, type ChatMarkdownContent, type ChatAttachmentContent,
   type ChatThinkingContent, type ChatSearchContent, type ChatMessageSearchContext,
+  type ChatToolCallContent, type ChatToolCallData, type ChatToolCallStatus, type ChatToolCallValue,
   type ChatSuggestionContent, type ChatMessageSuggestionContext, type ChatMessageAvatar } from './components/chat-message'
 export { YmChatSearch, type ChatSearchProps, type ChatSearchData, type ChatSearchReference, type ChatSearchSourceContext } from './components/chat-search'
 export { YmChatSender, type ChatSenderProps, type ChatSenderSendContext } from './components/chat-sender'

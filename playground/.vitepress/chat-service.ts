@@ -36,6 +36,24 @@ const attachmentReply: ChatStreamContent[] = [
   { type: 'markdown', data: '2. 按收货清单核对单据。' },
 ]
 
+function toolCallReply(outcome: 'success' | 'failure'): ChatStreamContent[] {
+  const toolCallId = 'receiving-slot-1'
+  const start: ChatStreamContent = {
+    type: 'toolcall', status: 'executing',
+    data: { toolCallId, toolCallName: 'lookup_receiving_slot', args: { warehouse: '北仓' } },
+  }
+  if (outcome === 'failure') {
+    return [start, { type: 'toolcall', status: 'error', data: { toolCallId, result: '预约服务暂时不可用' } }]
+  }
+  return [
+    start,
+    { type: 'toolcall', status: 'complete', data: { toolCallId, result: { gate: '北门', slot: '09:00–11:00' } } },
+    { type: 'markdown', data: '## 收货时段\n\n' },
+    { type: 'markdown', data: '北仓的收货时段为 09:00–11:00。\n\n' },
+    { type: 'markdown', data: '到仓后请在北门登记。' },
+  ]
+}
+
 const files = new Map<string, { type: string; body: Buffer | string }>([
   ['/delivery-calendar.png', { type: 'image/png', body: readFileSync(new URL('../examples/assets/delivery-calendar.png', import.meta.url)) }],
   ['/checklist.txt', { type: 'text/plain; charset=utf-8', body: checklist }],
@@ -69,7 +87,10 @@ async function streamReply(request: IncomingMessage, response: ServerResponse) {
       trigger?: string
     }
     if (typeof prompt !== 'string' || !Array.isArray(attachments)) throw new Error()
-    if (params.get('attachment') === '1') {
+    const toolCall = params.get('toolcall')
+    if (toolCall === 'success' || toolCall === 'failure') {
+      chunks = toolCallReply(toolCall)
+    } else if (params.get('attachment') === '1') {
       chunks = attachmentReply
     } else if (params.get('search') === '1') {
       chunks = searchReply

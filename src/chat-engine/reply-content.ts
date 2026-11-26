@@ -1,5 +1,10 @@
-import type { ChatAttachmentContent, ChatMessageStatus, ChatSearchContent, ChatSuggestionContent } from '../components/chat-message/types'
+import type { ChatAttachmentContent, ChatMessageStatus, ChatSearchContent, ChatSuggestionContent,
+  ChatToolCallContent, ChatToolCallValue } from '../components/chat-message/types'
 import type { ChatStreamContent } from './types'
+
+function copyToolValue(value: ChatToolCallValue): ChatToolCallValue {
+  return value !== null && typeof value === 'object' ? JSON.parse(JSON.stringify(value)) : value
+}
 
 /** 汇总单轮回复。已交给消息列表的快照不再随新分片变化。 */
 export function createReplyContent() {
@@ -38,12 +43,35 @@ export function createReplyContent() {
     }
   }
 
+  function updateToolCall(chunk: ChatToolCallContent) {
+    const { toolCallId, toolCallName, args, result } = chunk.data
+    const index = blocks.findIndex(block => block.type === 'toolcall' && block.data.toolCallId === toolCallId)
+    const previous = blocks[index]
+    const call = previous?.type === 'toolcall' ? previous : undefined
+    // 同一调用只接受一个终态，延迟到达的进度帧不能覆盖最终结果。
+    if (call?.status && call.status !== 'executing' && chunk.status && chunk.status !== call.status) return
+
+    const data = { ...call?.data, toolCallId }
+    if (toolCallName !== undefined) data.toolCallName = toolCallName
+    if (args !== undefined) data.args = copyToolValue(args)
+    if (result !== undefined) data.result = copyToolValue(result)
+    const next: ChatToolCallContent = { type: 'toolcall', status: chunk.status ?? call?.status ?? 'executing', data }
+    if (call) {
+      blocks[index] = next
+    } else {
+      finishThinking()
+      blocks.push(next)
+    }
+  }
+
   function append(chunk: ChatStreamContent) {
     const last = blocks.at(-1)
     if (chunk.type === 'suggestion') {
       suggestions = { ...chunk, data: chunk.data.map(item => ({ ...item })) }
     } else if (chunk.type === 'search' || chunk.type === 'attachment') {
       updateListBlock(chunk)
+    } else if (chunk.type === 'toolcall') {
+      updateToolCall(chunk)
     } else if (chunk.type === 'markdown') {
       if (last?.type === 'markdown') {
         blocks[blocks.length - 1] = { type: 'markdown', data: last.data + chunk.data }
@@ -66,7 +94,14 @@ export function createReplyContent() {
   }
 
   function snapshot(status: ChatMessageStatus): ChatStreamContent[] {
-    if (status !== 'pending' && status !== 'streaming') finishThinking()
+    if (status !== 'pending' && status !== 'streaming') {
+      finishThinking()
+      blocks.forEach((block, index) => {
+        if (block.type === 'toolcall' && block.status === 'executing') {
+          blocks[index] = { ...block, status: 'stop' }
+        }
+      })
+    }
     return status === 'complete' && suggestions ? [...blocks, suggestions] : blocks.slice()
   }
 

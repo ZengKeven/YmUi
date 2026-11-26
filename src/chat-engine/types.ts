@@ -1,10 +1,10 @@
 import type { ChatAttachmentItem } from '../components/chat-attachments/types'
 import type { ChatAttachmentContent, ChatMarkdownContent, ChatMessageData, ChatSearchContent, ChatSuggestionContent,
-  ChatThinkingContent } from '../components/chat-message/types'
+  ChatThinkingContent, ChatToolCallContent } from '../components/chat-message/types'
 
-/** 单个 SSE 事件的内容。Markdown 和思考正文为增量，附件、搜索来源和推荐问题按完整列表更新。 */
+/** 单个 SSE 事件的内容。Markdown 和思考正文为增量，列表按快照更新，工具调用按 toolCallId 更新。 */
 export type ChatStreamContent = ChatMarkdownContent | ChatThinkingContent | ChatSearchContent |
-  ChatAttachmentContent | ChatSuggestionContent
+  ChatAttachmentContent | ChatSuggestionContent | ChatToolCallContent
 
 export interface ChatRequestParams {
   /** 本轮用户输入的原文，仅含附件时为空字符串。 */
@@ -28,7 +28,7 @@ export interface ChatEngineRequestContext extends ChatRequestParams {
 
 /** 独立使用 ChatEngine 时，可以只通过 onContent 消费所有分片。 */
 export interface ChatEngineContentContext extends Omit<ChatEngineRequestContext, 'onChunk'> {
-  /** 接收思考、搜索来源、附件、Markdown 和推荐问题的原始分片。 */
+  /** 接收所有类型的原始内容分片。 */
   onContent: (block: ChatStreamContent) => void
 }
 

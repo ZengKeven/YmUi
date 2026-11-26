@@ -30,7 +30,7 @@ function defaultContent({ data, raw }: SSEChunkData) {
   if (typeof data === 'string') return data
   if (data === null || typeof data !== 'object') return raw
   if ('type' in data && 'data' in data && (data.type === 'thinking' || data.type === 'search' ||
-    data.type === 'attachment' || data.type === 'markdown' || data.type === 'suggestion')) return data
+    data.type === 'attachment' || data.type === 'toolcall' || data.type === 'markdown' || data.type === 'suggestion')) return data
   if ('delta' in data && typeof data.delta === 'string') return data.delta
   return data
 }
@@ -65,6 +65,23 @@ function isAttachmentItem(item: unknown) {
     (raw === undefined || isAttachmentFile(raw))
 }
 
+function isToolCallValue(value: unknown, ancestors = new Set<object>()): boolean {
+  if (value === null || typeof value === 'string' || typeof value === 'boolean') return true
+  if (typeof value === 'number') return Number.isFinite(value)
+  if (typeof value !== 'object' || ancestors.has(value)) return false
+
+  const array = Array.isArray(value)
+  const prototype = Object.getPrototypeOf(value)
+  if (!array && prototype !== null && Object.getPrototypeOf(prototype) !== null) return false
+  ancestors.add(value)
+  // 只跟踪当前祖先链，同一对象可以在两个参数里重复出现。
+  for (const child of array ? value : Object.values(value)) {
+    if (!isToolCallValue(child, ancestors)) return false
+  }
+  ancestors.delete(value)
+  return true
+}
+
 function isContentBlock(value: unknown): value is ChatStreamContent {
   if (!isRecord(value)) return false
   const { data, status } = value
@@ -79,6 +96,11 @@ function isContentBlock(value: unknown): value is ChatStreamContent {
         (data.references === undefined || (Array.isArray(data.references) && data.references.every(isSearchReference)))
     case 'attachment':
       return Array.isArray(data) && data.every(isAttachmentItem)
+    case 'toolcall':
+      return isRecord(data) && typeof data.toolCallId === 'string' && !!data.toolCallId.trim() &&
+        (data.toolCallName === undefined || (typeof data.toolCallName === 'string' && !!data.toolCallName.trim())) &&
+        (!('args' in data) || isToolCallValue(data.args)) && (!('result' in data) || isToolCallValue(data.result)) &&
+        (status === undefined || status === 'executing' || status === 'complete' || status === 'error' || status === 'stop')
     case 'suggestion':
       return Array.isArray(data) && data.every(item => isRecord(item) &&
         typeof item.title === 'string' && item.title.trim() && optionalString(item.prompt)) &&
@@ -93,7 +115,7 @@ type RequestContext = ChatEngineRequestContext | ChatEngineContentContext
 function deliver(value: unknown, context: RequestContext) {
   const block = typeof value === 'string' ? { type: 'markdown', data: value } : value
   if (!isContentBlock(block)) {
-    throw new Error('SSE 内容块格式无效，请使用 onMessage 映射为 thinking、search、attachment、markdown 或 suggestion 分片')
+    throw new Error('SSE 内容块格式无效，请使用 onMessage 映射为 thinking、search、attachment、toolcall、markdown 或 suggestion 分片')
   }
   if (block.type === 'markdown' && !block.data) return
   if (context.onContent) context.onContent(block)

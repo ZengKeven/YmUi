@@ -1,6 +1,7 @@
 <script setup lang="ts" vapor>
 import { ref } from 'vue'
-import { YmChatbot, type ChatMessageSearchContext, type ChatServiceConfig, type ChatbotRequestContext, type SSEChunkData } from 'ym-ui-vapor'
+import { YmChatbot, type ChatMessageSearchContext, type ChatServiceConfig, type ChatToolCallValue,
+  type ChatbotRequestContext, type SSEChunkData } from 'ym-ui-vapor'
 
 const options = new URLSearchParams(location.search)
 const events = ref<string[]>([])
@@ -26,6 +27,14 @@ if (options.has('map')) {
     if (chunk.event === 'invalid') throw new Error('无法转换此事件')
     if (chunk.event === 'reasoning') return { type: 'thinking', data: { text: chunk.raw } }
     if (chunk.event === 'question') return { type: 'suggestion', data: [{ title: chunk.raw }] }
+    if (chunk.event === 'inspection') {
+      return { type: 'toolcall', status: 'complete', data: { toolCallId: chunk.id, toolCallName: '核验单据', result: chunk.raw } }
+    }
+    if (chunk.event === 'cyclic-tool') {
+      const args: Record<string, ChatToolCallValue> = {}
+      args.self = args
+      return { type: 'toolcall', data: { toolCallId: chunk.id, args: [args] } }
+    }
     if (chunk.event === 'document' && typeof chunk.data === 'string') {
       return { type: 'attachment', data: [{ name: '收货清单.txt', url: chunk.data }] }
     }

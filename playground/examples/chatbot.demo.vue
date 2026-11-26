@@ -9,11 +9,15 @@ const endpoints = {
   normal: '/api/chat/sse',
   search: '/api/chat/sse?search=1',
   attachment: '/api/chat/sse?attachment=1',
+  toolSuccess: '/api/chat/sse?toolcall=success',
+  toolFailure: '/api/chat/sse?toolcall=failure',
   error: '/api/chat/sse?error=1',
 }
 const placeholders: Partial<Record<keyof typeof endpoints, string>> = {
   search: '如何在消息中展示搜索来源？',
   attachment: '请发我配送日历和收货清单',
+  toolSuccess: '查询北仓的收货时段',
+  toolFailure: '查询北仓的收货时段',
 }
 const mode = ref<keyof typeof endpoints>('normal')
 const chatServiceConfig = computed<ChatServiceConfig>(() => ({
@@ -39,6 +43,8 @@ const chatServiceConfig = computed<ChatServiceConfig>(() => ({
           <option value="normal">思考、回复与推荐问题</option>
           <option value="search">搜索来源与回复</option>
           <option value="attachment">附件与回复</option>
+          <option value="toolSuccess">工具调用成功</option>
+          <option value="toolFailure">工具调用失败</option>
           <option value="error">流中出错</option>
         </select>
       </label>
