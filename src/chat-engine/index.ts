@@ -1,3 +1,4 @@
+import { isAttachmentFile } from '../components/chat-attachments/file'
 import { readEventStream, type SSEFrame } from './sse'
 import type { ChatEngineContentContext, ChatEngineRequestContext, ChatRequestParams, ChatServiceConfig,
   ChatStreamContent, SSEChunkData } from './types'
@@ -14,7 +15,7 @@ function requestOptions(params: ChatRequestParams, init: RequestInit): RequestIn
     if (!headers.has('Content-Type')) headers.set('Content-Type', 'application/json')
     // 附件的 File 留给自定义上传逻辑，默认 JSON 仅携带附件描述。
     body = JSON.stringify(params, (key, value: unknown) =>
-      key === 'raw' && Object.prototype.toString.call(value) === '[object File]' ? undefined : value)
+      key === 'raw' && isAttachmentFile(value) ? undefined : value)
   }
   return { ...init, headers, method, body }
 }
@@ -28,8 +29,8 @@ function decodeFrame(frame: SSEFrame): SSEChunkData {
 function defaultContent({ data, raw }: SSEChunkData) {
   if (typeof data === 'string') return data
   if (data === null || typeof data !== 'object') return raw
-  if ('type' in data && 'data' in data &&
-    (data.type === 'thinking' || data.type === 'search' || data.type === 'markdown' || data.type === 'suggestion')) return data
+  if ('type' in data && 'data' in data && (data.type === 'thinking' || data.type === 'search' ||
+    data.type === 'attachment' || data.type === 'markdown' || data.type === 'suggestion')) return data
   if ('delta' in data && typeof data.delta === 'string') return data.delta
   return data
 }
@@ -52,6 +53,18 @@ function isSearchReference(item: unknown) {
     [item.url, item.site, item.date, item.content, item.type, item.icon].every(optionalString)
 }
 
+function isAttachmentItem(item: unknown) {
+  if (!isRecord(item) || typeof item.name !== 'string' || !item.name.trim()) return false
+  const { size, status, percent, response, raw } = item
+  return [item.id, item.url, item.type, item.fileType, item.description].every(optionalString) &&
+    [item.key, item.uid].every(key => optionalString(key) || Number.isFinite(key)) &&
+    (size === undefined || (typeof size === 'number' && Number.isFinite(size) && size >= 0)) &&
+    (status === undefined || status === 'waiting' || status === 'progress' || status === 'success' || status === 'fail') &&
+    (percent === undefined || (typeof percent === 'number' && percent >= 0 && percent <= 100)) &&
+    (response === undefined || (isRecord(response) && optionalString(response.url) && optionalString(response.error))) &&
+    (raw === undefined || isAttachmentFile(raw))
+}
+
 function isContentBlock(value: unknown): value is ChatStreamContent {
   if (!isRecord(value)) return false
   const { data, status } = value
@@ -64,6 +77,8 @@ function isContentBlock(value: unknown): value is ChatStreamContent {
     case 'search':
       return isRecord(data) && optionalString(data.title) && optionalMessageStatus(status) &&
         (data.references === undefined || (Array.isArray(data.references) && data.references.every(isSearchReference)))
+    case 'attachment':
+      return Array.isArray(data) && data.every(isAttachmentItem)
     case 'suggestion':
       return Array.isArray(data) && data.every(item => isRecord(item) &&
         typeof item.title === 'string' && item.title.trim() && optionalString(item.prompt)) &&
@@ -78,7 +93,7 @@ type RequestContext = ChatEngineRequestContext | ChatEngineContentContext
 function deliver(value: unknown, context: RequestContext) {
   const block = typeof value === 'string' ? { type: 'markdown', data: value } : value
   if (!isContentBlock(block)) {
-    throw new Error('SSE 内容块格式无效，请使用 onMessage 映射为 thinking、search、markdown 或 suggestion 分片')
+    throw new Error('SSE 内容块格式无效，请使用 onMessage 映射为 thinking、search、attachment、markdown 或 suggestion 分片')
   }
   if (block.type === 'markdown' && !block.data) return
   if (context.onContent) context.onContent(block)

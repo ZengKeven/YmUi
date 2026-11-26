@@ -1,10 +1,12 @@
 <script setup lang="ts" vapor>
 import { computed } from 'vue'
+import { safeHref } from '../../utils/safe-href'
 import { YmButton } from '../button'
 import { YmIcon } from '../icon'
 import { YmImage } from '../image'
 import { acceptsImage } from '../image-upload/upload'
 import { YmLoading } from '../loading'
+import { isAttachmentFile } from './file'
 import attachmentProps from './props'
 import type { ChatAttachmentItem, ChatAttachmentRemoveContext } from './types'
 
@@ -41,12 +43,15 @@ function formatSize(bytes?: number) {
 }
 
 const cards = computed(() => props.items.map(item => {
+  const raw = isAttachmentFile(item.raw) ? item.raw : undefined
   const isImage = item.fileType ? item.fileType === 'image' :
-    acceptsImage({ name: item.name, type: item.type || item.raw?.type || '' }, '')
+    acceptsImage({ name: item.name, type: item.type || raw?.type || '' }, '')
+  const href = safeHref(item.url)
   return {
     item, key: keyFor(item),
-    image: isImage ? item.url || item.raw : undefined,
-    detail: item.description || formatSize(item.size ?? item.raw?.size),
+    href: isImage ? undefined : href,
+    image: isImage ? href ?? raw : undefined,
+    detail: item.description || formatSize(item.size ?? raw?.size),
   }
 }))
 
@@ -69,7 +74,9 @@ function remove(index: number, e: MouseEvent) {
       </YmImage>
       <span v-else class="ym-chat-attachments__file"><YmIcon name="file" /></span>
       <div class="ym-chat-attachments__info">
-        <span :title="card.item.name">{{ card.item.name }}</span>
+        <a v-if="card.href" :href="card.href" target="_blank" rel="noopener noreferrer"
+          :title="card.item.name">{{ card.item.name }}</a>
+        <span v-else :title="card.item.name">{{ card.item.name }}</span>
         <span v-if="card.detail" class="ym-chat-attachments__detail">{{ card.detail }}</span>
       </div>
       <YmButton v-if="props.removable" variant="text" shape="square" :aria-label="'移除 ' + card.item.name"

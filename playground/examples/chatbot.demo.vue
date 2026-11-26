@@ -8,7 +8,12 @@ const size = ref<ControlSize>()
 const endpoints = {
   normal: '/api/chat/sse',
   search: '/api/chat/sse?search=1',
+  attachment: '/api/chat/sse?attachment=1',
   error: '/api/chat/sse?error=1',
+}
+const placeholders: Partial<Record<keyof typeof endpoints, string>> = {
+  search: '如何在消息中展示搜索来源？',
+  attachment: '请发我配送日历和收货清单',
 }
 const mode = ref<keyof typeof endpoints>('normal')
 const chatServiceConfig = computed<ChatServiceConfig>(() => ({
@@ -20,7 +25,7 @@ const chatServiceConfig = computed<ChatServiceConfig>(() => ({
   <PreviewFrame name="YmChatbot">
     <template #preview>
       <YmChatbot class="chatbot-demo" :chat-service-config="chatServiceConfig" :size="size"
-        :placeholder="mode === 'search' ? '如何在消息中展示搜索来源？' : '询问收货安排，或选择附件'" />
+        :placeholder="placeholders[mode] ?? '询问收货安排，或选择附件'" />
     </template>
     <template #controls>
       <label>对话尺寸
@@ -33,6 +38,7 @@ const chatServiceConfig = computed<ChatServiceConfig>(() => ({
         <select v-model="mode">
           <option value="normal">思考、回复与推荐问题</option>
           <option value="search">搜索来源与回复</option>
+          <option value="attachment">附件与回复</option>
           <option value="error">流中出错</option>
         </select>
       </label>

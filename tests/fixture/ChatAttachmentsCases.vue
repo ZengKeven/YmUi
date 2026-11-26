@@ -23,6 +23,18 @@ const legacy = ref<ChatAttachmentItem[]>([
   { name: '同名.png', url: picture.url + '?version=first' },
   { name: '同名.png', url: picture.url + '?version=second' },
 ])
+const linked = ref<ChatAttachmentItem[]>([
+  { ...picture },
+  { name: '配送说明.html', url: './chat-message.html?day=1&amp;site=2' },
+  { name: '签收单.pdf', url: 'https://example.test/receipts/2' },
+  { name: '归档记录.txt', url: 'file:///archive/record.txt', description: '历史记录' },
+  { name: '内嵌图片.png', url: 'data:image/png;base64,AAAA' },
+  { name: '临时图片.png', url: 'blob:https://example.test/image' },
+])
+function replaceUrls() {
+  linked.value[0].url = '//example.test/calendar.png'
+  linked.value[1].url = 'file:///archive/guide.html'
+}
 const lockedUpdates = ref('')
 function recordRemove(item: ChatAttachmentItem, { index, e }: { index: number; e: MouseEvent }) {
   removed.value = JSON.stringify([item.key, index, e.type])
@@ -63,6 +75,10 @@ const border = ref('#52687b')
   <section id="legacy">
     <YmChatAttachments :items="legacy" />
     <button id="reorder" @click="legacy.reverse()">重排历史图片</button>
+  </section>
+  <section id="links">
+    <YmChatAttachments :items="linked" :removable="false" />
+    <button @click="replaceUrls">更新附件地址</button>
   </section>
   <section id="sender">
     <YmChatSender v-model="draft" v-model:attachments="files" :disabled="disabled" :send-btn-disabled="blocked" @send="send" />

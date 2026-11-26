@@ -26,6 +26,9 @@ if (options.has('map')) {
     if (chunk.event === 'invalid') throw new Error('无法转换此事件')
     if (chunk.event === 'reasoning') return { type: 'thinking', data: { text: chunk.raw } }
     if (chunk.event === 'question') return { type: 'suggestion', data: [{ title: chunk.raw }] }
+    if (chunk.event === 'document' && typeof chunk.data === 'string') {
+      return { type: 'attachment', data: [{ name: '收货清单.txt', url: chunk.data }] }
+    }
     if (chunk.event === 'catalog' && Array.isArray(chunk.data)) {
       return { type: 'search', data: { references: chunk.data.map(title => ({ title: String(title) })) } }
     }

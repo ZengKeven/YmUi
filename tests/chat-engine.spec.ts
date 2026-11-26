@@ -131,6 +131,8 @@ test('custom SSE events update sources, merge thinking and Markdown and reveal q
   await expect(sources.getByText('收货手册')).toBeVisible()
   await write(page, 'event: catalog\n' + frame([]))
   await expect(sources).toHaveCount(0)
+  await write(page, 'event: document\ndata: /checklist.txt\n\n')
+  await expect(reply.getByRole('link', { name: '收货清单.txt' })).toHaveAttribute('href', '/checklist.txt')
   await write(page, frame({ piece: '# 安排' }))
   await expect(thinking).toHaveAttribute('data-status', 'complete')
   await expect(markdown.getByRole('heading')).toHaveText('安排')
@@ -203,6 +205,48 @@ test('search updates one panel in place, rechecks changed URLs and carries the l
   ])
 })
 
+test('reply attachments appear before Markdown, update in place and carry the latest list into history', async ({ page }) => {
+  await captureStreams(page)
+  await page.goto(fixture)
+  await send(page)
+  await expect.poll(() => page.evaluate(() => window.chatStreams.length)).toBe(1)
+  const reply = assistant(page)
+  const list = reply.getByRole('list', { name: '附件列表' })
+  const markdown = reply.locator('.ym-chat-markdown')
+  const photo = { id: 'calendar', name: '日历.png', url: '/playground/examples/assets/delivery-calendar.png' }
+  await write(page, frame({ type: 'attachment', data: [photo] }))
+  await expect(reply).toHaveAttribute('data-status', 'streaming')
+  await expect(markdown).toHaveCount(0)
+  await expect(list.getByRole('button', { name: /移除/ })).toHaveCount(0)
+  await list.getByRole('button', { name: '预览 日历.png' }).click()
+  const preview = page.getByRole('dialog').getByRole('img', { name: photo.name })
+  await expect(preview).toBeVisible()
+  await write(page, frame({ type: 'markdown', data: '## 收货' }))
+  await expect(markdown.getByRole('heading')).toHaveText('收货')
+  await expect(preview).toBeVisible()
+
+  await write(page, frame({ type: 'attachment', data: [{ ...photo, url: '//example.test/calendar' }] }))
+  await expect(page.getByRole('dialog')).toHaveCount(0)
+  await expect(list.getByRole('img')).toHaveCount(0)
+  await expect(list.getByText(photo.name)).toBeVisible()
+  await write(page, frame({ type: 'attachment', data: [] }))
+  await expect(list).toHaveCount(0)
+
+  const files = [{ uid: 2, name: '清单.txt', url: '/checklist.txt', size: 20 }]
+  await write(page, frame({ type: 'attachment', data: files }) + frame({ delta: '\n\n请核对清单。' }) + 'data: [DONE]\n\n')
+  await expect(reply).toHaveAttribute('data-status', 'complete')
+  await expect(list.getByRole('link', { name: '清单.txt' })).toHaveAttribute('href', '/checklist.txt')
+  await expect(markdown).toHaveCount(1)
+  await expect(markdown).toContainText('请核对清单。')
+  await send(page, '继续')
+  await expect.poll(() => page.evaluate(() => window.chatStreams.length)).toBe(2)
+  const body = await page.evaluate(() => window.chatStreams[1].request.json())
+  expect(body.attachments).toEqual([])
+  expect(body.messages[1].content).toEqual([
+    { type: 'attachment', data: files }, { type: 'markdown', data: '## 收货\n\n请核对清单。' },
+  ])
+})
+
 test('a suggested turn keeps the draft and stops mid-thought without enabling concurrent follow-ups', async ({ page }) => {
   await captureStreams(page)
   await page.goto(fixture)
@@ -261,12 +305,14 @@ test('stopping a body read aborts the fetch signal and regenerates the same assi
   const id = await reply.getAttribute('data-message-id')
   await write(page, frame({ type: 'thinking', data: { text: '已查清单。' } })
     + frame({ type: 'search', data: { references: [{ title: '收货记录' }] } })
+    + frame({ type: 'attachment', data: [{ name: '已收到.txt' }] })
     + 'data: 已收到的文字\n\n' + frame({ type: 'suggestion', data: [{ title: '过期的追问' }] }) + 'data: 半个')
   await expect(reply).toHaveAttribute('data-status', 'streaming')
   await page.getByRole('button', { name: '停止生成' }).click()
   await expect(reply).toHaveAttribute('data-status', 'stop')
   await expect(reply.locator('.ym-chat-thinking')).toContainText('已查清单。')
   await expect(reply.locator('.ym-chat-search').getByText('收货记录')).toBeVisible()
+  await expect(reply.getByText('已收到.txt')).toBeVisible()
   await expect(reply.getByRole('button', { name: '过期的追问' })).toHaveCount(0)
   await expect(reply.locator('.ym-chat-markdown')).toHaveText('已收到的文字')
   await expect.poll(() => page.evaluate(() => {
@@ -283,6 +329,7 @@ test('stopping a body read aborts the fetch signal and regenerates the same assi
   await expect(reply.locator('.ym-chat-markdown')).toHaveText('新的回复')
   await expect(reply.locator('.ym-chat-thinking')).toHaveCount(0)
   await expect(reply.locator('.ym-chat-search')).toHaveCount(0)
+  await expect(reply.getByRole('list', { name: '附件列表' })).toHaveCount(0)
   await expect(reply.getByRole('list', { name: '推荐问题' })).toHaveCount(0)
   await expect(page.getByRole('article')).toHaveCount(2)
   await expect(page.locator('#errors')).toHaveText('[]')
@@ -347,11 +394,15 @@ test('invalid structured data fails the stream without losing earlier blocks or 
     { type: 'search', data: { references: '无效的清单' } },
     { type: 'search', data: { references: [{ title: '无效的地址', url: 7 }] } },
     { type: 'search', status: 'invalid', data: {} },
+    { type: 'attachment', data: {} },
+    { type: 'attachment', data: [{ name: '  ' }] },
+    { type: 'attachment', data: [{ name: '清单.png', raw: { type: 'image/png' } }] },
   ]
   let attempt = 0
   await page.route('**' + endpoint, route => {
     const body = frame({ type: 'thinking', data: { title: '核对清单', text: '共三项。' } })
       + frame({ type: 'search', data: { references: [{ title: '已查到的单据' }] } })
+      + frame({ type: 'attachment', data: [{ name: '签收记录.txt' }] })
       + frame({ type: 'markdown', data: '已核对。' })
       + frame({ type: 'suggestion', data: [{ title: '提前到达的推荐' }] })
       + frame(invalid[attempt++]) + 'data: 后续内容\n\ndata: [DONE]\n\n'
@@ -366,6 +417,7 @@ test('invalid structured data fails the stream without losing earlier blocks or 
     await expect(reply).toHaveAttribute('data-status', 'error')
     await expect(reply.locator('.ym-chat-thinking')).toContainText('共三项。')
     await expect(reply.locator('.ym-chat-search').getByText('已查到的单据')).toBeVisible()
+    await expect(reply.getByText('签收记录.txt')).toBeVisible()
     await expect(reply.locator('.ym-chat-markdown')).toHaveText('已核对。')
     await expect(reply.getByRole('list', { name: '推荐问题' })).toHaveCount(0)
   }
@@ -376,10 +428,11 @@ test('standalone callbacks receive normalized blocks once and text-only callers 
   const thinking: ChatStreamContent = { type: 'thinking', status: 'complete', data: { text: '已核对。' } }
   const markdown: ChatStreamContent = { type: 'markdown', data: '。' }
   const search: ChatStreamContent = { type: 'search', data: { references: [{ title: '签收须知', url: '/guide' }] } }
+  const attachment: ChatStreamContent = { type: 'attachment', data: [{ fileType: 'pdf', name: '回执.pdf', url: '/receipt.pdf' }] }
   const suggestion: ChatStreamContent = { type: 'suggestion', data: [{ title: '下一项', prompt: '查看下一项' }] }
   await page.route('**' + endpoint, route => route.fulfill({
     contentType: 'text/event-stream',
-    body: 'data: 答\n\n' + frame({ delta: '案' }) + frame(markdown) + frame(search) + frame(thinking) + frame(suggestion) + 'data: [DONE]\n\n',
+    body: 'data: 答\n\n' + frame({ delta: '案' }) + frame(markdown) + frame(attachment) + frame(search) + frame(thinking) + frame(suggestion) + 'data: [DONE]\n\n',
   }))
   await page.goto(fixture)
   const result = await page.evaluate(async () => {
@@ -399,11 +452,36 @@ test('standalone callbacks receive normalized blocks once and text-only callers 
       return { blocks, onlyContent, duplicateChunks, chunks, error: (error as Error).message }
     }
   })
-  const expected = [{ type: 'markdown', data: '答' }, { type: 'markdown', data: '案' }, markdown, search, thinking, suggestion]
+  const expected = [{ type: 'markdown', data: '答' }, { type: 'markdown', data: '案' }, markdown, attachment, search, thinking, suggestion]
   expect(result).toEqual({
     blocks: expected, onlyContent: expected,
     duplicateChunks: [], chunks: ['答', '案', '。'], error: expect.stringContaining('onContent'),
   })
+})
+
+test('a custom event mapper can attach a local File from another window', async ({ page }) => {
+  await page.route('**' + endpoint, route => route.fulfill({
+    contentType: 'text/event-stream', body: 'event: report\ndata: 收货记录\n\ndata: [DONE]\n\n',
+  }))
+  await page.goto(fixture)
+  const result = await page.evaluate(async () => {
+    const iframe = document.createElement('iframe')
+    document.body.append(iframe)
+    const child = iframe.contentWindow as Window & typeof globalThis
+    const file = new child.File(['三个包裹'], '记录.txt', { type: 'text/plain' })
+    const engine = new window.ChatEngineForTest({
+      endpoint: '/api/sse-fixture',
+      onMessage: () => ({ type: 'attachment', data: [{ name: file.name, raw: file }] }),
+    })
+    let received = false
+    await engine.send({ prompt: '收货记录', messages: [], attachments: [], trigger: 'send',
+      signal: new AbortController().signal,
+      onContent: block => { received = block.type === 'attachment' && block.data[0].raw === file },
+    })
+    iframe.remove()
+    return received
+  })
+  expect(result).toBe(true)
 })
 
 test('the public engine rejects a pre-aborted request with its reason and never opens a connection', async ({ page }) => {

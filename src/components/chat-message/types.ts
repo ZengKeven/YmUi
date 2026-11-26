@@ -49,7 +49,7 @@ export interface ChatSearchContent {
 }
 
 export interface ChatAttachmentContent {
-  /** 已发送的附件内容块。 */
+  /** 用户发送或助手返回的附件列表。 */
   type: 'attachment'
   /** 按发送顺序展示的文件与图片。 */
   data: readonly ChatAttachmentItem[]

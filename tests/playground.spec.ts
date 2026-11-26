@@ -1869,6 +1869,47 @@ test('the local SSE search updates one source panel before streaming the Markdow
   await expect(source).toHaveURL('/chat-search/')
 })
 
+test('the local SSE service delivers previewable attachments before the Markdown instructions', async ({ page }) => {
+  await page.goto('/chatbot/')
+  await page.getByLabel('模拟服务').selectOption({ label: '附件与回复' })
+  const bot = page.locator('.demo-canvas .ym-chatbot')
+  const reply = bot.locator('[data-role=assistant]')
+  const list = reply.getByRole('list', { name: '附件列表' })
+  const answer = reply.locator('.ym-chat-markdown')
+  const prompt = '请发我配送日历和收货清单'
+  await bot.getByRole('textbox').fill(prompt)
+  const [response] = await Promise.all([
+    page.waitForResponse('**/api/chat/sse?attachment=1'),
+    reply.filter({ hasNot: page.locator('.ym-chat-markdown') }).getByText('配送日历.png', { exact: true }).waitFor(),
+    answer.filter({ hasNotText: '按收货清单核对单据。' }).getByText('查看配送日历，确认到货日期。').waitFor(),
+    bot.getByRole('button', { name: '发送消息' }).click(),
+  ])
+  expect(response.headers()['content-type']).toContain('text/event-stream')
+  expect(response.request().method()).toBe('POST')
+  expect(response.request().postDataJSON()).toMatchObject({ prompt, attachments: [], trigger: 'send' })
+  await expect(reply).toHaveAttribute('data-status', 'complete')
+  await expect(list.getByRole('listitem')).toHaveCount(3)
+  await expect(list.getByRole('button', { name: /^移除 / })).toHaveCount(0)
+  const blocked = list.getByRole('listitem').filter({ hasText: '内部底图.png' })
+  await expect(blocked).toContainText('仓库留档')
+  await expect(blocked.locator('a[href], img[src], button')).toHaveCount(0)
+  await expect(answer.getByRole('heading')).toHaveText('收货资料')
+  await expect(answer.getByRole('listitem')).toHaveText(['查看配送日历，确认到货日期。', '按收货清单核对单据。'])
+
+  await list.getByRole('button', { name: '预览 配送日历.png' }).click()
+  const dialog = page.getByRole('dialog')
+  const image = dialog.getByRole('img', { name: '配送日历.png' })
+  await expect(image).toHaveAttribute('src', /\/api\/chat\/attachments\/delivery-calendar\.png$/)
+  await expect.poll(() => image.evaluate((img: HTMLImageElement) => img.naturalWidth)).toBeGreaterThan(0)
+  await page.keyboard.press('Escape')
+  await expect(dialog).toHaveCount(0)
+
+  const checklist = list.getByRole('link', { name: '收货清单.txt' })
+  await expect(checklist).toHaveAttribute('href', '/api/chat/attachments/checklist.txt')
+  const [file] = await Promise.all([page.waitForEvent('popup'), checklist.click()])
+  await expect(file.locator('body')).toContainText('核对送货单与采购单号')
+})
+
 test('a server error after the first SSE Markdown chunk retains the partial answer for a retry', async ({ page }) => {
   await page.goto('/chatbot/')
   const bot = page.locator('.demo-canvas .ym-chatbot')
