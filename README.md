@@ -20,6 +20,8 @@ npm run dev
 | `npm pack --dry-run` | 运行类型检查和库构建，查看将进入 npm 包的文件 |
 | `npm pack` | 生成可在其他项目中安装的 `.tgz` |
 
+各组件的操作步骤、预期结果和自动化覆盖情况见[组件测试清单](./docs/component-test-checklist.md)。
+
 ## YmButton
 
 YmButton 的接口和文件组织参考 TDesign Vue Next。业务应用通过 Vite 等浏览器构建器加载组件，并用 `createVaporApp` 挂载入口。该 Vue RC 的原生 Node.js 入口缺少 `template` 等 Vapor 运行时导出。[上游 Button 目录](https://github.com/Tencent/tdesign-vue-next/tree/develop/packages/components/button)
