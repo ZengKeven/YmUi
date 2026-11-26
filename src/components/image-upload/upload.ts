@@ -6,7 +6,7 @@ const imageTypes: Record<string, string> = {
   ico: 'image/x-icon', tif: 'image/tiff', tiff: 'image/tiff', heic: 'image/heic', heif: 'image/heif',
 }
 
-export function acceptsImage(file: File, accept: string) {
+export function acceptsImage(file: Pick<File, 'type' | 'name'>, accept: string) {
   const extension = file.name.match(/\.([^.]+)$/)?.[1].toLowerCase() ?? ''
   const mime = file.type.toLowerCase() || (Object.hasOwn(imageTypes, extension) ? imageTypes[extension] : '')
   if (!mime.startsWith('image/')) return false

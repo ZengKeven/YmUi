@@ -1,21 +1,25 @@
 <script setup lang="ts" vapor>
 import { computed, onScopeDispose, ref, useTemplateRef, watch } from 'vue'
 import { YmButton } from '../button'
+import { YmChatAttachments, type ChatAttachmentItem } from '../chat-attachments'
 import { useFormControlState } from '../form/control-state'
 import { onFormFieldReset } from '../form/field-reset'
 import { YmIcon } from '../icon'
 import { YmTextarea } from '../textarea'
+import { YmUpload, type UploadFile } from '../upload'
 import chatSenderProps from './props'
+import type { ChatSenderSendContext } from './types'
 
 defineOptions({ name: 'YmChatSender' })
 const props = defineProps(chatSenderProps)
 const emit = defineEmits<{
   'update:modelValue': [value: string]
   'update:value': [value: string]
+  'update:attachments': [attachments: ChatAttachmentItem[]]
   change: [value: string, context: { e: Event }]
   focus: [value: string, context: { e: FocusEvent }]
   blur: [value: string, context: { e: FocusEvent }]
-  send: [value: string, context: { e: MouseEvent | KeyboardEvent }]
+  send: [value: string, context: ChatSenderSendContext]
   stop: [value: string, context: { e: MouseEvent }]
 }>()
 defineSlots<{
@@ -39,7 +43,8 @@ const draft = ref(initial)
 const controlled = computed(() => props.modelValue ?? props.value)
 const text = computed(() => controlled.value?.replace(/\r\n?/g, '\n') ?? draft.value)
 const stopping = computed(() => props.loading || props.stopDisabled)
-const sendDisabled = computed(() => disabled.value || props.sendBtnDisabled || stopping.value || !text.value)
+const sendDisabled = computed(() => disabled.value || props.sendBtnDisabled || stopping.value ||
+  (!text.value && !props.attachments?.length))
 const defaultAutosize = { minRows: 2, maxRows: 5 }
 const editorArea = useTemplateRef<HTMLDivElement>('editorArea')
 
@@ -51,7 +56,12 @@ function change(value: string, context: { e: Event }) {
 }
 
 function send(e: MouseEvent | KeyboardEvent) {
-  if (!sendDisabled.value) emit('send', text.value, { e })
+  if (!sendDisabled.value) emit('send', text.value, { e, attachments: props.attachments?.slice() ?? [] })
+}
+
+function appendAttachments(files: UploadFile[]) {
+  if (disabled.value || !props.attachments) return
+  emit('update:attachments', [...props.attachments, ...files])
 }
 
 function stop(e: MouseEvent) {
@@ -94,6 +104,8 @@ watch([editorArea, () => props.textareaProps?.form], ([area], _, onCleanup) => {
 <template>
   <div class="ym-chat-sender" :data-size="props.size" :data-disabled="disabled || undefined">
     <div v-if="$slots.header"><slot name="header" /></div>
+    <YmChatAttachments v-if="props.attachments?.length" :items="props.attachments" :removable="!disabled"
+      @update:items="emit('update:attachments', $event)" />
     <div v-if="$slots['inner-header']"><slot name="inner-header" /></div>
     <div class="ym-chat-sender__body">
       <div v-if="$slots['input-prefix']"><slot name="input-prefix" /></div>
@@ -107,6 +119,10 @@ watch([editorArea, () => props.textareaProps?.form], ([area], _, onCleanup) => {
       </div>
     </div>
     <div class="ym-chat-sender__footer">
+      <YmUpload v-if="props.attachments !== undefined" :model-value="[]" multiple :auto-upload="false"
+        :disabled="disabled" @change="appendAttachments">
+        <template #trigger>选择附件</template>
+      </YmUpload>
       <div v-if="$slots['footer-prefix']"><slot name="footer-prefix" /></div>
       <div class="ym-chat-sender__actions">
         <slot name="suffix" :send="send" :stop="stop" :loading="stopping" :disabled="stopping ? disabled : sendDisabled">

@@ -16,14 +16,28 @@ const offset = ref({ x: 0, y: 0 })
 const failed = ref(false)
 let drag: { pointerId: number; x: number; y: number; offsetX: number; offsetY: number } | undefined
 let opener: Element | null = null
+let positionObserver: MutationObserver | undefined
 
 onMounted(() => {
   const element = dialog.value
   if (!element) return
   opener = element.ownerDocument.activeElement
   element.showModal()
+  // 列表重排会移动预览所在的节点。原生 dialog 仍有 open 属性，但已脱离模态层。
+  positionObserver = new MutationObserver(() => {
+    if (!element.open || !element.isConnected || element.matches(':modal')) return
+    const otherModal = element.ownerDocument.activeElement?.closest('dialog:modal')
+    if (otherModal && !otherModal.contains(element)) {
+      emit('close')
+      return
+    }
+    element.close()
+    element.showModal()
+  })
+  positionObserver.observe(element.getRootNode(), { childList: true, subtree: true })
 })
 onBeforeUnmount(() => {
+  positionObserver?.disconnect()
   dialog.value?.close()
   if (opener instanceof HTMLElement && opener.isConnected) opener.focus({ preventScroll: true })
 })

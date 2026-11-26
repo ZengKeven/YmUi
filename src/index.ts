@@ -4,14 +4,15 @@ export { YmBadge, type BadgeProps } from './components/badge'
 export { YmButton, type ButtonProps } from './components/button'
 export { YmCalendar, type CalendarCell, type CalendarProps } from './components/calendar'
 export { YmChatActionbar, type ChatActionbarProps, type ChatActionbarAction, type ChatActionbarComment } from './components/chat-actionbar'
+export { YmChatAttachments, type ChatAttachmentItem, type ChatAttachmentsProps, type ChatAttachmentRemoveContext } from './components/chat-attachments'
 export { YmChatList, type ChatListProps, type ChatListInstance } from './components/chat-list'
 export { YmChatMarkdown, type ChatMarkdownProps } from './components/chat-markdown'
 export { YmChatMessage, type ChatMessageProps, type ChatMessageData, type ChatMessageRole,
-  type ChatMessageStatus, type ChatMessageContent, type ChatTextContent, type ChatMarkdownContent,
+  type ChatMessageStatus, type ChatMessageContent, type ChatTextContent, type ChatMarkdownContent, type ChatAttachmentContent,
   type ChatThinkingContent, type ChatSearchContent, type ChatMessageSearchContext,
   type ChatSuggestionContent, type ChatMessageSuggestionContext, type ChatMessageAvatar } from './components/chat-message'
 export { YmChatSearch, type ChatSearchProps, type ChatSearchData, type ChatSearchReference, type ChatSearchSourceContext } from './components/chat-search'
-export { YmChatSender, type ChatSenderProps } from './components/chat-sender'
+export { YmChatSender, type ChatSenderProps, type ChatSenderSendContext } from './components/chat-sender'
 export { YmChatSuggestion, type ChatSuggestionProps, type ChatSuggestionItem, type ChatSuggestionSelectContext } from './components/chat-suggestion'
 export { YmChatThinking, type ChatThinkingProps, type ChatThinkingData, type ChatThinkingStatus } from './components/chat-thinking'
 export * from './components/form'

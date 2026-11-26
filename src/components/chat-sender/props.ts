@@ -9,6 +9,8 @@ export default {
   value: textareaProps.value,
   /** 非受控草稿的初始值。 */
   defaultValue: textareaProps.defaultValue,
+  /** 受控附件列表，传入空数组即可开始选择文件。 */
+  attachments: Array as PropType<ChatSenderProps['attachments']>,
   /** 优先于内部输入框配置的占位文字。 */
   placeholder: textareaProps.placeholder,
   /** 发送框的禁用状态。 */

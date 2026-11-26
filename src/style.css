@@ -2,6 +2,7 @@
 @import './components/button/index.css';
 @import './components/calendar/index.css';
 @import './components/chat-actionbar/index.css';
+@import './components/chat-attachments/index.css';
 @import './components/chat-list/index.css';
 @import './components/chat-markdown/index.css';
 @import './components/chat-message/index.css';

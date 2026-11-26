@@ -15,7 +15,7 @@ category: 聊天组件
 | 名称 | 类型 | 默认值 | 说明 |
 | --- | --- | --- | --- |
 | message | `ChatMessageData` | — | 整条消息。包含稳定的字符串 `id`，以及可选的 `role`、`status`、`content`、`avatar`、`name` 和 `datetime`。单独传入的同名属性优先。 |
-| content | `string \| readonly ChatMessageContent[]` | — | 字符串按纯文本显示。数组按顺序展示内容块。`text` 块保留原文和换行，`markdown` 块渲染 Markdown，`thinking` 块展示思考过程，`search` 块展示搜索来源，`suggestion` 块在回复完成后展示推荐问题。 |
+| content | `string \| readonly ChatMessageContent[]` | — | 字符串按纯文本显示。数组按顺序展示内容块。`text` 块保留原文和换行，`markdown` 块渲染 Markdown，`attachment` 块展示附件，`thinking` 块展示思考过程，`search` 块展示搜索来源，`suggestion` 块在回复完成后展示推荐问题。 |
 | role | `assistant / user / system` | `assistant` | 标识助手、用户或系统消息。 |
 | status | `pending / streaming / complete / stop / error` | `complete` | 等待回复或接收中的空消息显示加载指示。消息包含思考块时由它展示进度。完成或停止后保留正文，出错时在正文旁提示「消息出错」。 |
 | avatar | `string \| { src: string, alt?: string, fallback?: string }` | — | 头像图片地址，或含替代文本及备用地址的配置。省略时隐藏头像。图片及备用地址均加载失败时显示角色图标。 |
@@ -67,6 +67,7 @@ const reply: ChatMessageData = {
       { title: '本周收货预约', url: '/warehouse/appointments' },
     ] } },
     { type: 'text', data: '预计周五到货，签收后会同步入库数量。' },
+    { type: 'attachment', data: [{ name: '收货清单.pdf', size: 24576 }] },
     { type: 'markdown', data: '## 随车材料\n\n- 送货单\n- 采购单号' },
     { type: 'suggestion', data: [{ title: '在哪里登记？', prompt: '司机到场后在哪里登记？' }] },
   ],
@@ -83,7 +84,9 @@ const reply: ChatMessageData = {
 </template>
 ```
 
-`ChatMessageContent` 包含纯文本块 `ChatTextContent`、Markdown 块 `ChatMarkdownContent`、思考块 `ChatThinkingContent`、搜索块 `ChatSearchContent` 和推荐问题块 `ChatSuggestionContent`。思考块的 `data` 接受 `{ title?: string; text?: string }`，其中 `text` 用于累积进度。省略块状态时，思考面板跟随消息的等待或接收状态，展示已完成的历史消息时显示「思考完成」。
+`ChatMessageContent` 包含纯文本块 `ChatTextContent`、Markdown 块 `ChatMarkdownContent`、附件块 `ChatAttachmentContent`、思考块 `ChatThinkingContent`、搜索块 `ChatSearchContent` 和推荐问题块 `ChatSuggestionContent`。思考块的 `data` 接受 `{ title?: string; text?: string }`，其中 `text` 用于累积进度。省略块状态时，思考面板跟随消息的等待或接收状态，展示已完成的历史消息时显示「思考完成」。
+
+附件块的 `data` 接受 `readonly ChatAttachmentItem[]`。处理发送框的 `send` 事件时可以直接使用 `context.attachments`。消息以只读列表展示这些文件，图片加载后可打开预览。复制正文时只包含文本和 Markdown 源文。参见[对话附件](/chat-attachments/)。
 
 同一条消息可以先思考再回复。收到思考结束信号时，将思考块的 `status` 设为 `complete`，然后追加新的 Markdown 块，将后续回复片段累积到该块的 `data`。可在[对话思考](/chat-thinking/)中运行这段模拟流，或在[对话 Markdown](/chat-markdown/)中查看跨片段的链接和代码块如何显示。
 

@@ -1,4 +1,5 @@
 import type { ControlSize } from '../config-provider/types'
+import type { ChatAttachmentItem } from '../chat-attachments/types'
 import type { ChatSearchData, ChatSearchSourceContext } from '../chat-search/types'
 import type { ChatSuggestionItem, ChatSuggestionSelectContext } from '../chat-suggestion/types'
 import type { ChatThinkingData, ChatThinkingStatus } from '../chat-thinking/types'
@@ -47,7 +48,15 @@ export interface ChatSearchContent {
   status?: ChatMessageStatus
 }
 
-export type ChatMessageContent = ChatTextContent | ChatMarkdownContent | ChatThinkingContent | ChatSearchContent | ChatSuggestionContent
+export interface ChatAttachmentContent {
+  /** 已发送的附件内容块。 */
+  type: 'attachment'
+  /** 按发送顺序展示的文件与图片。 */
+  data: readonly ChatAttachmentItem[]
+}
+
+export type ChatMessageContent = ChatTextContent | ChatMarkdownContent | ChatThinkingContent | ChatSearchContent |
+  ChatSuggestionContent | ChatAttachmentContent
 
 export interface ChatMessageAvatar {
   /** 头像的图片地址。 */

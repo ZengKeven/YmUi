@@ -17,6 +17,7 @@ category: 聊天组件
 | modelValue | `string` | — | 当前草稿，支持 `v-model`，优先于 `value`。 |
 | value | `string` | — | 当前草稿，也可通过 `v-model:value` 双向绑定。 |
 | defaultValue | `string` | 空字符串 | 非受控模式下的初始草稿。 |
+| attachments | `readonly ChatAttachmentItem[]` | — | 待发送的附件列表。传入空数组会显示「选择附件」按钮，通过 `v-model:attachments` 接收选择或移除后的列表。 |
 | placeholder | `string` | 取 `textareaProps.placeholder` | 草稿为空时显示的提示文字。 |
 | loading | `boolean` | `false` | 回复生成时设为 `true`，将当前操作切换为停止。 |
 | stopDisabled | `boolean` | `false` | 与上游兼容的停止模式开关。设为 `true` 时也会显示停止按钮。 |
@@ -33,8 +34,9 @@ category: 聊天组件
 | --- | --- | --- |
 | update:modelValue | `value: string` | 用户编辑产生新值，供 `v-model` 同步草稿。 |
 | update:value | `value: string` | 用户编辑产生新值，供 `v-model:value` 同步草稿。 |
+| update:attachments | `attachments: ChatAttachmentItem[]` | 选择本地文件或移除附件时传出更新后的完整列表。 |
 | change | `(value: string, context: { e: Event })` | 文本变化时传出新值和原生事件。中文输入法在确认候选词后同步。 |
-| send | `(value: string, context: { e: MouseEvent \| KeyboardEvent })` | 点击发送按钮或按 Enter 时，传出本次发送的文本。 |
+| send | `(value: string, context: ChatSenderSendContext)` | 点击发送按钮或按 Enter 时传出草稿。上下文包含原生事件 `e` 和附件数组快照 `attachments`。仅发送附件时，`value` 为空字符串。 |
 | stop | `(value: string, context: { e: MouseEvent })` | 点击停止按钮，传出此时输入框中的草稿。 |
 | focus | `(value: string, context: { e: FocusEvent })` | 编辑区获得焦点。 |
 | blur | `(value: string, context: { e: FocusEvent })` | 编辑区失去焦点。 |
@@ -52,6 +54,8 @@ category: 聊天组件
 ## 使用指南
 
 按 Enter 发送，按 Shift+Enter 换行。在中文输入法中按 Enter 确认候选词后，再按一次 Enter 即可发送。组件发出 `send` 时保留输入内容，业务页面可在接受消息后清空绑定的草稿。接入流式回复时，将请求状态绑定到 `loading`，在 `stop` 回调里取消当前请求。
+
+需要发送附件时，将 `v-model:attachments` 绑定到数组。每次选择的本地文件都会追加到列表中，原始 `File` 保存在 `raw`。在编辑区上方可以预览图片、移除文件。发送时，将 `context.attachments` 写入消息的 `{ type: 'attachment', data: context.attachments }` 内容块，然后清空绑定的附件数组。[本地发送示例](/chat-attachments/)
 
 ```vue
 <script setup lang="ts" vapor>
