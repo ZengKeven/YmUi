@@ -1,6 +1,7 @@
 <script setup lang="ts" vapor>
 import { computed } from 'vue'
 import { YmChatMarkdown } from '../chat-markdown'
+import { YmChatThinking, type ChatThinkingStatus } from '../chat-thinking'
 import { YmIcon } from '../icon'
 import { YmImage } from '../image'
 import { YmLoading } from '../loading'
@@ -33,11 +34,17 @@ const avatarAlt = computed(() => avatar.value?.alt ?? (name.value ? '' : roleNam
 const segments = computed(() => {
   const content = props.content ?? props.message?.content
   if (typeof content === 'string') return [{ type: 'text' as const, data: content }]
-  return content?.filter(block => block.type === 'text' || block.type === 'markdown') ?? []
+  return content?.filter(block => block.type === 'text' || block.type === 'markdown' || block.type === 'thinking') ?? []
 })
-const loading = computed(() => status.value === 'pending' ||
-  (status.value === 'streaming' && !slots.content && !slots.default && !segments.value.some(block => block.data)))
-const copyText = computed(() => segments.value.map(block => block.data).join('\n'))
+const thinkingStatus = computed<ChatThinkingStatus>(() =>
+  status.value === 'pending' || status.value === 'streaming' ? status.value : 'complete')
+const loading = computed(() => {
+  if (status.value !== 'pending' && status.value !== 'streaming') return false
+  if (slots.content || slots.default) return status.value === 'pending'
+  if (segments.value.some(block => block.type === 'thinking')) return false
+  return status.value === 'pending' || !segments.value.some(block => block.data)
+})
+const copyText = computed(() => segments.value.filter(block => block.type !== 'thinking').map(block => block.data).join('\n'))
 </script>
 
 <template>
@@ -61,8 +68,9 @@ const copyText = computed(() => segments.value.map(block => block.data).join('\n
       </div>
       <div class="ym-chat-message__bubble">
         <slot name="content"><slot>
-          <template v-for="(block, index) in segments" :key="index">
+          <template v-for="(block, index) in segments" :key="`${props.message?.id ?? ''}:${index}`">
             <YmChatMarkdown v-if="block.type === 'markdown'" :content="block.data" />
+            <YmChatThinking v-else-if="block.type === 'thinking'" :content="block.data" :status="block.status ?? thinkingStatus" />
             <div v-else class="ym-chat-message__text">{{ block.data }}</div>
           </template>
         </slot></slot>

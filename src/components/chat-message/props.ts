@@ -15,7 +15,7 @@ export default {
     type: String as PropType<ChatMessageProps['status']>,
     validator: (status: string) => ['pending', 'streaming', 'complete', 'stop', 'error'].includes(status),
   },
-  /** 纯文本字符串，或按顺序展示的纯文本和 Markdown 内容块。 */
+  /** 纯文本字符串，或按顺序展示的纯文本、Markdown 和思考过程块。 */
   content: [String, Array] as PropType<ChatMessageProps['content']>,
   /** 头像地址或图片配置。 */
   avatar: [String, Object] as PropType<ChatMessageProps['avatar']>,

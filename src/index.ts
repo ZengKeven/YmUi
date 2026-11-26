@@ -8,8 +8,9 @@ export { YmChatList, type ChatListProps, type ChatListInstance } from './compone
 export { YmChatMarkdown, type ChatMarkdownProps } from './components/chat-markdown'
 export { YmChatMessage, type ChatMessageProps, type ChatMessageData, type ChatMessageRole,
   type ChatMessageStatus, type ChatMessageContent, type ChatTextContent, type ChatMarkdownContent,
-  type ChatMessageAvatar } from './components/chat-message'
+  type ChatThinkingContent, type ChatMessageAvatar } from './components/chat-message'
 export { YmChatSender, type ChatSenderProps } from './components/chat-sender'
+export { YmChatThinking, type ChatThinkingProps, type ChatThinkingData, type ChatThinkingStatus } from './components/chat-thinking'
 export * from './components/form'
 export { YmDatePicker, type DatePickerMode, type DatePickerProps, type DatePickerValue, type DateRangePresets, type DateRangeValue } from './components/date-picker'
 export { YmDescriptions, YmDescriptionsItem, type DescriptionsProps, type DescriptionsItemProps } from './components/descriptions'

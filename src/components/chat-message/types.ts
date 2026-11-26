@@ -1,4 +1,5 @@
 import type { ControlSize } from '../config-provider/types'
+import type { ChatThinkingData, ChatThinkingStatus } from '../chat-thinking/types'
 
 export type ChatMessageRole = 'user' | 'assistant' | 'system'
 export type ChatMessageStatus = 'pending' | 'streaming' | 'complete' | 'stop' | 'error'
@@ -17,7 +18,16 @@ export interface ChatMarkdownContent {
   data: string
 }
 
-export type ChatMessageContent = ChatTextContent | ChatMarkdownContent
+export interface ChatThinkingContent {
+  /** 可展开的思考过程块。 */
+  type: 'thinking'
+  /** 思考过程的标题和正文。 */
+  data: ChatThinkingData
+  /** 思考块自身的状态，可在消息仍接收回复时单独完成。 */
+  status?: ChatThinkingStatus
+}
+
+export type ChatMessageContent = ChatTextContent | ChatMarkdownContent | ChatThinkingContent
 
 export interface ChatMessageAvatar {
   /** 头像的图片地址。 */
