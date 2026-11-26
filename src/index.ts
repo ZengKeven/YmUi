@@ -15,6 +15,7 @@ export { YmChatSearch, type ChatSearchProps, type ChatSearchData, type ChatSearc
 export { YmChatSender, type ChatSenderProps, type ChatSenderSendContext } from './components/chat-sender'
 export { YmChatSuggestion, type ChatSuggestionProps, type ChatSuggestionItem, type ChatSuggestionSelectContext } from './components/chat-suggestion'
 export { YmChatThinking, type ChatThinkingProps, type ChatThinkingData, type ChatThinkingStatus } from './components/chat-thinking'
+export { YmChatbot, type ChatbotProps, type ChatbotInstance, type ChatbotRequestContext, type ChatbotSendOptions } from './components/chatbot'
 export * from './components/form'
 export { YmDatePicker, type DatePickerMode, type DatePickerProps, type DatePickerValue, type DateRangePresets, type DateRangeValue } from './components/date-picker'
 export { YmDescriptions, YmDescriptionsItem, type DescriptionsProps, type DescriptionsItemProps } from './components/descriptions'

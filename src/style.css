@@ -10,6 +10,7 @@
 @import './components/chat-sender/index.css';
 @import './components/chat-suggestion/index.css';
 @import './components/chat-thinking/index.css';
+@import './components/chatbot/index.css';
 @import './components/checkbox/index.css';
 @import './components/color-picker/index.css';
 @import './components/descriptions/index.css';

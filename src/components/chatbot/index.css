@@ -1,0 +1,10 @@
+.ym-chatbot { width: 100%; }
+.ym-chatbot .ym-chat-message__actionbar {
+  display: flex;
+  align-items: center;
+  gap: .4em;
+}
+.ym-chatbot__stopped {
+  color: color-mix(in srgb, var(--ym-color-text) 72%, var(--ym-color-surface));
+  font-size: .875em;
+}
