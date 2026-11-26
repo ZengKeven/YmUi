@@ -11,7 +11,7 @@ export interface ChatbotSendOptions {
 }
 
 export interface ChatbotRequestContext extends ChatEngineRequestContext {
-  /** 将本次新增的思考、Markdown 或推荐问题交给组件。 */
+  /** 将思考、搜索来源、Markdown 或推荐问题分片交给组件。 */
   onContent: (block: ChatStreamContent) => void
 }
 

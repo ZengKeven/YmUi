@@ -5,16 +5,22 @@ import PreviewFrame from './PreviewFrame.vue'
 import { sizes } from './settings'
 
 const size = ref<ControlSize>()
-const mode = ref('normal')
+const endpoints = {
+  normal: '/api/chat/sse',
+  search: '/api/chat/sse?search=1',
+  error: '/api/chat/sse?error=1',
+}
+const mode = ref<keyof typeof endpoints>('normal')
 const chatServiceConfig = computed<ChatServiceConfig>(() => ({
-  endpoint: mode.value === 'error' ? '/api/chat/sse?error=1' : '/api/chat/sse',
+  endpoint: endpoints[mode.value],
 }))
 </script>
 
 <template>
   <PreviewFrame name="YmChatbot">
     <template #preview>
-      <YmChatbot class="chatbot-demo" :chat-service-config="chatServiceConfig" :size="size" placeholder="询问收货安排，或选择附件" />
+      <YmChatbot class="chatbot-demo" :chat-service-config="chatServiceConfig" :size="size"
+        :placeholder="mode === 'search' ? '如何在消息中展示搜索来源？' : '询问收货安排，或选择附件'" />
     </template>
     <template #controls>
       <label>对话尺寸
@@ -26,6 +32,7 @@ const chatServiceConfig = computed<ChatServiceConfig>(() => ({
       <label>模拟服务
         <select v-model="mode">
           <option value="normal">思考、回复与推荐问题</option>
+          <option value="search">搜索来源与回复</option>
           <option value="error">流中出错</option>
         </select>
       </label>

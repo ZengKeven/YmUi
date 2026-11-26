@@ -111,7 +111,7 @@ test('POSTs conversation and file metadata and completes on DONE without waiting
   await expect(page.locator('#errors')).toHaveText('[]')
 })
 
-test('custom SSE events merge thinking and Markdown and reveal questions only on completion', async ({ page }) => {
+test('custom SSE events update sources, merge thinking and Markdown and reveal questions on completion', async ({ page }) => {
   await captureStreams(page)
   await page.goto(fixture + '?map')
   await send(page)
@@ -126,6 +126,11 @@ test('custom SSE events merge thinking and Markdown and reveal questions only on
   await expect(markdown).toHaveCount(0)
   await write(page, 'event: reasoning\ndata: 收货时间。\n\n')
   await expect(thinking).toContainText('先核对收货时间。')
+  await write(page, 'event: catalog\n' + frame(['收货手册']))
+  const sources = reply.locator('.ym-chat-search')
+  await expect(sources.getByText('收货手册')).toBeVisible()
+  await write(page, 'event: catalog\n' + frame([]))
+  await expect(sources).toHaveCount(0)
   await write(page, frame({ piece: '# 安排' }))
   await expect(thinking).toHaveAttribute('data-status', 'complete')
   await expect(markdown.getByRole('heading')).toHaveText('安排')
@@ -139,6 +144,63 @@ test('custom SSE events merge thinking and Markdown and reveal questions only on
   await expect(reply).toHaveAttribute('data-status', 'complete')
   await expect(question).toBeVisible()
   await expect(reply.getByRole('button', { name: '旧的推荐' })).toHaveCount(0)
+})
+
+test('search updates one panel in place, rechecks changed URLs and carries the latest sources into history', async ({ page }) => {
+  await captureStreams(page)
+  await page.goto(fixture)
+  await send(page)
+  await expect.poll(() => page.evaluate(() => window.chatStreams.length)).toBe(1)
+  const reply = assistant(page)
+  const id = await reply.getAttribute('data-message-id')
+  const panel = reply.locator('.ym-chat-search')
+  const toggle = panel.getByRole('button')
+  const markdown = reply.locator('.ym-chat-markdown')
+  const receipt = panel.getByRole('link', { name: '收货清单' })
+  await write(page, frame({ type: 'search', data: { title: '初查', references: [
+    { title: '收货清单', url: '/receipts' }, { title: '初版名录' },
+  ] } }))
+  await expect(receipt).toHaveAttribute('href', '/receipts')
+  await expect(markdown).toHaveCount(0)
+  await toggle.click()
+  await write(page, frame({ type: 'markdown', data: '## 签收' })
+    + frame({ type: 'search', status: 'complete', data: { title: '核实后的来源' } }))
+  await expect(markdown.getByRole('heading')).toHaveText('签收')
+  await expect(toggle).toHaveAccessibleName('核实后的来源')
+  await expect(toggle).toHaveAttribute('aria-expanded', 'false')
+  await toggle.click()
+  await expect(receipt).toBeVisible()
+
+  const guide = { title: '签收说明', url: './guide?a=1&amp;b=2', site: '仓库' }
+  const references = [
+    { title: ' ', url: '/hidden' }, { title: '收货清单', url: '//example.test/receipts' },
+    guide, { title: '目录', url: 'https://example.test/catalog' },
+  ]
+  await write(page, frame({ type: 'search', data: { references } }) + frame({ delta: '\n\n请先登记。' }))
+  await expect(panel.getByRole('listitem')).toHaveCount(3)
+  await expect(panel.getByText('初版名录')).toHaveCount(0)
+  await expect(receipt).toHaveCount(0)
+  await expect(panel.getByText('收货清单', { exact: true })).toBeVisible()
+  await expect(panel.getByRole('link', { name: '目录' })).toHaveAttribute('href', 'https://example.test/catalog')
+  const link = panel.getByRole('link', { name: guide.title })
+  await expect(link).toHaveAttribute('href', './guide?a=1&b=2')
+  await link.click()
+  const selection = page.locator('#selected-source')
+  await expect(selection).not.toBeEmpty()
+  expect(JSON.parse(await selection.innerText())).toEqual(['./guide?a=1&b=2', guide, 2, id, true])
+  expect(page.context().pages()).toHaveLength(1)
+  await expect(markdown).toHaveCount(1)
+  await expect(markdown).toContainText('请先登记。')
+
+  await write(page, 'data: [DONE]\n\n')
+  await expect(reply).toHaveAttribute('data-status', 'complete')
+  await send(page, '下一批货呢？')
+  await expect.poll(() => page.evaluate(() => window.chatStreams.length)).toBe(2)
+  const body = await page.evaluate(() => window.chatStreams[1].request.json())
+  expect(body.messages[1].content).toEqual([
+    { type: 'search', status: 'complete', data: { title: '核实后的来源', references } },
+    { type: 'markdown', data: '## 签收\n\n请先登记。' },
+  ])
 })
 
 test('a suggested turn keeps the draft and stops mid-thought without enabling concurrent follow-ups', async ({ page }) => {
@@ -198,11 +260,13 @@ test('stopping a body read aborts the fetch signal and regenerates the same assi
   await expect(reply).toHaveAttribute('data-status', 'pending')
   const id = await reply.getAttribute('data-message-id')
   await write(page, frame({ type: 'thinking', data: { text: '已查清单。' } })
+    + frame({ type: 'search', data: { references: [{ title: '收货记录' }] } })
     + 'data: 已收到的文字\n\n' + frame({ type: 'suggestion', data: [{ title: '过期的追问' }] }) + 'data: 半个')
   await expect(reply).toHaveAttribute('data-status', 'streaming')
   await page.getByRole('button', { name: '停止生成' }).click()
   await expect(reply).toHaveAttribute('data-status', 'stop')
   await expect(reply.locator('.ym-chat-thinking')).toContainText('已查清单。')
+  await expect(reply.locator('.ym-chat-search').getByText('收货记录')).toBeVisible()
   await expect(reply.getByRole('button', { name: '过期的追问' })).toHaveCount(0)
   await expect(reply.locator('.ym-chat-markdown')).toHaveText('已收到的文字')
   await expect.poll(() => page.evaluate(() => {
@@ -218,6 +282,7 @@ test('stopping a body read aborts the fetch signal and regenerates the same assi
   await expect(reply).toHaveAttribute('data-message-id', id!)
   await expect(reply.locator('.ym-chat-markdown')).toHaveText('新的回复')
   await expect(reply.locator('.ym-chat-thinking')).toHaveCount(0)
+  await expect(reply.locator('.ym-chat-search')).toHaveCount(0)
   await expect(reply.getByRole('list', { name: '推荐问题' })).toHaveCount(0)
   await expect(page.getByRole('article')).toHaveCount(2)
   await expect(page.locator('#errors')).toHaveText('[]')
@@ -279,10 +344,14 @@ test('invalid structured data fails the stream without losing earlier blocks or 
     { type: 'thinking', data: { text: 12 } },
     { type: 'markdown', data: ['正文'] },
     { type: 'suggestion', data: [{ title: '如何签收？', prompt: false }] },
+    { type: 'search', data: { references: '无效的清单' } },
+    { type: 'search', data: { references: [{ title: '无效的地址', url: 7 }] } },
+    { type: 'search', status: 'invalid', data: {} },
   ]
   let attempt = 0
   await page.route('**' + endpoint, route => {
     const body = frame({ type: 'thinking', data: { title: '核对清单', text: '共三项。' } })
+      + frame({ type: 'search', data: { references: [{ title: '已查到的单据' }] } })
       + frame({ type: 'markdown', data: '已核对。' })
       + frame({ type: 'suggestion', data: [{ title: '提前到达的推荐' }] })
       + frame(invalid[attempt++]) + 'data: 后续内容\n\ndata: [DONE]\n\n'
@@ -296,6 +365,7 @@ test('invalid structured data fails the stream without losing earlier blocks or 
     await expect.poll(async () => JSON.parse(await page.locator('#errors').innerText()).length).toBe(i + 1)
     await expect(reply).toHaveAttribute('data-status', 'error')
     await expect(reply.locator('.ym-chat-thinking')).toContainText('共三项。')
+    await expect(reply.locator('.ym-chat-search').getByText('已查到的单据')).toBeVisible()
     await expect(reply.locator('.ym-chat-markdown')).toHaveText('已核对。')
     await expect(reply.getByRole('list', { name: '推荐问题' })).toHaveCount(0)
   }
@@ -305,10 +375,11 @@ test('invalid structured data fails the stream without losing earlier blocks or 
 test('standalone callbacks receive normalized blocks once and text-only callers keep legacy behavior', async ({ page }) => {
   const thinking: ChatStreamContent = { type: 'thinking', status: 'complete', data: { text: '已核对。' } }
   const markdown: ChatStreamContent = { type: 'markdown', data: '。' }
+  const search: ChatStreamContent = { type: 'search', data: { references: [{ title: '签收须知', url: '/guide' }] } }
   const suggestion: ChatStreamContent = { type: 'suggestion', data: [{ title: '下一项', prompt: '查看下一项' }] }
   await page.route('**' + endpoint, route => route.fulfill({
     contentType: 'text/event-stream',
-    body: 'data: 答\n\n' + frame({ delta: '案' }) + frame(markdown) + frame(thinking) + frame(suggestion) + 'data: [DONE]\n\n',
+    body: 'data: 答\n\n' + frame({ delta: '案' }) + frame(markdown) + frame(search) + frame(thinking) + frame(suggestion) + 'data: [DONE]\n\n',
   }))
   await page.goto(fixture)
   const result = await page.evaluate(async () => {
@@ -328,7 +399,7 @@ test('standalone callbacks receive normalized blocks once and text-only callers 
       return { blocks, onlyContent, duplicateChunks, chunks, error: (error as Error).message }
     }
   })
-  const expected = [{ type: 'markdown', data: '答' }, { type: 'markdown', data: '案' }, markdown, thinking, suggestion]
+  const expected = [{ type: 'markdown', data: '答' }, { type: 'markdown', data: '案' }, markdown, search, thinking, suggestion]
   expect(result).toEqual({
     blocks: expected, onlyContent: expected,
     duplicateChunks: [], chunks: ['答', '案', '。'], error: expect.stringContaining('onContent'),

@@ -1825,6 +1825,50 @@ test('the chatbot streams thinking and Markdown before sending a suggested follo
   await expect(second.getByRole('button', { name: '北门登记后怎么走？' })).toBeVisible()
 })
 
+test('the local SSE search updates one source panel before streaming the Markdown answer', async ({ page }) => {
+  await page.goto('/chatbot/')
+  const bot = page.locator('.demo-canvas .ym-chatbot')
+  const reply = bot.locator('[data-role=assistant]')
+  const search = reply.locator('.ym-chat-search')
+  const answer = reply.locator('.ym-chat-markdown')
+  const searching = reply.filter({ hasNot: page.locator('.ym-chat-markdown') })
+  await page.getByLabel('模拟服务').selectOption({ label: '搜索来源与回复' })
+  const prompt = '如何在消息中展示搜索来源？'
+  await bot.getByRole('textbox').fill(prompt)
+
+  const [response] = await Promise.all([
+    page.waitForResponse('**/api/chat/sse?search=1'),
+    searching.getByText('查看来源列表的用法。', { exact: true }).waitFor(),
+    searching.getByRole('button', { name: '搜索结果（3）' }).waitFor(),
+    answer.filter({ hasNotText: '在来源列表后逐段发送回复正文。' })
+      .getByText('在搜索分片中提供来源标题和地址。').waitFor(),
+    bot.getByRole('button', { name: '发送消息' }).click(),
+  ])
+  expect(response.headers()['content-type']).toContain('text/event-stream')
+  expect(response.request().method()).toBe('POST')
+  expect(response.request().postDataJSON()).toMatchObject({ prompt, trigger: 'send' })
+  await expect(reply).toHaveAttribute('data-status', 'complete')
+  await expect(reply).toHaveCount(1)
+  await expect(search).toHaveCount(1)
+  await expect(search.getByRole('listitem')).toHaveCount(3)
+  await expect(search.getByRole('listitem').first()).toContainText('查看来源列表、展开收起和链接过滤的用法。')
+  await expect(search.getByRole('link')).toHaveText(['对话搜索', '对话消息'])
+  const local = search.getByRole('link', { name: '对话搜索' })
+  await expect(local).toHaveAttribute('href', '/chat-search/')
+  await expect(local).toHaveAttribute('rel', 'noopener noreferrer')
+  await expect(search.getByText('归档说明', { exact: true })).toBeVisible()
+  await expect(search.getByRole('link', { name: '归档说明' })).toHaveCount(0)
+  await expect(answer.getByRole('heading')).toHaveText('搜索来源接入')
+  await expect(answer.getByRole('listitem')).toHaveText(['在搜索分片中提供来源标题和地址。', '在来源列表后逐段发送回复正文。'])
+
+  const toggle = search.getByRole('button', { name: '搜索结果（3）' })
+  await toggle.click()
+  await expect(local).toBeHidden()
+  await toggle.click()
+  const [source] = await Promise.all([page.waitForEvent('popup'), local.click()])
+  await expect(source).toHaveURL('/chat-search/')
+})
+
 test('a server error after the first SSE Markdown chunk retains the partial answer for a retry', async ({ page }) => {
   await page.goto('/chatbot/')
   const bot = page.locator('.demo-canvas .ym-chatbot')

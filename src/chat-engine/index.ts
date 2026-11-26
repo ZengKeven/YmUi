@@ -29,7 +29,7 @@ function defaultContent({ data, raw }: SSEChunkData) {
   if (typeof data === 'string') return data
   if (data === null || typeof data !== 'object') return raw
   if ('type' in data && 'data' in data &&
-    (data.type === 'thinking' || data.type === 'markdown' || data.type === 'suggestion')) return data
+    (data.type === 'thinking' || data.type === 'search' || data.type === 'markdown' || data.type === 'suggestion')) return data
   if ('delta' in data && typeof data.delta === 'string') return data.delta
   return data
 }
@@ -42,6 +42,16 @@ function optionalString(value: unknown) {
   return value === undefined || typeof value === 'string'
 }
 
+function optionalMessageStatus(status: unknown) {
+  return status === undefined || status === 'pending' || status === 'streaming' || status === 'complete' ||
+    status === 'stop' || status === 'error'
+}
+
+function isSearchReference(item: unknown) {
+  return isRecord(item) && typeof item.title === 'string' &&
+    [item.url, item.site, item.date, item.content, item.type, item.icon].every(optionalString)
+}
+
 function isContentBlock(value: unknown): value is ChatStreamContent {
   if (!isRecord(value)) return false
   const { data, status } = value
@@ -51,11 +61,13 @@ function isContentBlock(value: unknown): value is ChatStreamContent {
     case 'thinking':
       return isRecord(data) && optionalString(data.title) && optionalString(data.text) &&
         (status === undefined || status === 'pending' || status === 'streaming' || status === 'complete')
+    case 'search':
+      return isRecord(data) && optionalString(data.title) && optionalMessageStatus(status) &&
+        (data.references === undefined || (Array.isArray(data.references) && data.references.every(isSearchReference)))
     case 'suggestion':
       return Array.isArray(data) && data.every(item => isRecord(item) &&
         typeof item.title === 'string' && item.title.trim() && optionalString(item.prompt)) &&
-        (status === undefined || status === 'pending' || status === 'streaming' || status === 'complete' ||
-          status === 'stop' || status === 'error')
+        optionalMessageStatus(status)
     default:
       return false
   }
@@ -66,7 +78,7 @@ type RequestContext = ChatEngineRequestContext | ChatEngineContentContext
 function deliver(value: unknown, context: RequestContext) {
   const block = typeof value === 'string' ? { type: 'markdown', data: value } : value
   if (!isContentBlock(block)) {
-    throw new Error('SSE 内容块格式无效，请使用 onMessage 映射为 thinking、markdown 或 suggestion 分片')
+    throw new Error('SSE 内容块格式无效，请使用 onMessage 映射为 thinking、search、markdown 或 suggestion 分片')
   }
   if (block.type === 'markdown' && !block.data) return
   if (context.onContent) context.onContent(block)

@@ -9,12 +9,26 @@ const suggestions: ChatSuggestionItem[] = [
   { title: '北门登记后怎么走？' },
 ]
 
+const searchGuide = { title: '对话搜索', site: 'YmUi 文档', url: '/chat-search/' }
+const searchReply: ChatStreamContent[] = [
+  { type: 'search', data: { references: [{ ...searchGuide, content: '查看来源列表的用法。' }] } },
+  { type: 'search', data: { references: [
+    { ...searchGuide, content: '查看来源列表、展开收起和链接过滤的用法。' },
+    { title: '对话消息', site: 'YmUi 文档', url: '/chat-message/' },
+    { title: '归档说明', url: 'file:///archive/search.txt', content: '此来源仅供阅读摘要。' },
+  ] } },
+  { type: 'markdown', data: '## 搜索来源接入\n\n' },
+  { type: 'markdown', data: '1. 在搜索分片中提供来源标题和地址。\n' },
+  { type: 'markdown', data: '2. 在来源列表后逐段发送回复正文。' },
+]
+
 async function streamReply(request: IncomingMessage, response: ServerResponse) {
   if (request.method !== 'POST') {
     response.writeHead(405, { Allow: 'POST' }).end()
     return
   }
 
+  const params = new URL(request.url ?? '/', 'http://localhost').searchParams
   let chunks: ChatStreamContent[]
   try {
     const { prompt, attachments = [], trigger } = await json(request) as {
@@ -29,7 +43,7 @@ async function streamReply(request: IncomingMessage, response: ServerResponse) {
     const details = attachments.length
       ? '\n\n随消息收到的附件有' + attachments.map(file => file.name).join('、') + '。'
       : '\n\n你询问的是「' + prompt + '」。'
-    chunks = [
+    chunks = params.get('search') === '1' ? searchReply : [
       { type: 'thinking', data: { text: '先核对收货预约。' } },
       { type: 'thinking', data: { text: asksForDocuments ? '\n再查看所需单据。' : '\n再确认登记地点。' } },
       { type: 'markdown', data: heading + '\n\n' + confirmation },
@@ -43,7 +57,7 @@ async function streamReply(request: IncomingMessage, response: ServerResponse) {
   }
   if (response.destroyed) return
 
-  const fail = new URL(request.url ?? '/', 'http://localhost').searchParams.get('error') === '1'
+  const fail = params.get('error') === '1'
   response.writeHead(200, { 'Content-Type': 'text/event-stream; charset=utf-8', 'Cache-Control': 'no-cache, no-transform' })
   response.write(': 已连接本地收货助手\n\n')
   let index = 0

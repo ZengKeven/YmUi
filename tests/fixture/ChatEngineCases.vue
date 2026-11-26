@@ -1,11 +1,12 @@
 <script setup lang="ts" vapor>
 import { ref } from 'vue'
-import { YmChatbot, type ChatServiceConfig, type ChatbotRequestContext, type SSEChunkData } from 'ym-ui-vapor'
+import { YmChatbot, type ChatMessageSearchContext, type ChatServiceConfig, type ChatbotRequestContext, type SSEChunkData } from 'ym-ui-vapor'
 
 const options = new URLSearchParams(location.search)
 const events = ref<string[]>([])
 const errors = ref<string[]>([])
 const frames = ref<SSEChunkData[]>([])
+const selectedSource = ref('')
 const config: ChatServiceConfig = {
   endpoint: '/api/sse-fixture',
   stream: true,
@@ -25,6 +26,9 @@ if (options.has('map')) {
     if (chunk.event === 'invalid') throw new Error('无法转换此事件')
     if (chunk.event === 'reasoning') return { type: 'thinking', data: { text: chunk.raw } }
     if (chunk.event === 'question') return { type: 'suggestion', data: [{ title: chunk.raw }] }
+    if (chunk.event === 'catalog' && Array.isArray(chunk.data)) {
+      return { type: 'search', data: { references: chunk.data.map(title => ({ title: String(title) })) } }
+    }
     if (typeof chunk.data === 'object' && chunk.data && 'piece' in chunk.data) {
       return { type: 'markdown', data: String(chunk.data.piece) }
     }
@@ -35,12 +39,18 @@ if (options.has('map')) {
 function legacy({ onChunk }: ChatbotRequestContext) {
   onChunk('自定义请求')
 }
+
+function selectSource(href: string, context: ChatMessageSearchContext) {
+  context.e.preventDefault()
+  selectedSource.value = JSON.stringify([href, context.item, context.index, context.message?.id, context.e.defaultPrevented])
+}
 </script>
 
 <template>
   <YmChatbot :chat-service-config="options.has('missing') ? undefined : config"
-    :request="options.has('legacy') ? legacy : undefined" />
+    :request="options.has('legacy') ? legacy : undefined" @source-click="selectSource" />
   <output id="events">{{ JSON.stringify(events) }}</output>
   <output id="errors">{{ JSON.stringify(errors) }}</output>
   <output id="frames">{{ JSON.stringify(frames.map(frame => [frame.event, frame.id, frame.data, frame.raw])) }}</output>
+  <output id="selected-source">{{ selectedSource }}</output>
 </template>

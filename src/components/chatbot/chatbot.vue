@@ -5,14 +5,17 @@ import { createReplyContent } from '../../chat-engine/reply-content'
 import { YmChatActionbar } from '../chat-actionbar'
 import type { ChatAttachmentItem } from '../chat-attachments'
 import { YmChatList } from '../chat-list'
-import type { ChatMessageContent, ChatMessageData, ChatMessageStatus } from '../chat-message'
+import type { ChatMessageContent, ChatMessageData, ChatMessageSearchContext, ChatMessageStatus } from '../chat-message'
 import { YmChatSender } from '../chat-sender'
 import chatbotProps from './props'
 import type { ChatbotInstance, ChatbotRequestContext, ChatbotSendOptions } from './types'
 
 defineOptions({ name: 'YmChatbot' })
 const props = defineProps(chatbotProps)
-const emit = defineEmits<{ 'message-change': [messages: ChatMessageData[]] }>()
+const emit = defineEmits<{
+  'message-change': [messages: ChatMessageData[]]
+  'source-click': [href: string, context: ChatMessageSearchContext]
+}>()
 
 const messages = shallowRef<ChatMessageData[]>(props.defaultMessages.slice())
 const draft = ref('')
@@ -148,7 +151,8 @@ defineExpose({ sendUserMessage: input => send(input), regenerate, abortChat, cle
 
 <template>
   <YmChatList class="ym-chatbot" :data="messages" :size="props.size" :suggestion-disabled="!!active || !transport"
-    @clear="clearMessages" @suggestion-click="prompt => send({ prompt })">
+    @clear="clearMessages" @suggestion-click="prompt => send({ prompt })"
+    @source-click="(href, context) => emit('source-click', href, context)">
     <template #actionbar="{ item }">
       <span v-if="item.status === 'stop' && (item.role ?? 'assistant') === 'assistant'"
         class="ym-chatbot__stopped" role="status">已停止生成</span>
