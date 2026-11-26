@@ -4,8 +4,10 @@ export { YmBadge, type BadgeProps } from './components/badge'
 export { YmButton, type ButtonProps } from './components/button'
 export { YmCalendar, type CalendarCell, type CalendarProps } from './components/calendar'
 export { YmChatList, type ChatListProps, type ChatListInstance } from './components/chat-list'
+export { YmChatMarkdown, type ChatMarkdownProps } from './components/chat-markdown'
 export { YmChatMessage, type ChatMessageProps, type ChatMessageData, type ChatMessageRole,
-  type ChatMessageStatus, type ChatTextContent, type ChatMessageAvatar } from './components/chat-message'
+  type ChatMessageStatus, type ChatMessageContent, type ChatTextContent, type ChatMarkdownContent,
+  type ChatMessageAvatar } from './components/chat-message'
 export { YmChatSender, type ChatSenderProps } from './components/chat-sender'
 export * from './components/form'
 export { YmDatePicker, type DatePickerMode, type DatePickerProps, type DatePickerValue, type DateRangePresets, type DateRangeValue } from './components/date-picker'

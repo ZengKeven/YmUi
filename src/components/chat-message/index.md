@@ -4,7 +4,7 @@ category: 聊天组件
 
 # YmChatMessage 对话消息
 
-展示单条对话中的发送者、时间和纯文本正文，并随回复进度显示加载或错误提示。
+展示单条对话中的发送者、时间、纯文本或 Markdown 正文，并随回复进度显示加载或错误提示。
 
 ## 交互示例
 
@@ -15,7 +15,7 @@ category: 聊天组件
 | 名称 | 类型 | 默认值 | 说明 |
 | --- | --- | --- | --- |
 | message | `ChatMessageData` | — | 整条消息。包含稳定的字符串 `id`，以及可选的 `role`、`status`、`content`、`avatar`、`name` 和 `datetime`。单独传入的同名属性优先。 |
-| content | `string \| readonly ChatTextContent[]` | — | 正文可用字符串或有序文本块数组。每个文本块为 `{ type: 'text', data: string }`，保留文本中的换行。 |
+| content | `string \| readonly ChatMessageContent[]` | — | 字符串按纯文本显示。数组按顺序展示内容块，`{ type: 'text', data: string }` 保留原文和换行，`{ type: 'markdown', data: string }` 交给 `YmChatMarkdown` 渲染。 |
 | role | `assistant / user / system` | `assistant` | 标识助手、用户或系统消息。 |
 | status | `pending / streaming / complete / stop / error` | `complete` | 等待回复时显示加载指示并保留已有正文。接收中有文本时显示正文，空内容时显示加载指示。完成或停止后保留正文，出错时在正文旁提示「消息出错」。 |
 | avatar | `string \| { src: string, alt?: string, fallback?: string }` | — | 头像图片地址，或含替代文本及备用地址的配置。省略时隐藏头像。图片及备用地址均加载失败时显示角色图标。 |
@@ -57,7 +57,10 @@ const reply: ChatMessageData = {
   role: 'assistant',
   name: '排期助手',
   datetime: '今天 09:30',
-  content: [{ type: 'text', data: '预计周五到货，签收后会同步入库数量。' }],
+  content: [
+    { type: 'text', data: '预计周五到货，签收后会同步入库数量。' },
+    { type: 'markdown', data: '## 随车材料\n\n- 送货单\n- 采购单号' },
+  ],
 }
 </script>
 
@@ -65,3 +68,5 @@ const reply: ChatMessageData = {
   <YmChatMessage :message="reply" variant="base" />
 </template>
 ```
+
+`ChatMessageContent` 包含纯文本块 `ChatTextContent` 和 Markdown 块 `ChatMarkdownContent`。逐段接收 Markdown 时，把片段追加到同一块的 `data`，并用 `status` 标记等待、接收、完成或停止。可在[对话 Markdown](/chat-markdown/)中操作本地模拟流，查看跨片段的链接和代码块如何显示。

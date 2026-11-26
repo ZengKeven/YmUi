@@ -1,5 +1,6 @@
 <script setup lang="ts" vapor>
 import { computed } from 'vue'
+import { YmChatMarkdown } from '../chat-markdown'
 import { YmIcon } from '../icon'
 import { YmImage } from '../image'
 import { YmLoading } from '../loading'
@@ -30,11 +31,11 @@ const roleName = { user: '用户', assistant: '助手', system: '系统' } as co
 const avatarAlt = computed(() => avatar.value?.alt ?? (name.value ? '' : roleName[role.value] + '头像'))
 const segments = computed(() => {
   const content = props.content ?? props.message?.content
-  if (typeof content === 'string') return [content]
-  return content?.filter(block => block.type === 'text').map(block => block.data) ?? []
+  if (typeof content === 'string') return [{ type: 'text' as const, data: content }]
+  return content?.filter(block => block.type === 'text' || block.type === 'markdown') ?? []
 })
 const loading = computed(() => status.value === 'pending' ||
-  (status.value === 'streaming' && !slots.content && !slots.default && !segments.value.some(Boolean)))
+  (status.value === 'streaming' && !slots.content && !slots.default && !segments.value.some(block => block.data)))
 </script>
 
 <template>
@@ -58,7 +59,10 @@ const loading = computed(() => status.value === 'pending' ||
       </div>
       <div class="ym-chat-message__bubble">
         <slot name="content"><slot>
-          <div v-for="(segment, index) in segments" :key="index" class="ym-chat-message__text">{{ segment }}</div>
+          <template v-for="(block, index) in segments" :key="index">
+            <YmChatMarkdown v-if="block.type === 'markdown'" :content="block.data" />
+            <div v-else class="ym-chat-message__text">{{ block.data }}</div>
+          </template>
         </slot></slot>
         <YmLoading v-if="loading" text="加载中" />
         <div v-if="status === 'error'" class="ym-chat-message__error" role="alert">

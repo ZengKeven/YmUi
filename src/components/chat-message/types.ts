@@ -10,6 +10,15 @@ export interface ChatTextContent {
   data: string
 }
 
+export interface ChatMarkdownContent {
+  /** 按 Markdown 排版的消息块。 */
+  type: 'markdown'
+  /** 截至当前收到的完整 Markdown 源文。 */
+  data: string
+}
+
+export type ChatMessageContent = ChatTextContent | ChatMarkdownContent
+
 export interface ChatMessageAvatar {
   /** 头像的图片地址。 */
   src: string
@@ -26,8 +35,8 @@ export interface ChatMessageData {
   role?: ChatMessageRole
   /** 当前消息状态，默认已完成。 */
   status?: ChatMessageStatus
-  /** 消息正文，可传字符串或按显示顺序排列的文本块。 */
-  content?: string | readonly ChatTextContent[]
+  /** 消息正文，可传纯文本字符串或按显示顺序排列的内容块。 */
+  content?: string | readonly ChatMessageContent[]
   /** 头像的地址或图片配置。 */
   avatar?: string | ChatMessageAvatar
   /** 发送者的显示名称。 */

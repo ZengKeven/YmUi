@@ -1,0 +1,44 @@
+.ym-chat-markdown {
+  min-width: 0;
+  max-width: 100%;
+  color: var(--ym-color-text);
+  font-size: var(--ym-control-font-size);
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+.ym-chat-markdown :is(h1, h2, h3, h4, h5, h6) {
+  margin: .85em 0 .35em;
+  padding: 0;
+  border: 0;
+  color: inherit;
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: normal;
+}
+.ym-chat-markdown h1 { font-size: 1.75em; }
+.ym-chat-markdown h2 { font-size: 1.5em; }
+.ym-chat-markdown h3 { font-size: 1.25em; }
+.ym-chat-markdown h4 { font-size: 1.125em; }
+.ym-chat-markdown :is(h5, h6) { font-size: 1em; }
+.ym-chat-markdown :is(p, ul, ol, blockquote, pre) { margin: .55em 0; }
+.ym-chat-markdown :is(ul, ol) { padding-inline-start: 1.6em; }
+.ym-chat-markdown ul { list-style-type: disc; }
+.ym-chat-markdown ol { list-style-type: decimal; }
+.ym-chat-markdown blockquote {
+  padding-inline-start: .8em;
+  border-inline-start: .22em solid var(--ym-color-border);
+}
+.ym-chat-markdown a { color: var(--ym-color-primary); text-decoration: underline; }
+.ym-chat-markdown pre {
+  box-sizing: border-box;
+  max-width: 100%;
+  overflow-x: auto;
+  padding: .7em var(--ym-control-padding);
+  border-radius: var(--ym-radius);
+  background-color: color-mix(in srgb, var(--ym-color-text) 7%, var(--ym-color-surface));
+  white-space: pre;
+  overflow-wrap: normal;
+}
+.ym-chat-markdown code { font-family: ui-monospace, monospace; }
+.ym-chat-markdown > :first-child { margin-block-start: 0; }
+.ym-chat-markdown > :last-child { margin-block-end: 0; }
