@@ -1,9 +1,20 @@
 <script setup lang="ts" vapor>
-import { ref } from 'vue'
-import { YmChatbot, type ChatMessageSearchContext, type ChatServiceConfig, type ChatToolCallValue,
+import { ref, shallowReactive, type Component } from 'vue'
+import { YmChatbot, type ChatMessageData, type ChatMessageSearchContext, type ChatServiceConfig, type ChatToolCallValue,
   type ChatbotRequestContext, type SSEChunkData } from 'ym-ui-vapor'
+import LookupCard from './ChatLookupCard.vue'
 
 const options = new URLSearchParams(location.search)
+const renderers = shallowReactive<Record<string, Component>>({ lookup: LookupCard })
+const history: ChatMessageData[] = [{ id: 'last', role: 'assistant', content: [
+  { type: 'toolcall', status: 'complete', data: { toolCallId: 'past', toolCallName: 'lookup', result: '北仓' } },
+] }]
+
+function toggleRenderer() {
+  if (renderers.lookup) delete renderers.lookup
+  else renderers.lookup = LookupCard
+}
+
 const events = ref<string[]>([])
 const errors = ref<string[]>([])
 const frames = ref<SSEChunkData[]>([])
@@ -60,7 +71,13 @@ function selectSource(href: string, context: ChatMessageSearchContext) {
 
 <template>
   <YmChatbot :chat-service-config="options.has('missing') ? undefined : config"
+    :tool-call-components="options.has('renderers') ? renderers : undefined"
+    :default-messages="options.has('compare') ? history : undefined"
     :request="options.has('legacy') ? legacy : undefined" @source-click="selectSource" />
+  <template v-if="options.has('compare')">
+    <YmChatbot :default-messages="history" />
+    <button type="button" @click="toggleRenderer">切换工具组件</button>
+  </template>
   <output id="events">{{ JSON.stringify(events) }}</output>
   <output id="errors">{{ JSON.stringify(errors) }}</output>
   <output id="frames">{{ JSON.stringify(frames.map(frame => [frame.event, frame.id, frame.data, frame.raw])) }}</output>

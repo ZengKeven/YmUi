@@ -4,12 +4,14 @@
   <body>
     <div id="app"></div>
     <script type="module">
-      import { createVaporApp } from 'vue'
+      import { createVaporApp, vaporInteropPlugin } from 'vue'
       import { ChatEngine } from 'ym-ui-vapor'
       import 'ym-ui-vapor/style.css'
       import App from './ChatEngineCases.vue'
       window.ChatEngineForTest = ChatEngine
-      createVaporApp(App).mount('#app')
+      const app = createVaporApp(App)
+      if (new URLSearchParams(location.search).has('renderers')) app.use(vaporInteropPlugin)
+      app.mount('#app')
     </script>
   </body>
 </html>

@@ -1,17 +1,19 @@
 <script setup lang="ts" vapor>
-import { computed, onScopeDispose, ref, shallowRef, useId } from 'vue'
+import { computed, onScopeDispose, provide, ref, shallowRef, useId } from 'vue'
 import { ChatEngine, type ChatStreamContent } from '../../chat-engine'
 import { createReplyContent } from '../../chat-engine/reply-content'
 import { YmChatActionbar } from '../chat-actionbar'
 import type { ChatAttachmentItem } from '../chat-attachments'
 import { YmChatList } from '../chat-list'
 import type { ChatMessageContent, ChatMessageData, ChatMessageSearchContext, ChatMessageStatus } from '../chat-message'
+import { toolCallComponentsKey } from '../chat-message/toolcall-context'
 import { YmChatSender } from '../chat-sender'
 import chatbotProps from './props'
 import type { ChatbotInstance, ChatbotRequestContext, ChatbotSendOptions } from './types'
 
 defineOptions({ name: 'YmChatbot' })
 const props = defineProps(chatbotProps)
+provide(toolCallComponentsKey, () => props.toolCallComponents)
 const emit = defineEmits<{
   'message-change': [messages: ChatMessageData[]]
   'source-click': [href: string, context: ChatMessageSearchContext]

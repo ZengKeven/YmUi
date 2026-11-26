@@ -93,7 +93,7 @@ const reply: ChatMessageData = {
 
 工具调用块使用 `data.toolCallId` 标识一次调用，卡片标题优先显示 `data.toolCallName`，省略名称时显示标识。可选的 `data.args` 和 `data.result` 分别展示参数和结果。字符串保留原文和换行，对象或数组按 JSON 缩进显示。`false`、`0` 和 `null` 均会显示。卡片将内容渲染为纯文本。
 
-调用状态独立于消息状态。块的 `status` 取 `executing`（进行中，默认）、`complete`（成功）、`error`（失败）或 `stop`（已中断）。工具成功后，可以在同一条消息里追加 Markdown 块来显示回复。使用 `chatServiceConfig` 接收更新的示例见[对话机器人](/chatbot/)。
+调用状态独立于消息状态。块的 `status` 取 `executing`（进行中，默认）、`complete`（成功）、`error`（失败）或 `stop`（已中断）。工具成功后，可以在同一条消息里追加 Markdown 块来显示回复。在 `YmChatbot` 中用 `toolCallComponents` 为指定工具注册 Vue 组件，它会收到同一次调用的最新参数、状态和结果。其余工具沿用默认卡片。[注册示例与 SSE 分片格式](/chatbot/)
 
 附件块的 `data` 接受 `readonly ChatAttachmentItem[]`。处理发送框的 `send` 事件时可以直接使用 `context.attachments`。消息以只读列表展示这些文件，图片加载后可打开预览。复制正文时只包含文本和 Markdown 源文。参见[对话附件](/chat-attachments/)。
 

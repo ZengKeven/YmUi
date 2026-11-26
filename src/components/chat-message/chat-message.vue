@@ -90,7 +90,8 @@ function selectSuggestion(prompt: string, context: ChatSuggestionSelectContext) 
       </div>
       <div class="ym-chat-message__bubble">
         <slot name="content"><slot>
-          <template v-for="(block, index) in segments" :key="`${props.message?.id ?? ''}:${index}`">
+          <template v-for="(block, index) in segments"
+            :key="`${props.message?.id ?? ''}:${block.type === 'toolcall' ? 'toolcall:' + block.data.toolCallId : index}`">
             <YmChatMarkdown v-if="block.type === 'markdown'" :content="block.data" />
             <YmChatAttachments v-else-if="block.type === 'attachment'" :items="block.data" :removable="false" />
             <YmChatThinking v-else-if="block.type === 'thinking'" :content="block.data" :status="block.status ?? thinkingStatus" />

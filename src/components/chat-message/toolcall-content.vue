@@ -1,9 +1,17 @@
 <script setup lang="ts" vapor>
-import { computed } from 'vue'
+import { computed, inject, toRaw } from 'vue'
 import { YmTag } from '../tag'
+import { toolCallComponentsKey } from './toolcall-context'
 import type { ChatToolCallContent, ChatToolCallValue } from './types'
 
 const props = defineProps<{ block: ChatToolCallContent }>()
+const getComponents = inject(toolCallComponentsKey, undefined)
+const renderer = computed(() => {
+  const components = getComponents?.()
+  const tool = props.block.data.toolCallName
+  // in 订阅响应式注册表的增删，hasOwn 只允许当前实例显式注册的名称。
+  if (components && tool && tool in components && Object.hasOwn(components, tool)) return toRaw(components[tool])
+})
 const name = computed(() => props.block.data.toolCallName || props.block.data.toolCallId)
 const status = computed(() => props.block.status ?? 'executing')
 const states = {
@@ -19,7 +27,9 @@ function displayValue(value: ChatToolCallValue) {
 </script>
 
 <template>
-  <section class="ym-chat-message__toolcall" :aria-label="name" :data-tool-call-id="props.block.data.toolCallId"
+  <component v-if="renderer" :is="renderer" :toolCallId="props.block.data.toolCallId" :toolCallName="name"
+    :status="status" :args="props.block.data.args" :result="props.block.data.result" />
+  <section v-else class="ym-chat-message__toolcall" :aria-label="name" :data-tool-call-id="props.block.data.toolCallId"
     :data-status="status">
     <div class="ym-chat-message__toolcall-header">
       <strong class="ym-chat-message__toolcall-name">{{ name }}</strong>

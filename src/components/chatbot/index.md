@@ -18,6 +18,8 @@ category: 聊天组件
 
 选择「工具调用成功」，发送「查询北仓的收货时段」。工具 `lookup_receiving_slot` 先显示「进行中」和仓库参数，随后在原位显示「成功」、登记地点和时段。助手接着逐段生成「收货时段」的 Markdown 回复。切换到「工具调用失败」并重新生成，可以看到同一查询显示「失败」及原因「预约服务暂时不可用」。
 
+打开「自定义工具卡片」，再发送同一问题。「北仓收货预约」先显示「查询中」，成功后显示「可预约」、收货时段和登记入口，失败时显示「查询失败」和服务返回的原因。关闭开关可直接查看这条历史消息的默认卡片。
+
 生成时可点击「停止生成」保留已收到的附件、来源、思考与正文，再点击「重新生成」让同一条回复从头生成。确认「清空历史」会移除所有消息并结束当前请求。
 
 将「模拟服务」切换到「流中出错」可在首段 Markdown 之后看到错误状态。切回「思考、回复与推荐问题」后可重新生成。运行 `npm run dev` 后打开 `/chatbot/` 就能体验，构建后可用 `npm run preview:playground` 启动同一模拟接口。单独部署静态页面时需要提供自己的 SSE 服务地址。
@@ -27,6 +29,7 @@ category: 聊天组件
 | 名称 | 类型 | 默认值 | 说明 |
 | --- | --- | --- | --- |
 | chatServiceConfig | `ChatServiceConfig` | — | 配置 SSE 服务地址、事件映射及生命周期回调。发送和重新生成都会发起新请求。 |
+| toolCallComponents | `ChatToolCallComponents` | — | 为当前聊天窗口注册工具展示组件。键与分片的 `data.toolCallName` 精确匹配，缺少名称或没有注册项时使用默认卡片。 |
 | request | `(context: ChatbotRequestContext) => void \| Promise<void>` | — | 自定义回复函数。与 `chatServiceConfig` 同时设置时优先使用此函数。 |
 | defaultMessages | `readonly ChatMessageData[]` | 空数组 | 初始化时载入的历史消息，按从旧到新的顺序排列，每条消息使用唯一的 `id`。 |
 | placeholder | `string` | 输入消息 | 发送框为空时的提示。 |
@@ -111,9 +114,55 @@ data: [DONE]
 
 ```
 
-`toolCallId` 必须是非空白字符串。省略名称时卡片显示 ID。后续分片只需携带 ID 和变更字段。传入 `args` 或 `result` 会整体替换该字段，省略则保留原值。两者都接受 JSON 值，包括字符串、对象、数组、`false`、`0` 和 `null`，并按文本展示。
+`toolCallId` 必须是非空白字符串。省略名称时卡片显示 ID。后续分片只需携带 ID 和变更字段。传入 `args` 或 `result` 会整体替换该字段，省略则保留原值。两者都接受 JSON 值，包括字符串、对象、数组、`false`、`0` 和 `null`。默认卡片将它们按文本展示。
 
 首帧省略 `status` 时显示「进行中」（`executing`）。工具成功用 `complete`，失败用 `error` 并在 `data.result` 中返回原因。工具失败只更新这次调用，服务仍可发送后续分片。SSE 的 `event: error` 会结束整轮请求并触发 `onError`。调用一旦成功、失败或中断，随后带有其他状态的分片会被忽略。停止生成、连接报错或读到流末尾时，仍在进行中的调用显示「已中断」（`stop`）。
+
+**按工具名注册 Vue 组件**
+
+将本地组件与服务端发出的工具名对应起来。同一个注册表可包含多个工具，每个 `YmChatbot` 可以使用自己的注册表。更换注册表时，当前窗口中已有的工具卡片也会更新。
+
+```vue
+<script setup lang="ts" vapor>
+import { YmChatbot, type ChatToolCallComponents } from 'ym-ui-vapor'
+import 'ym-ui-vapor/style.css'
+import ReceivingSlotCard from './ReceivingSlotCard.vue'
+
+const tools = { lookup_receiving_slot: ReceivingSlotCard } satisfies ChatToolCallComponents
+</script>
+
+<template>
+  <YmChatbot :tool-call-components="tools" :chat-service-config="{ endpoint: '/api/chat/sse?toolcall=success' }" />
+</template>
+```
+
+`ReceivingSlotCard.vue` 通过 props 读取本次调用的最新数据。同一个 `toolCallId` 后续收到分片时，Vue 会更新这个组件的 props，保留组件内的展开状态等用户操作。多个同名调用各自拥有独立实例。
+
+```vue
+<script setup lang="ts" vapor>
+import { computed } from 'vue'
+import type { ChatToolCallRendererProps } from 'ym-ui-vapor'
+
+const props = defineProps<ChatToolCallRendererProps>()
+const labels = { executing: '查询中', complete: '可预约', error: '查询失败', stop: '已中断' }
+const slot = computed(() => {
+  const result = props.result
+  if (result && typeof result === 'object' && 'slot' in result && typeof result.slot === 'string') {
+    return result.slot
+  }
+})
+</script>
+
+<template>
+  <section aria-label="收货预约">
+    <p role="status">{{ labels[props.status] }}</p>
+    <p v-if="props.status === 'complete' && slot">收货时段 {{ slot }}</p>
+    <p v-if="props.status === 'error' && typeof props.result === 'string'">{{ props.result }}</p>
+  </section>
+</template>
+```
+
+`ChatToolCallRendererProps` 提供 `toolCallId`、匹配到的 `toolCallName`、`status`，以及可选的 `args` 和 `result`。参数和结果保留 JSON 类型，组件可直接读取业务字段。组件随当前消息继承 `ConfigProvider` 的字号和主题变量，可用 `--ym-color-text`、`--ym-color-surface`、`--ym-radius` 设置自己的卡片样式。示例使用 Vapor 单文件组件。在 Vapor 应用里注册普通 Vue 组件时，从 `vue` 导入 `vaporInteropPlugin`，用 `createVaporApp(App).use(vaporInteropPlugin).mount('#app')` 启用互操作。
 
 每条来源使用 `ChatSearchReference`，必填 `title`，可用 `url`、`site`、`date` 和 `content` 提供地址、站点、日期和纯文本摘要。空白标题会被跳过。`YmChatSearch` 在每次更新后检查来源地址，允许 HTTP、HTTPS、站内相对路径、查询串和页内锚点。其他协议、以 `//` 开头、含反斜杠或控制字符的地址只展示来源文字。[来源列表与链接规则](/chat-search/)
 

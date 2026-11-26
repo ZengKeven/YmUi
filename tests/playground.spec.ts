@@ -1955,6 +1955,50 @@ for (const outcome of ['success', 'failure'] as const) {
   })
 }
 
+test('a registered warehouse card follows the local SSE call, falls back and shows a failed retry', async ({ page }) => {
+  await page.goto('/chatbot/')
+  const mode = page.getByLabel('模拟服务')
+  const toggle = page.getByRole('switch', { name: '自定义工具卡片' })
+  const bot = page.locator('.demo-canvas .ym-chatbot')
+  const reply = bot.locator('[data-role=assistant]')
+  const custom = reply.getByRole('region', { name: '北仓收货预约' })
+  const fallback = reply.getByRole('region', { name: 'lookup_receiving_slot' })
+  const markdown = reply.locator('.ym-chat-markdown')
+  await mode.selectOption({ label: '工具调用成功' })
+  await toggle.click()
+  await bot.getByRole('textbox').fill('查询北仓的收货时段')
+  const [initialCard] = await Promise.all([
+    custom.filter({ has: page.getByText('查询中', { exact: true }) }).evaluateHandle(el => el),
+    markdown.filter({ hasNotText: '到仓后请在北门登记。' }).getByText('北仓的收货时段为 09:00–11:00。').waitFor(),
+    bot.getByRole('button', { name: '发送消息' }).click(),
+  ])
+  await expect(reply).toHaveAttribute('data-status', 'complete')
+  expect(await custom.evaluate((el, initial) => el === initial, initialCard)).toBe(true)
+  await initialCard.dispose()
+  await expect(custom.getByRole('status')).toHaveText('可预约')
+  await expect(custom.locator('dd')).toHaveText(['09:00–11:00', '北门'])
+  await expect(fallback).toHaveCount(0)
+  await expect(markdown).toContainText('到仓后请在北门登记。')
+
+  await toggle.click()
+  await expect(custom).toHaveCount(0)
+  await expect(fallback.getByRole('status')).toHaveText('成功')
+  await expect(fallback).toContainText('09:00–11:00')
+  await toggle.click()
+  await expect(custom.getByRole('status')).toHaveText('可预约')
+
+  await mode.selectOption({ label: '工具调用失败' })
+  await Promise.all([
+    custom.getByText('查询中', { exact: true }).waitFor(),
+    reply.getByRole('button', { name: '重新生成' }).click(),
+  ])
+  await expect(custom.getByRole('status')).toHaveText('查询失败')
+  await expect(custom).toContainText('预约服务暂时不可用')
+  await expect(custom.locator('dd')).toHaveCount(0)
+  await expect(reply).toHaveAttribute('data-status', 'complete')
+  await expect(markdown).toHaveCount(0)
+})
+
 test('a server error after the first SSE Markdown chunk retains the partial answer for a retry', async ({ page }) => {
   await page.goto('/chatbot/')
   const bot = page.locator('.demo-canvas .ym-chatbot')

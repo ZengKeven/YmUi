@@ -1,10 +1,13 @@
 <script setup lang="ts" vapor>
 import { computed, ref } from 'vue'
-import { YmChatbot, type ChatServiceConfig, type ControlSize } from '../../src'
+import { YmChatbot, YmSwitch, type ChatServiceConfig, type ChatToolCallComponents, type ControlSize } from '../../src'
 import PreviewFrame from './PreviewFrame.vue'
+import ReceivingSlotCard from './ReceivingSlotCard.vue'
 import { sizes } from './settings'
 
 const size = ref<ControlSize>()
+const useCustomCard = ref(false)
+const toolCallComponents = { lookup_receiving_slot: ReceivingSlotCard } satisfies ChatToolCallComponents
 const endpoints = {
   normal: '/api/chat/sse',
   search: '/api/chat/sse?search=1',
@@ -29,6 +32,7 @@ const chatServiceConfig = computed<ChatServiceConfig>(() => ({
   <PreviewFrame name="YmChatbot">
     <template #preview>
       <YmChatbot class="chatbot-demo" :chat-service-config="chatServiceConfig" :size="size"
+        :tool-call-components="useCustomCard ? toolCallComponents : undefined"
         :placeholder="placeholders[mode] ?? '询问收货安排，或选择附件'" />
     </template>
     <template #controls>
@@ -48,6 +52,7 @@ const chatServiceConfig = computed<ChatServiceConfig>(() => ({
           <option value="error">流中出错</option>
         </select>
       </label>
+      <label>自定义工具卡片 <YmSwitch v-model="useCustomCard" aria-label="自定义工具卡片" /></label>
     </template>
   </PreviewFrame>
 </template>

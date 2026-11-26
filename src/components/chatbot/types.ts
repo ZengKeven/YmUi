@@ -1,6 +1,6 @@
 import type { ChatEngineRequestContext, ChatServiceConfig, ChatStreamContent } from '../../chat-engine/types'
 import type { ChatAttachmentItem } from '../chat-attachments'
-import type { ChatMessageData } from '../chat-message'
+import type { ChatMessageData, ChatToolCallComponents } from '../chat-message'
 import type { ControlSize } from '../config-provider/types'
 
 export interface ChatbotSendOptions {
@@ -20,6 +20,8 @@ export interface ChatbotProps {
   request?: (context: ChatbotRequestContext) => void | Promise<void>
   /** 使用 ChatEngine 发送请求并读取 SSE 回复。 */
   chatServiceConfig?: ChatServiceConfig
+  /** 当前对话中按工具名注册的自定义展示组件，未注册的工具使用默认卡片。 */
+  toolCallComponents?: ChatToolCallComponents
   /** 按会话顺序排列的初始历史，只在创建时读取。 */
   defaultMessages?: readonly ChatMessageData[]
   /** 发送框占位文字。 */

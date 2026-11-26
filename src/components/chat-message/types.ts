@@ -1,3 +1,4 @@
+import type { Component, VaporComponent } from 'vue'
 import type { ControlSize } from '../config-provider/types'
 import type { ChatAttachmentItem } from '../chat-attachments/types'
 import type { ChatSearchData, ChatSearchSourceContext } from '../chat-search/types'
@@ -79,6 +80,17 @@ export interface ChatToolCallContent {
   /** 首个分片默认进行中，后续分片省略时沿用此前的状态。 */
   status?: ChatToolCallStatus
 }
+
+/** 自定义工具组件接收的当前调用快照。 */
+export interface ChatToolCallRendererProps extends ChatToolCallData {
+  /** 与注册项匹配的工具名称。 */
+  toolCallName: string
+  /** 当前调用状态，首个分片省略状态时为 executing。 */
+  status: ChatToolCallStatus
+}
+
+/** 以完整工具名为键的本地 Vue 组件映射。 */
+export type ChatToolCallComponents = Readonly<Record<string, Component | VaporComponent>>
 
 export type ChatMessageContent = ChatTextContent | ChatMarkdownContent | ChatThinkingContent | ChatSearchContent |
   ChatSuggestionContent | ChatAttachmentContent | ChatToolCallContent
