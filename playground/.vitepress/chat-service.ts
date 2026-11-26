@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs'
 import type { IncomingMessage, ServerResponse } from 'node:http'
 import { json } from 'node:stream/consumers'
 import { defineConfig, type Plugin, type ViteDevServer } from 'vite'
-import type { ChatStreamContent, ChatSuggestionItem } from '../../src'
+import type { ChatStreamContent, ChatSuggestionItem, ChatToolCallMessage } from '../../src'
 
 const documentPrompt = '办理收货需要准备哪些单据？'
 const suggestions: ChatSuggestionItem[] = [
@@ -54,6 +54,28 @@ function toolCallReply(outcome: 'success' | 'failure'): ChatStreamContent[] {
   ]
 }
 
+function confirmReceivingSlot(trigger?: string, message?: ChatToolCallMessage): ChatStreamContent[] {
+  const toolCallId = 'receiving-confirm-1'
+  const toolCallName = 'confirm_receiving_slot'
+  const slots = ['09:00–11:00', '14:00–16:00']
+  if (trigger === 'send' || trigger === 'regenerate') {
+    return [{
+      type: 'toolcall', status: 'awaiting-input', data: { toolCallId, toolCallName, args: { warehouse: '北仓', slots } },
+    }]
+  }
+
+  const result = message?.result
+  if (trigger !== 'tool-response' || message?.toolCallId !== toolCallId || message.toolCallName !== toolCallName ||
+    !result || typeof result !== 'object' || !('slot' in result) || typeof result.slot !== 'string' || !slots.includes(result.slot)) {
+    throw new Error('收货时段确认无效')
+  }
+  return [
+    { type: 'markdown', data: '## 预约已确认\n\n' },
+    { type: 'markdown', data: '已为你预约北仓 ' + result.slot + ' 的收货时段。\n\n' },
+    { type: 'markdown', data: '请在预约时段内到北门登记。' },
+  ]
+}
+
 const files = new Map<string, { type: string; body: Buffer | string }>([
   ['/delivery-calendar.png', { type: 'image/png', body: readFileSync(new URL('../examples/assets/delivery-calendar.png', import.meta.url)) }],
   ['/checklist.txt', { type: 'text/plain; charset=utf-8', body: checklist }],
@@ -81,14 +103,17 @@ async function streamReply(request: IncomingMessage, response: ServerResponse) {
   const params = new URL(request.url ?? '/', 'http://localhost').searchParams
   let chunks: ChatStreamContent[]
   try {
-    const { prompt, attachments = [], trigger } = await json(request) as {
+    const { prompt, attachments = [], trigger, toolCallMessage } = await json(request) as {
       prompt: string
       attachments?: { name: string }[]
       trigger?: string
+      toolCallMessage?: ChatToolCallMessage
     }
     if (typeof prompt !== 'string' || !Array.isArray(attachments)) throw new Error()
     const toolCall = params.get('toolcall')
-    if (toolCall === 'success' || toolCall === 'failure') {
+    if (toolCall === 'confirm') {
+      chunks = confirmReceivingSlot(trigger, toolCallMessage)
+    } else if (toolCall === 'success' || toolCall === 'failure') {
       chunks = toolCallReply(toolCall)
     } else if (params.get('attachment') === '1') {
       chunks = attachmentReply

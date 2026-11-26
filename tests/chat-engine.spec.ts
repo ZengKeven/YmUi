@@ -308,6 +308,7 @@ test('registered Vue tool cards update in place and keep separate local state fo
     + frame({ type: 'toolcall', data: { toolCallId: 'other', toolCallName: 'toString' } }))
   await expect(first).toHaveAttribute('data-renderer', 'lookup')
   await expect(first.locator('[role=status]')).toHaveText('executing')
+  await expect(first.getByRole('button', { name: '拒绝' })).toHaveCount(0)
   await expect(first.getByLabel('参数')).toHaveText('{"floor":1}')
   await expect(second.getByLabel('参数')).toHaveText('false')
   await first.getByRole('button', { name: '标记' }).click()
@@ -346,6 +347,95 @@ test('a chatbot can remove and register its own renderer for existing history', 
   await toggle.click()
   await expect(card.locator('[role=status]')).toHaveText('complete')
   await expect(fallback.getByRole('status')).toHaveText('成功')
+})
+
+const confirmation = { type: 'toolcall', status: 'awaiting-input', data: { toolCallId: 'confirm-1', toolCallName: 'lookup' } } as const
+
+test('a choice made during the initial stream is posted once and continues the same assistant reply', async ({ page }) => {
+  await captureStreams(page)
+  await page.goto(fixture + '?renderers')
+  await send(page)
+  await expect.poll(() => page.evaluate(() => window.chatStreams.length)).toBe(1)
+  expect(await page.evaluate(() => window.chatStreams[0].request.json())).not.toHaveProperty('toolCallMessage')
+  await write(page, frame({ type: 'markdown', data: '请核对。' }) + frame(confirmation))
+  const reply = assistant(page)
+  const id = await reply.getAttribute('data-message-id')
+  const card = reply.getByRole('region', { name: 'confirm-1' })
+  await card.getByRole('button', { name: '稍后确认' }).click()
+  await card.getByRole('button', { name: '拒绝' }).click()
+  await expect(card.getByLabel('结果')).toHaveText('false')
+  await expect(card.getByRole('button', { name: '拒绝' })).toHaveCount(0)
+  await page.evaluate(() => window.dispatchEvent(new Event('confirm-deferred-choice')))
+  await write(page, 'data: [DONE]\n\n')
+  await expect.poll(() => page.evaluate(() => window.chatStreams.length)).toBe(2)
+  const { header, body } = await page.evaluate(async () => {
+    const { request } = window.chatStreams[1]
+    return { header: request.headers.get('X-Tool-Call-Id'), body: await request.json() }
+  })
+  const toolCallMessage = { ...confirmation.data, result: false }
+  expect(header).toBe('confirm-1')
+  expect(body).toMatchObject({ trigger: 'tool-response', prompt: '核对送货单', toolCallMessage,
+    messages: [{ role: 'user' }, { role: 'assistant', id, content: [
+      { type: 'markdown', data: '请核对。' }, { type: 'toolcall', status: 'complete', data: toolCallMessage },
+    ] }] })
+  await write(page, frame({ type: 'markdown', data: '## 已收到选择' }), 1)
+  await expect(reply.getByRole('heading', { name: '已收到选择' })).toBeVisible()
+  await write(page, frame({ type: 'markdown', data: '\n\n保留原安排。' }) + 'data: [DONE]\n\n', 1)
+  await expect(reply).toHaveAttribute('data-status', 'complete')
+  await expect(reply).toHaveAttribute('data-message-id', id!)
+  await expect(reply.locator('.ym-chat-markdown')).toHaveCount(2)
+  await expect(reply.locator('.ym-chat-markdown').last()).toContainText('保留原安排。')
+  await expect(page.getByRole('article')).toHaveCount(2)
+  await expect(page.locator('#events')).toHaveText('["complete:send","complete:tool-response"]')
+  expect(await page.evaluate(() => window.chatStreams.length)).toBe(2)
+})
+
+test('stopping, regenerating with the same tool ID and clearing invalidate deferred choices', async ({ page }) => {
+  await captureStreams(page)
+  await page.goto(fixture + '?renderers')
+  await send(page)
+  const waitForChoice = frame(confirmation) + 'data: [DONE]\n\n'
+  await expect.poll(() => page.evaluate(() => window.chatStreams.length)).toBe(1)
+  await write(page, waitForChoice)
+  const reply = assistant(page)
+  const card = reply.getByRole('region', { name: 'confirm-1' })
+  await card.getByRole('button', { name: '稍后确认' }).click()
+  await page.getByRole('button', { name: '停止生成' }).click()
+  await expect(reply).toHaveAttribute('data-status', 'stop')
+  await expect(card.locator('[role=status]')).toHaveText('stop')
+  await expect(card.getByRole('button', { name: '拒绝' })).toHaveCount(0)
+
+  await reply.getByRole('button', { name: '重新生成' }).click()
+  await expect.poll(() => page.evaluate(() => window.chatStreams.length)).toBe(2)
+  await write(page, waitForChoice, 1)
+  await expect(card.getByRole('button', { name: '拒绝' })).toBeVisible()
+  await page.evaluate(() => window.dispatchEvent(new Event('confirm-deferred-choice')))
+  await expect(card.locator('[role=status]')).toHaveText('awaiting-input')
+  await card.getByRole('button', { name: '稍后确认' }).click()
+  await page.getByRole('button', { name: '清空历史', exact: true }).click()
+  await page.getByRole('dialog').getByRole('button', { name: '清空', exact: true }).click()
+  await page.evaluate(() => window.dispatchEvent(new Event('confirm-deferred-choice')))
+  await expect(page.getByRole('article')).toHaveCount(0)
+  expect(await page.evaluate(() => window.chatStreams.length)).toBe(2)
+})
+
+test('a failed tool-response stream preserves the choice and the received Markdown', async ({ page }) => {
+  await captureStreams(page)
+  await page.goto(fixture + '?renderers')
+  await send(page)
+  await expect.poll(() => page.evaluate(() => window.chatStreams.length)).toBe(1)
+  await write(page, frame(confirmation) + 'data: [DONE]\n\n')
+  const reply = assistant(page)
+  const card = reply.getByRole('region', { name: 'confirm-1' })
+  await card.getByRole('button', { name: '拒绝' }).click()
+  await expect.poll(() => page.evaluate(() => window.chatStreams.length)).toBe(2)
+  await write(page, 'data: 选择已记录。\n\nevent: error\ndata: 获取安排失败\n\n', 1)
+  await expect(reply).toHaveAttribute('data-status', 'error')
+  await expect(card.getByLabel('结果')).toHaveText('false')
+  await expect(card.getByRole('button', { name: '拒绝' })).toHaveCount(0)
+  await expect(reply.locator('.ym-chat-markdown')).toHaveText('选择已记录。')
+  await expect(reply.getByRole('button', { name: '重新生成' })).toBeVisible()
+  await expect(page.locator('#errors')).toHaveText('["获取安排失败"]')
 })
 
 test('a suggested turn keeps the draft and stops mid-thought without enabling concurrent follow-ups', async ({ page }) => {

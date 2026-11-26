@@ -1,14 +1,15 @@
 <script setup lang="ts" vapor>
 import { computed, onScopeDispose, provide, ref, shallowRef, useId } from 'vue'
-import { ChatEngine, type ChatStreamContent } from '../../chat-engine'
+import { ChatEngine, type ChatStreamContent, type ChatToolCallMessage } from '../../chat-engine'
 import { createReplyContent } from '../../chat-engine/reply-content'
 import { YmChatActionbar } from '../chat-actionbar'
 import type { ChatAttachmentItem } from '../chat-attachments'
 import { YmChatList } from '../chat-list'
 import type { ChatMessageContent, ChatMessageData, ChatMessageSearchContext, ChatMessageStatus } from '../chat-message'
-import { toolCallComponentsKey } from '../chat-message/toolcall-context'
+import { toolCallComponentsKey, toolCallRespondKey } from '../chat-message/toolcall-context'
 import { YmChatSender } from '../chat-sender'
 import chatbotProps from './props'
+import { createToolResponses } from './tool-responses'
 import type { ChatbotInstance, ChatbotRequestContext, ChatbotSendOptions } from './types'
 
 defineOptions({ name: 'YmChatbot' })
@@ -22,7 +23,8 @@ const emit = defineEmits<{
 const messages = shallowRef<ChatMessageData[]>(props.defaultMessages.slice())
 const draft = ref('')
 const attachments = ref<ChatAttachmentItem[]>([])
-const active = shallowRef<AbortController>()
+const active = shallowRef<{ controller: AbortController; responses: ReturnType<typeof createToolResponses> }>()
+provide(toolCallRespondKey, block => active.value?.responses.getResponder(block))
 const transport = computed(() => {
   if (props.request) return props.request
   if (props.chatServiceConfig?.endpoint) {
@@ -60,27 +62,44 @@ const lastTurn = computed(() => {
 })
 
 async function generate(history: ChatMessageData[], assistant: ChatMessageData,
-  input: Required<ChatbotSendOptions>, trigger: ChatbotRequestContext['trigger']) {
+  input: Required<ChatbotSendOptions>, trigger: 'send' | 'regenerate') {
   const execute = transport.value
   if (!execute) return
   const controller = new AbortController()
   const { signal } = controller
-  active.value = controller
   const reply = createReplyContent()
+  const isCurrent = () => active.value?.controller === controller
+  const responses = createToolResponses(reply, isCurrent, () => update('streaming'))
+  active.value = { controller, responses }
   function update(status: ChatMessageStatus) {
     publish([...history, { ...assistant, status, content: reply.snapshot(status) }])
   }
-  function onContent(chunk: ChatStreamContent) {
-    if (active.value !== controller || (chunk.type === 'markdown' && !chunk.data)) return
-    reply.append(chunk)
-    update('streaming')
+  const readResponse = async (toolCallMessage?: ChatToolCallMessage) => {
+    const params = toolCallMessage
+      ? { trigger: 'tool-response' as const, toolCallMessage, messages: messages.value.slice() }
+      : { trigger, messages: history.slice() }
+    let reading = true
+    function onContent(chunk: ChatStreamContent) {
+      if (!reading || !isCurrent() || (chunk.type === 'markdown' && !chunk.data)) return
+      reply.append(chunk)
+      update('streaming')
+    }
+    try {
+      const request = execute({
+        ...input, attachments: input.attachments.slice(), ...params, signal,
+        onChunk: data => onContent({ type: 'markdown', data }), onContent,
+      })
+      if (request) await Promise.race([request, stopped])
+    } finally {
+      reading = false
+    }
   }
 
   // 即使服务稍后才返回，调用方也可以在停止后立即开始下一轮。
   let onAbort!: () => void
   const stopped = new Promise<void>(resolve => {
     onAbort = () => {
-      if (active.value === controller) {
+      if (isCurrent()) {
         active.value = undefined
         update('stop')
       }
@@ -92,17 +111,16 @@ async function generate(history: ChatMessageData[], assistant: ChatMessageData,
   try {
     update('pending')
     if (signal.aborted) return
-    const request = execute({
-      ...input, attachments: input.attachments.slice(), messages: history.slice(), trigger, signal,
-      onChunk: data => onContent({ type: 'markdown', data }),
-      onContent,
-    })
-    if (request) await Promise.race([request, stopped])
+    let choice: ChatToolCallMessage | undefined
+    do {
+      await readResponse(choice)
+      choice = await responses.next(stopped)
+    } while (choice && isCurrent())
   } catch {
     status = 'error'
   } finally {
     signal.removeEventListener('abort', onAbort)
-    if (active.value === controller) {
+    if (isCurrent()) {
       active.value = undefined
       update(status)
     }
@@ -132,19 +150,19 @@ async function regenerate() {
 }
 
 function abortChat() {
-  active.value?.abort()
+  active.value?.controller.abort()
 }
 
 function clearMessages() {
   if (!messages.value.length) return
-  const controller = active.value
+  const controller = active.value?.controller
   active.value = undefined
   publish([])
   controller?.abort()
 }
 
 onScopeDispose(() => {
-  const controller = active.value
+  const controller = active.value?.controller
   active.value = undefined
   controller?.abort()
 })

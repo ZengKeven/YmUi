@@ -27,6 +27,12 @@ const config: ChatServiceConfig = {
   onError(error) { errors.value.push(error.message) },
 }
 
+if (options.has('renderers')) {
+  config.onRequest = ({ toolCallMessage }) => {
+    if (toolCallMessage) return { headers: { 'X-Tool-Call-Id': toolCallMessage.toolCallId } }
+  }
+}
+
 if (options.has('map')) {
   config.onRequest = params => ({
     headers: { 'X-Request-Kind': params.trigger },

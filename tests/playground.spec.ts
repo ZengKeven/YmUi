@@ -1999,6 +1999,58 @@ test('a registered warehouse card follows the local SSE call, falls back and sho
   await expect(markdown).toHaveCount(0)
 })
 
+test('the local SSE service waits for a selected slot and continues the same reply with that choice', async ({ page }) => {
+  const endpoint = '/api/chat/sse?toolcall=confirm'
+  const requests: unknown[] = []
+  page.on('request', request => {
+    if (request.url().endsWith(endpoint) && request.method() === 'POST') requests.push(request.postDataJSON())
+  })
+  await page.goto('/chatbot/')
+  await page.getByLabel('模拟服务').selectOption({ label: '工具调用确认' })
+  const bot = page.locator('.demo-canvas .ym-chatbot')
+  const reply = bot.locator('[data-role=assistant]')
+  const card = reply.getByRole('region', { name: '北仓收货预约' })
+  const markdown = reply.locator('.ym-chat-markdown')
+  const prompt = '预约北仓收货时段'
+  await bot.getByRole('textbox').fill(prompt)
+  const [initial] = await Promise.all([
+    page.waitForResponse('**' + endpoint),
+    bot.getByRole('button', { name: '发送消息' }).click(),
+  ])
+  expect(await initial.finished()).toBeNull()
+  await expect(card.getByRole('status')).toHaveText('待确认')
+  await expect(card.getByRole('button', { name: '确认 09:00–11:00' })).toBeEnabled()
+  await expect(markdown).toHaveCount(0)
+  const replyId = await reply.getAttribute('data-message-id')
+  expect(requests).toEqual([expect.objectContaining({ trigger: 'send', prompt })])
+
+  const slot = '14:00–16:00'
+  const booking = '已为你预约北仓 ' + slot + ' 的收货时段。'
+  const instructions = '请在预约时段内到北门登记。'
+  const [continued] = await Promise.all([
+    page.waitForResponse('**' + endpoint),
+    markdown.filter({ hasNotText: instructions }).getByText(booking).waitFor(),
+    card.getByRole('button', { name: '确认 ' + slot }).evaluate((button: HTMLButtonElement) => {
+      button.click()
+      button.click()
+    }),
+  ])
+  expect(continued.headers()['content-type']).toContain('text/event-stream')
+  await expect(reply).toHaveAttribute('data-status', 'complete')
+  await expect(reply).toHaveAttribute('data-message-id', replyId!)
+  await expect(card.getByRole('status')).toHaveText('已确认')
+  await expect(card.locator('dd')).toHaveText(slot)
+  await expect(card.getByRole('button')).toHaveCount(0)
+  await expect(markdown.getByRole('heading')).toHaveText('预约已确认')
+  await expect(markdown.locator('p')).toHaveText([booking, instructions])
+  await expect(bot.getByRole('article')).toHaveCount(2)
+  expect(requests).toHaveLength(2)
+  expect(requests[1]).toMatchObject({
+    trigger: 'tool-response',
+    toolCallMessage: { toolCallId: 'receiving-confirm-1', toolCallName: 'confirm_receiving_slot', result: { slot } },
+  })
+})
+
 test('a server error after the first SSE Markdown chunk retains the partial answer for a retry', async ({ page }) => {
   await page.goto('/chatbot/')
   const bot = page.locator('.demo-canvas .ym-chatbot')

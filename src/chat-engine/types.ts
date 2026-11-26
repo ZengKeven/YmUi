@@ -1,20 +1,31 @@
 import type { ChatAttachmentItem } from '../components/chat-attachments/types'
 import type { ChatAttachmentContent, ChatMarkdownContent, ChatMessageData, ChatSearchContent, ChatSuggestionContent,
-  ChatThinkingContent, ChatToolCallContent } from '../components/chat-message/types'
+  ChatThinkingContent, ChatToolCallContent, ChatToolCallValue } from '../components/chat-message/types'
 
 /** 单个 SSE 事件的内容。Markdown 和思考正文为增量，列表按快照更新，工具调用按 toolCallId 更新。 */
 export type ChatStreamContent = ChatMarkdownContent | ChatThinkingContent | ChatSearchContent |
   ChatAttachmentContent | ChatSuggestionContent | ChatToolCallContent
+
+export interface ChatToolCallMessage {
+  /** 与本轮等待用户选择的工具调用对应的标识。 */
+  toolCallId: string
+  /** 接收本次选择的工具名称。 */
+  toolCallName: string
+  /** 用户通过自定义卡片提交的 JSON 值。 */
+  result: ChatToolCallValue
+}
 
 export interface ChatRequestParams {
   /** 本轮用户输入的原文，仅含附件时为空字符串。 */
   prompt: string
   /** 本轮用户消息携带的附件。 */
   attachments: readonly ChatAttachmentItem[]
-  /** 截至本轮用户消息的会话快照。 */
+  /** 本次请求的会话快照，回传选择时包含当前助手消息。 */
   messages: readonly ChatMessageData[]
-  /** 区分新提问与重新生成最后一轮回复。 */
-  trigger: 'send' | 'regenerate'
+  /** 区分新提问、重新生成与提交工具选择。 */
+  trigger: 'send' | 'regenerate' | 'tool-response'
+  /** 工具回传请求中提交的用户选择。 */
+  toolCallMessage?: ChatToolCallMessage
 }
 
 export interface ChatEngineRequestContext extends ChatRequestParams {

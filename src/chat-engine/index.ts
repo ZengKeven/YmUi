@@ -1,10 +1,11 @@
 import { isAttachmentFile } from '../components/chat-attachments/file'
+import type { ChatToolCallValue } from '../components/chat-message/types'
 import { readEventStream, type SSEFrame } from './sse'
 import type { ChatEngineContentContext, ChatEngineRequestContext, ChatRequestParams, ChatServiceConfig,
   ChatStreamContent, SSEChunkData } from './types'
 
 export type { ChatEngineContentContext, ChatEngineRequestContext, ChatRequestParams, ChatServiceConfig,
-  ChatStreamContent, SSEChunkData } from './types'
+  ChatStreamContent, ChatToolCallMessage, SSEChunkData } from './types'
 
 function requestOptions(params: ChatRequestParams, init: RequestInit): RequestInit {
   const headers = new Headers(init.headers)
@@ -65,7 +66,7 @@ function isAttachmentItem(item: unknown) {
     (raw === undefined || isAttachmentFile(raw))
 }
 
-function isToolCallValue(value: unknown, ancestors = new Set<object>()): boolean {
+export function isToolCallValue(value: unknown, ancestors = new Set<object>()): value is ChatToolCallValue {
   if (value === null || typeof value === 'string' || typeof value === 'boolean') return true
   if (typeof value === 'number') return Number.isFinite(value)
   if (typeof value !== 'object' || ancestors.has(value)) return false
@@ -100,7 +101,8 @@ function isContentBlock(value: unknown): value is ChatStreamContent {
       return isRecord(data) && typeof data.toolCallId === 'string' && !!data.toolCallId.trim() &&
         (data.toolCallName === undefined || (typeof data.toolCallName === 'string' && !!data.toolCallName.trim())) &&
         (!('args' in data) || isToolCallValue(data.args)) && (!('result' in data) || isToolCallValue(data.result)) &&
-        (status === undefined || status === 'executing' || status === 'complete' || status === 'error' || status === 'stop')
+        (status === undefined || status === 'executing' || status === 'awaiting-input' ||
+          status === 'complete' || status === 'error' || status === 'stop')
     case 'suggestion':
       return Array.isArray(data) && data.every(item => isRecord(item) &&
         typeof item.title === 'string' && item.title.trim() && optionalString(item.prompt)) &&
@@ -161,8 +163,9 @@ export class ChatEngine {
 
   async send(context: RequestContext): Promise<void> {
     const config = { ...this.config }
-    const { prompt, attachments, messages, trigger, signal } = context
-    const params = { prompt, attachments, messages, trigger }
+    const { prompt, attachments, messages, trigger, signal, toolCallMessage } = context
+    const params: ChatRequestParams = { prompt, attachments, messages, trigger }
+    if (toolCallMessage !== undefined) params.toolCallMessage = toolCallMessage
     try {
       await consume(config, params, context)
       signal.throwIfAborted()

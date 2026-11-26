@@ -20,6 +20,8 @@ category: 聊天组件
 
 打开「自定义工具卡片」，再发送同一问题。「北仓收货预约」先显示「查询中」，成功后显示「可预约」、收货时段和登记入口，失败时显示「查询失败」和服务返回的原因。关闭开关可直接查看这条历史消息的默认卡片。
 
+选择「工具调用确认」并发送「预约北仓收货时段」，示例会自动注册确认卡片。看到「待确认」后，点击「确认 14:00–16:00」。卡片会显示已选时段，本地 SSE 服务收到选择后，在同一条助手消息下逐段输出预约结果和登记指引。也可以在等待时点击「停止生成」结束这次预约。
+
 生成时可点击「停止生成」保留已收到的附件、来源、思考与正文，再点击「重新生成」让同一条回复从头生成。确认「清空历史」会移除所有消息并结束当前请求。
 
 将「模拟服务」切换到「流中出错」可在首段 Markdown 之后看到错误状态。切回「思考、回复与推荐问题」后可重新生成。运行 `npm run dev` 后打开 `/chatbot/` 就能体验，构建后可用 `npm run preview:playground` 启动同一模拟接口。单独部署静态页面时需要提供自己的 SSE 服务地址。
@@ -116,7 +118,7 @@ data: [DONE]
 
 `toolCallId` 必须是非空白字符串。省略名称时卡片显示 ID。后续分片只需携带 ID 和变更字段。传入 `args` 或 `result` 会整体替换该字段，省略则保留原值。两者都接受 JSON 值，包括字符串、对象、数组、`false`、`0` 和 `null`。默认卡片将它们按文本展示。
 
-首帧省略 `status` 时显示「进行中」（`executing`）。工具成功用 `complete`，失败用 `error` 并在 `data.result` 中返回原因。工具失败只更新这次调用，服务仍可发送后续分片。SSE 的 `event: error` 会结束整轮请求并触发 `onError`。调用一旦成功、失败或中断，随后带有其他状态的分片会被忽略。停止生成、连接报错或读到流末尾时，仍在进行中的调用显示「已中断」（`stop`）。
+首帧省略 `status` 时显示「进行中」（`executing`）。等待用户选择用 `awaiting-input`，工具成功用 `complete`，失败用 `error` 并在 `data.result` 中返回原因。工具失败只更新这次调用，服务仍可发送后续分片。SSE 的 `event: error` 会结束整轮请求并触发 `onError`。调用一旦成功、失败或中断，随后带有其他状态的分片会被忽略。普通执行中的调用在整轮结束时显示「已中断」（`stop`）。
 
 **按工具名注册 Vue 组件**
 
@@ -128,7 +130,10 @@ import { YmChatbot, type ChatToolCallComponents } from 'ym-ui-vapor'
 import 'ym-ui-vapor/style.css'
 import ReceivingSlotCard from './ReceivingSlotCard.vue'
 
-const tools = { lookup_receiving_slot: ReceivingSlotCard } satisfies ChatToolCallComponents
+const tools = {
+  lookup_receiving_slot: ReceivingSlotCard,
+  confirm_receiving_slot: ReceivingSlotCard,
+} satisfies ChatToolCallComponents
 </script>
 
 <template>
@@ -144,7 +149,7 @@ import { computed } from 'vue'
 import type { ChatToolCallRendererProps } from 'ym-ui-vapor'
 
 const props = defineProps<ChatToolCallRendererProps>()
-const labels = { executing: '查询中', complete: '可预约', error: '查询失败', stop: '已中断' }
+const labels = { executing: '查询中', 'awaiting-input': '待确认', complete: '已完成', error: '查询失败', stop: '已中断' }
 const slot = computed(() => {
   const result = props.result
   if (result && typeof result === 'object' && 'slot' in result && typeof result.slot === 'string') {
@@ -156,6 +161,9 @@ const slot = computed(() => {
 <template>
   <section aria-label="收货预约">
     <p role="status">{{ labels[props.status] }}</p>
+    <button v-if="props.respond" type="button" @click="props.respond?.({ slot: '14:00–16:00' })">
+      确认 14:00–16:00
+    </button>
     <p v-if="props.status === 'complete' && slot">收货时段 {{ slot }}</p>
     <p v-if="props.status === 'error' && typeof props.result === 'string'">{{ props.result }}</p>
   </section>
@@ -163,6 +171,34 @@ const slot = computed(() => {
 ```
 
 `ChatToolCallRendererProps` 提供 `toolCallId`、匹配到的 `toolCallName`、`status`，以及可选的 `args` 和 `result`。参数和结果保留 JSON 类型，组件可直接读取业务字段。组件随当前消息继承 `ConfigProvider` 的字号和主题变量，可用 `--ym-color-text`、`--ym-color-surface`、`--ym-radius` 设置自己的卡片样式。示例使用 Vapor 单文件组件。在 Vapor 应用里注册普通 Vue 组件时，从 `vue` 导入 `vaporInteropPlugin`，用 `createVaporApp(App).use(vaporInteropPlugin).mount('#app')` 启用互操作。
+
+**用 `respond` 回传用户选择**
+
+将示例的 `endpoint` 设为 `/api/chat/sse?toolcall=confirm`。第一次 POST 的响应包含等待确认的工具调用。服务端发送完可选项后，用 `[DONE]` 或正常 EOF 结束这段 SSE。聊天窗口保留卡片，等待用户操作。
+
+```text
+data: {"type":"toolcall","status":"awaiting-input","data":{"toolCallId":"receiving-confirm-1","toolCallName":"confirm_receiving_slot","args":{"warehouse":"北仓","slots":["09:00–11:00","14:00–16:00"]}}}
+
+data: [DONE]
+
+```
+
+当前轮的自定义卡片在待确认时会收到 `respond(value: ChatToolCallValue)`。提交后，卡片的 `status` 变为 `complete`，`result` 保存选择。同一次等待只接受一次提交。点击发生在第一段 SSE 结束前时，组件会先记住选择，再发起回传请求。停止、清空或重新生成后，上一轮的回调失效。未注册工具显示「待确认」的默认卡片，需要让用户做选择的工具应注册交互组件。
+
+第二次 POST 使用同一服务配置，正文包含下列字段。原问题的 `prompt` 和 `attachments` 也会随请求发送，`messages` 包含已记录选择的助手消息。结果保留原始 JSON 类型，包括 `false`、`0` 和 `null`。自定义请求体时，在 `chatServiceConfig.onRequest` 中读取并传递 `params.toolCallMessage`。
+
+```json
+{
+  "trigger": "tool-response",
+  "toolCallMessage": {
+    "toolCallId": "receiving-confirm-1",
+    "toolCallName": "confirm_receiving_slot",
+    "result": { "slot": "14:00–16:00" }
+  }
+}
+```
+
+服务端根据选择返回新的 SSE 分片。Markdown 会接在原卡片后面，回传请求出错时会保留已选结果和已收到的正文。每次 HTTP 请求分别触发对应的服务回调，可以在 `onComplete` 中使用 `params.trigger` 区分首次请求和回传。
 
 每条来源使用 `ChatSearchReference`，必填 `title`，可用 `url`、`site`、`date` 和 `content` 提供地址、站点、日期和纯文本摘要。空白标题会被跳过。`YmChatSearch` 在每次更新后检查来源地址，允许 HTTP、HTTPS、站内相对路径、查询串和页内锚点。其他协议、以 `//` 开头、含反斜杠或控制字符的地址只展示来源文字。[来源列表与链接规则](/chat-search/)
 
@@ -178,7 +214,7 @@ const slot = computed(() => {
 | onRequest(params) | 返回可选的 `RequestInit` 配置，例如请求头、方法、自定义正文或凭据选项。取消信号由当前会话管理。 |
 | onMessage(chunk) | 自定义事件映射，返回 Markdown 增量字符串或一个 `ChatStreamContent`，返回 `null` 或 `undefined` 跳过事件。`SSEChunkData` 含 `event`、`id`、原文 `raw` 和 `data`。合法 JSON 会解码为相应值，其他数据保留为文本。 |
 | onError(error) | HTTP 状态异常、响应类型错误、网络中断、内容块格式无效、`event: error` 或映射失败时接收 `Error`。消息进入错误状态并保留已显示部分。服务端可用 `event: error` 和 `data: {"message":"错误说明"}` 传递原因。 |
-| onAbort() | 停止、清空或卸载中止当前请求时调用。 |
+| onAbort() | 停止、清空或卸载中止正在传输的请求时调用。等待用户确认期间，已结束的请求保留原有的完成通知。 |
 | onComplete(isAborted, params) | 成功结束时首个参数为 `false`，主动取消时为 `true`。失败通过 `onError` 通知。 |
 
 如果后端通过 SSE 事件名区分分片，可用 `onMessage` 将它们映射到组件支持的类型。下面的服务用 `document` 传清单地址，用 `catalog` 传来源标题数组，用 `reasoning`、`answer` 和 `follow-up` 分别传思考文字、正文和推荐问题。
@@ -223,8 +259,9 @@ await engine.send({
 | --- | --- |
 | prompt | 本轮用户输入的文字。仅发送附件时为空字符串。 |
 | attachments | 本轮附件列表。本地选择的原始 `File` 保存在每项的 `raw` 字段。 |
-| messages | 截至本轮用户消息的历史记录。重新生成时仍以原来的用户消息结尾。 |
-| trigger | 发送时为 `send`，重新生成时为 `regenerate`。 |
+| messages | 发送和重新生成时截至本轮用户提问。工具回传时还包含当前助手消息及已提交的选择。 |
+| trigger | 发送时为 `send`，重新生成时为 `regenerate`，工具回传时为 `tool-response`。 |
+| toolCallMessage | 工具回传时提供 `ChatToolCallMessage`，含 `toolCallId`、`toolCallName` 和 `result`。 |
 | signal | 本次请求的 `AbortSignal`。将它传给 `fetch`，或监听 `abort` 来清理定时器、结束数据读取。 |
 | onChunk | `(delta: string) => void`，将新增的 Markdown 正文追加到当前回复。 |
 | onContent | `(block: ChatStreamContent) => void`，传入一个思考、搜索来源、附件、工具调用、Markdown 或推荐问题分片，使用与 SSE 相同的合并和展示规则。 |

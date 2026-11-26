@@ -60,7 +60,7 @@ export interface ChatAttachmentContent {
 export type ChatToolCallValue = string | number | boolean | null |
   readonly ChatToolCallValue[] | { readonly [key: string]: ChatToolCallValue }
 
-export type ChatToolCallStatus = 'executing' | 'complete' | 'error' | 'stop'
+export type ChatToolCallStatus = 'executing' | 'awaiting-input' | 'complete' | 'error' | 'stop'
 
 export interface ChatToolCallData {
   /** 同一条消息中标识一次工具调用，后续分片沿用此值。 */
@@ -87,6 +87,8 @@ export interface ChatToolCallRendererProps extends ChatToolCallData {
   toolCallName: string
   /** 当前调用状态，首个分片省略状态时为 executing。 */
   status: ChatToolCallStatus
+  /** 仅在本轮工具等待输入时可用，提交本次调用的用户选择。 */
+  respond?: (value: ChatToolCallValue) => void
 }
 
 /** 以完整工具名为键的本地 Vue 组件映射。 */

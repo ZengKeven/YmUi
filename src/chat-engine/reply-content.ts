@@ -2,7 +2,7 @@ import type { ChatAttachmentContent, ChatMessageStatus, ChatSearchContent, ChatS
   ChatToolCallContent, ChatToolCallValue } from '../components/chat-message/types'
 import type { ChatStreamContent } from './types'
 
-function copyToolValue(value: ChatToolCallValue): ChatToolCallValue {
+export function copyToolValue(value: ChatToolCallValue): ChatToolCallValue {
   return value !== null && typeof value === 'object' ? JSON.parse(JSON.stringify(value)) : value
 }
 
@@ -49,7 +49,8 @@ export function createReplyContent() {
     const previous = blocks[index]
     const call = previous?.type === 'toolcall' ? previous : undefined
     // 同一调用只接受一个终态，延迟到达的进度帧不能覆盖最终结果。
-    if (call?.status && call.status !== 'executing' && chunk.status && chunk.status !== call.status) return
+    if ((call?.status === 'complete' || call?.status === 'error' || call?.status === 'stop')
+      && chunk.status && chunk.status !== call.status) return
 
     const data = { ...call?.data, toolCallId }
     if (toolCallName !== undefined) data.toolCallName = toolCallName
@@ -97,7 +98,7 @@ export function createReplyContent() {
     if (status !== 'pending' && status !== 'streaming') {
       finishThinking()
       blocks.forEach((block, index) => {
-        if (block.type === 'toolcall' && block.status === 'executing') {
+        if (block.type === 'toolcall' && (block.status === 'executing' || block.status === 'awaiting-input')) {
           blocks[index] = { ...block, status: 'stop' }
         }
       })
@@ -105,5 +106,13 @@ export function createReplyContent() {
     return status === 'complete' && suggestions ? [...blocks, suggestions] : blocks.slice()
   }
 
-  return { append, snapshot }
+  function hasAwaitingInput() {
+    return blocks.some(block => block.type === 'toolcall' && block.status === 'awaiting-input')
+  }
+
+  function isAwaitingInput(block: ChatToolCallContent) {
+    return block.status === 'awaiting-input' && blocks.includes(block)
+  }
+
+  return { append, snapshot, hasAwaitingInput, isAwaitingInput }
 }

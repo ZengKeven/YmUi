@@ -1,11 +1,12 @@
 <script setup lang="ts" vapor>
 import { computed, inject, toRaw } from 'vue'
 import { YmTag } from '../tag'
-import { toolCallComponentsKey } from './toolcall-context'
+import { toolCallComponentsKey, toolCallRespondKey } from './toolcall-context'
 import type { ChatToolCallContent, ChatToolCallValue } from './types'
 
 const props = defineProps<{ block: ChatToolCallContent }>()
 const getComponents = inject(toolCallComponentsKey, undefined)
+const getRespond = inject(toolCallRespondKey, undefined)
 const renderer = computed(() => {
   const components = getComponents?.()
   const tool = props.block.data.toolCallName
@@ -14,8 +15,10 @@ const renderer = computed(() => {
 })
 const name = computed(() => props.block.data.toolCallName || props.block.data.toolCallId)
 const status = computed(() => props.block.status ?? 'executing')
+const respond = computed(() => status.value === 'awaiting-input' ? getRespond?.(toRaw(props.block)) : undefined)
 const states = {
   executing: { label: '进行中', theme: 'primary' },
+  'awaiting-input': { label: '待确认', theme: 'warning' },
   complete: { label: '成功', theme: 'success' },
   error: { label: '失败', theme: 'danger' },
   stop: { label: '已中断', theme: 'default' },
@@ -28,7 +31,7 @@ function displayValue(value: ChatToolCallValue) {
 
 <template>
   <component v-if="renderer" :is="renderer" :toolCallId="props.block.data.toolCallId" :toolCallName="name"
-    :status="status" :args="props.block.data.args" :result="props.block.data.result" />
+    :status="status" :args="props.block.data.args" :result="props.block.data.result" :respond="respond" />
   <section v-else class="ym-chat-message__toolcall" :aria-label="name" :data-tool-call-id="props.block.data.toolCallId"
     :data-status="status">
     <div class="ym-chat-message__toolcall-header">
