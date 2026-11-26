@@ -1,7 +1,7 @@
 <script setup lang="ts" vapor>
 import { computed, nextTick, onMounted, onScopeDispose, ref, useTemplateRef, watch } from 'vue'
 import { YmButton } from '../button'
-import { YmChatMessage, type ChatMessageData } from '../chat-message'
+import { YmChatMessage, type ChatMessageData, type ChatMessageSuggestionContext } from '../chat-message'
 import { YmDialog, type DialogActionContext } from '../dialog'
 import { YmIcon } from '../icon'
 import chatListProps from './props'
@@ -13,6 +13,7 @@ const emit = defineEmits<{
   'update:data': [messages: ChatMessageData[]]
   clear: [context: { e: Event }]
   scroll: [context: { e: Event }]
+  'suggestion-click': [prompt: string, context: ChatMessageSuggestionContext]
 }>()
 type MessageSlot = (scope: { item: ChatMessageData; index: number }) => unknown
 const slots = defineSlots<{
@@ -121,7 +122,8 @@ onScopeDispose(() => resize?.disconnect())
           <template v-if="rows.length">
             <YmChatMessage v-for="{ item, index } in rows" :key="item.id" :message="item"
               :variant="item.role === 'user' ? 'base' : 'text'"
-              :placement="props.layout === 'both' && item.role === 'user' ? 'right' : 'left'">
+              :placement="props.layout === 'both' && item.role === 'user' ? 'right' : 'left'"
+              @suggestion-click="(prompt, context) => emit('suggestion-click', prompt, context)">
               <template v-if="slots.avatar" #avatar><slot name="avatar" :item="item" :index="index" /></template>
               <template v-if="slots.name" #name><slot name="name" :item="item" :index="index" /></template>
               <template v-if="slots.datetime" #datetime><slot name="datetime" :item="item" :index="index" /></template>

@@ -34,6 +34,7 @@ category: 聊天组件
 | scroll | `{ e: Event }` | 消息区域滚动时触发，`e.target` 为滚动容器。 |
 | update:data | `ChatMessageData[]` | 确认清空后传出空数组，用于同步 `v-model:data`。 |
 | clear | `{ e: Event }` | 确认清空后触发，可在此取消当前回复或更新由业务页面管理的历史记录。 |
+| suggestion-click | `(prompt: string, context: ChatMessageSuggestionContext)` | 用户在内置消息中激活推荐问题时触发。`context.message` 是来源消息，`item` 是推荐项，`index` 是问题在该推荐块原数组中的下标，`e` 是原生点击事件。 |
 
 ## 插槽
 
@@ -61,7 +62,10 @@ import { YmChatList, YmChatSender, type ChatMessageData } from 'ym-ui-vapor'
 import 'ym-ui-vapor/style.css'
 
 const messages = ref<ChatMessageData[]>([
-  { id: 'welcome', role: 'assistant', name: '排期助手', content: '今天要查询哪笔收货安排？' },
+  { id: 'welcome', role: 'assistant', name: '排期助手', content: [
+    { type: 'text', data: '今天要查询哪笔收货安排？' },
+    { type: 'suggestion', data: [{ title: '查看北门安排', prompt: '今天北门有哪些收货安排？' }] },
+  ] },
 ])
 const draft = ref('')
 let nextId = 1
@@ -73,12 +77,14 @@ function send(text: string) {
 </script>
 
 <template>
-  <YmChatList v-model:data="messages" style="height: 26rem">
+  <YmChatList v-model:data="messages" style="height: 26rem" @suggestion-click="send">
     <template #footer><YmChatSender v-model="draft" placeholder="输入消息" @send="send" /></template>
   </YmChatList>
 </template>
 ```
 
 接入流式回复时，先追加状态为 `pending` 的助手消息。收到首段文本后设置 `streaming`，后续分段追加到同一条消息，完成后设置 `complete`。将生成状态绑定到发送框的 `loading`，并在 `stop` 回调中终止数据流、保留已有正文并设置 `stop`。清空历史和组件卸载时也应取消进行中的回复。
+
+推荐问题和发送框可共用上例的 `send` 函数。回复过程中在发送入口判断是否已有请求进行中，可避免连续点击发起多轮回复。可在[对话推荐问题](/chat-suggestion/)中体验完整的追问流程。
 
 通过模板引用获得 `ChatListInstance`，调用 `scrollToBottom()` 可立即定位到最新消息，传入 `{ behavior: 'smooth' }` 可平滑滚动。使用单向的 `:data` 时，在 `clear` 回调中更新消息数组。

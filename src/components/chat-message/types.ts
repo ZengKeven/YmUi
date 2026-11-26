@@ -1,4 +1,5 @@
 import type { ControlSize } from '../config-provider/types'
+import type { ChatSuggestionItem, ChatSuggestionSelectContext } from '../chat-suggestion/types'
 import type { ChatThinkingData, ChatThinkingStatus } from '../chat-thinking/types'
 
 export type ChatMessageRole = 'user' | 'assistant' | 'system'
@@ -27,7 +28,16 @@ export interface ChatThinkingContent {
   status?: ChatThinkingStatus
 }
 
-export type ChatMessageContent = ChatTextContent | ChatMarkdownContent | ChatThinkingContent
+export interface ChatSuggestionContent {
+  /** 回复完成后可点击追问的问题列表。 */
+  type: 'suggestion'
+  /** 按显示顺序排列的推荐项。 */
+  data: readonly ChatSuggestionItem[]
+  /** 推荐块的状态，省略时以消息状态为准。 */
+  status?: ChatMessageStatus
+}
+
+export type ChatMessageContent = ChatTextContent | ChatMarkdownContent | ChatThinkingContent | ChatSuggestionContent
 
 export interface ChatMessageAvatar {
   /** 头像的图片地址。 */
@@ -64,4 +74,9 @@ export interface ChatMessageProps extends Omit<ChatMessageData, 'id'> {
   placement?: 'left' | 'right'
   /** 消息的局部尺寸，省略时继承最近的 ConfigProvider。 */
   size?: ControlSize
+}
+
+export interface ChatMessageSuggestionContext extends ChatSuggestionSelectContext {
+  /** 产生此次追问的消息，通过 message 属性提供时可用。 */
+  message?: ChatMessageData
 }

@@ -1,15 +1,19 @@
 <script setup lang="ts" vapor>
 import { computed } from 'vue'
 import { YmChatMarkdown } from '../chat-markdown'
+import { YmChatSuggestion, type ChatSuggestionSelectContext } from '../chat-suggestion'
 import { YmChatThinking, type ChatThinkingStatus } from '../chat-thinking'
 import { YmIcon } from '../icon'
 import { YmImage } from '../image'
 import { YmLoading } from '../loading'
 import chatMessageProps from './props'
-import type { ChatMessageStatus } from './types'
+import type { ChatMessageStatus, ChatMessageSuggestionContext } from './types'
 
 defineOptions({ name: 'YmChatMessage' })
 const props = defineProps(chatMessageProps)
+const emit = defineEmits<{
+  'suggestion-click': [prompt: string, context: ChatMessageSuggestionContext]
+}>()
 const slots = defineSlots<{
   default?: () => unknown
   content?: () => unknown
@@ -34,17 +38,23 @@ const avatarAlt = computed(() => avatar.value?.alt ?? (name.value ? '' : roleNam
 const segments = computed(() => {
   const content = props.content ?? props.message?.content
   if (typeof content === 'string') return [{ type: 'text' as const, data: content }]
-  return content?.filter(block => block.type === 'text' || block.type === 'markdown' || block.type === 'thinking') ?? []
+  return content?.filter(block => block.type === 'text' || block.type === 'markdown' ||
+    block.type === 'thinking' || block.type === 'suggestion') ?? []
 })
+const answerBlocks = computed(() => segments.value.filter(block => block.type === 'text' || block.type === 'markdown'))
 const thinkingStatus = computed<ChatThinkingStatus>(() =>
   status.value === 'pending' || status.value === 'streaming' ? status.value : 'complete')
 const loading = computed(() => {
   if (status.value !== 'pending' && status.value !== 'streaming') return false
   if (slots.content || slots.default) return status.value === 'pending'
   if (segments.value.some(block => block.type === 'thinking')) return false
-  return status.value === 'pending' || !segments.value.some(block => block.data)
+  return status.value === 'pending' || !answerBlocks.value.some(block => block.data)
 })
-const copyText = computed(() => segments.value.filter(block => block.type !== 'thinking').map(block => block.data).join('\n'))
+const copyText = computed(() => answerBlocks.value.map(block => block.data).join('\n'))
+
+function selectSuggestion(prompt: string, context: ChatSuggestionSelectContext) {
+  emit('suggestion-click', prompt, { ...context, message: props.message })
+}
 </script>
 
 <template>
@@ -71,6 +81,10 @@ const copyText = computed(() => segments.value.filter(block => block.type !== 't
           <template v-for="(block, index) in segments" :key="`${props.message?.id ?? ''}:${index}`">
             <YmChatMarkdown v-if="block.type === 'markdown'" :content="block.data" />
             <YmChatThinking v-else-if="block.type === 'thinking'" :content="block.data" :status="block.status ?? thinkingStatus" />
+            <template v-else-if="block.type === 'suggestion'">
+              <YmChatSuggestion v-if="status === 'complete' && (block.status ?? 'complete') === 'complete'"
+                :content="block.data" @select="selectSuggestion" />
+            </template>
             <div v-else class="ym-chat-message__text">{{ block.data }}</div>
           </template>
         </slot></slot>
