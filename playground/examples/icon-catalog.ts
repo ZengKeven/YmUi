@@ -174,6 +174,8 @@ export const iconLabels = {
   search: '查询',
   reset: '重置条件',
   refresh: '刷新',
+  'thumb-up': '点赞',
+  'thumb-down': '点踩',
   columns: '列设置',
   submit: '提交',
   withdraw: '撤回提交',

@@ -5,6 +5,7 @@ import { YmIcon } from '../icon'
 import { YmImage } from '../image'
 import { YmLoading } from '../loading'
 import chatMessageProps from './props'
+import type { ChatMessageStatus } from './types'
 
 defineOptions({ name: 'YmChatMessage' })
 const props = defineProps(chatMessageProps)
@@ -15,7 +16,7 @@ const slots = defineSlots<{
   name?: () => unknown
   datetime?: () => unknown
   header?: () => unknown
-  actionbar?: () => unknown
+  actionbar?: (scope: { copyText: string; status: ChatMessageStatus }) => unknown
 }>()
 
 const role = computed(() => props.role ?? props.message?.role ?? 'assistant')
@@ -36,6 +37,7 @@ const segments = computed(() => {
 })
 const loading = computed(() => status.value === 'pending' ||
   (status.value === 'streaming' && !slots.content && !slots.default && !segments.value.some(block => block.data)))
+const copyText = computed(() => segments.value.map(block => block.data).join('\n'))
 </script>
 
 <template>
@@ -69,7 +71,9 @@ const loading = computed(() => status.value === 'pending' ||
           <YmIcon name="error" />消息出错
         </div>
       </div>
-      <div v-if="slots.actionbar" class="ym-chat-message__actionbar"><slot name="actionbar" /></div>
+      <div v-if="slots.actionbar" class="ym-chat-message__actionbar">
+        <slot name="actionbar" :copy-text="copyText" :status="status" />
+      </div>
     </div>
   </article>
 </template>

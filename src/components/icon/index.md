@@ -4,7 +4,7 @@ category: 基础组件
 
 # YmIcon 图标
 
-内置 208 个线形 SVG 图标，覆盖系统通用、常用工具、后台操作、一级菜单和行业后台。通用图形采用 TDesign Icons 0.4.8 的描边版，仓储、审批和打印等业务图形沿用同一套设计。图形随组件库打包，可离线使用。[TDesign 官方图标库](https://tdesign.tencent.com/icons) · [图形来源与 MIT 许可](https://github.com/Tencent/tdesign-icons)
+内置 210 个线形 SVG 图标，覆盖系统通用、常用工具、后台操作、一级菜单和行业后台。通用图形采用 TDesign Icons 0.4.8 的描边版，仓储、审批和打印等业务图形沿用同一套设计。图形随组件库打包，可离线使用。[TDesign 官方图标库](https://tdesign.tencent.com/icons) · [图形来源与 MIT 许可](https://github.com/Tencent/tdesign-icons)
 
 ## 交互示例
 

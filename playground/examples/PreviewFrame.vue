@@ -1,6 +1,7 @@
 <script setup lang="ts" vapor>
 import { computed, onScopeDispose, ref } from 'vue'
 import { ConfigProvider, YmIcon } from '../../src'
+import { copyWithSelection } from '../../src/utils/clipboard'
 import { settings } from './settings'
 import GlobalControls from './GlobalControls.vue'
 import { renderPreviewSource, wrapConfigProvider, type PreviewPart } from './preview-source'
@@ -14,22 +15,6 @@ const globalConfig = computed(() => ({
 const feedback = ref('')
 let feedbackTimer: ReturnType<typeof setTimeout>
 onScopeDispose(() => clearTimeout(feedbackTimer))
-
-function copyWithSelection(text: string) {
-  const previous = document.activeElement
-  const field = document.createElement('textarea')
-  field.value = text
-  field.readOnly = true
-  field.style.cssText = 'position:fixed;top:0;left:-10000px'
-  document.body.append(field)
-  try {
-    field.select()
-    return document.execCommand('copy')
-  } finally {
-    field.remove()
-    if (previous instanceof HTMLElement) previous.focus({ preventScroll: true })
-  }
-}
 
 async function copyCode() {
   if (!props.source) return

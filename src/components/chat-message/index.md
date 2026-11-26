@@ -41,7 +41,7 @@ category: 聊天组件
 | datetime | 自定义时间，优先于 `datetime` 属性。 |
 | content | 自定义气泡正文，优先于默认插槽及 `content` 属性。 |
 | default | 提供正文，优先于 `content` 属性。 |
-| actionbar | 在消息下方放置业务操作，例如回复或复制。 |
+| actionbar | 在气泡下方放置操作按钮。参数 `{ copyText, status }` 提供可复制正文和消息当前生效的状态。`copyText` 取自 `content` 属性或 `message.content`，多个内容块以换行连接，Markdown 保留标记。自定义正文插槽时，可将对应的业务文本直接传给操作栏。 |
 
 ## 使用指南
 
@@ -49,7 +49,7 @@ category: 聊天组件
 
 ```vue
 <script setup lang="ts" vapor>
-import { YmChatMessage, type ChatMessageData } from 'ym-ui-vapor'
+import { YmChatActionbar, YmChatMessage, type ChatMessageData } from 'ym-ui-vapor'
 import 'ym-ui-vapor/style.css'
 
 const reply: ChatMessageData = {
@@ -65,8 +65,15 @@ const reply: ChatMessageData = {
 </script>
 
 <template>
-  <YmChatMessage :message="reply" variant="base" />
+  <YmChatMessage :message="reply" variant="base">
+    <template #actionbar="{ copyText, status }">
+      <YmChatActionbar :content="copyText" :action-bar="['copy', 'good', 'bad']"
+        :disabled="status === 'pending' || status === 'streaming'" />
+    </template>
+  </YmChatMessage>
 </template>
 ```
 
 `ChatMessageContent` 包含纯文本块 `ChatTextContent` 和 Markdown 块 `ChatMarkdownContent`。逐段接收 Markdown 时，把片段追加到同一块的 `data`，并用 `status` 标记等待、接收、完成或停止。可在[对话 Markdown](/chat-markdown/)中操作本地模拟流，查看跨片段的链接和代码块如何显示。
+
+需要让用户重新生成当前回复时，在操作栏加入 `replay` 并监听 `actions` 事件。完整示例见[对话操作栏](/chat-actionbar/)。
