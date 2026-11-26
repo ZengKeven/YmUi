@@ -23,6 +23,7 @@ category: 聊天组件
 | defaultScrollTo | `top / bottom` | `bottom` | 初始滚动位置。即使关闭自动跟随，首次显示仍按此项定位。 |
 | showScrollButton | `boolean` | `true` | 离开底部时显示「回到底部」按钮。 |
 | clearHistory | `boolean` | `true` | 有消息或提供了默认插槽时显示清空入口，点击后需在对话框中确认。使用默认插槽展示空状态时，可按实际记录数设置此项。 |
+| suggestionDisabled | `boolean` | `false` | 禁用内置消息中的推荐问题按钮。可绑定到生成状态，在当前回复结束后恢复追问。 |
 | size | `extra-small / small / medium / large` | 继承，初始为 `medium` | 控制消息间距、字号和内置控件尺寸。用 CSS `height` 设置整个列表的高度。 |
 
 列表的默认高度为 `26rem`。嵌套的 `ConfigProvider` 按项继承配置，列表显式设置的 `size` 优先。`mode` 和 `theme` 控制面板、文字、气泡和操作按钮的配色，`radius` 控制列表边框、气泡、按钮和清空确认框的圆角。确认框外部挂载时也会继承来源位置的配置。

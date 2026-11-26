@@ -16,6 +16,8 @@ export interface ChatListProps {
   showScrollButton?: boolean
   /** 提供清空历史记录的确认操作。 */
   clearHistory?: boolean
+  /** 禁用列表中各条消息的推荐问题按钮。 */
+  suggestionDisabled?: boolean
   /** 列表、内置消息与操作控件的尺寸。 */
   size?: ControlSize
 }

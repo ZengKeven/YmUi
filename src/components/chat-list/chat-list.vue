@@ -124,6 +124,7 @@ onScopeDispose(() => resize?.disconnect())
             <YmChatMessage v-for="{ item, index } in rows" :key="item.id" :message="item"
               :variant="item.role === 'user' ? 'base' : 'text'"
               :placement="props.layout === 'both' && item.role === 'user' ? 'right' : 'left'"
+              :suggestion-disabled="props.suggestionDisabled"
               @source-click="(href, context) => emit('source-click', href, context)"
               @suggestion-click="(prompt, context) => emit('suggestion-click', prompt, context)">
               <template v-if="slots.avatar" #avatar><slot name="avatar" :item="item" :index="index" /></template>

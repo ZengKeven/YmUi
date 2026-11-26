@@ -91,6 +91,8 @@ export interface ChatMessageProps extends Omit<ChatMessageData, 'id'> {
   variant?: 'text' | 'base' | 'outline'
   /** 头像及气泡的位置，默认居左。 */
   placement?: 'left' | 'right'
+  /** 禁用当前消息内的推荐问题按钮。 */
+  suggestionDisabled?: boolean
   /** 消息的局部尺寸，省略时继承最近的 ConfigProvider。 */
   size?: ControlSize
 }

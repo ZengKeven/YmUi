@@ -1,4 +1,4 @@
-import type { ChatEngineRequestContext, ChatServiceConfig } from '../../chat-engine/types'
+import type { ChatEngineRequestContext, ChatServiceConfig, ChatStreamContent } from '../../chat-engine/types'
 import type { ChatAttachmentItem } from '../chat-attachments'
 import type { ChatMessageData } from '../chat-message'
 import type { ControlSize } from '../config-provider/types'
@@ -10,7 +10,10 @@ export interface ChatbotSendOptions {
   attachments?: readonly ChatAttachmentItem[]
 }
 
-export interface ChatbotRequestContext extends ChatEngineRequestContext {}
+export interface ChatbotRequestContext extends ChatEngineRequestContext {
+  /** 将本次新增的思考、Markdown 或推荐问题交给组件。 */
+  onContent: (block: ChatStreamContent) => void
+}
 
 export interface ChatbotProps {
   /** 自定义回复函数，与 chatServiceConfig 同时设置时优先。 */

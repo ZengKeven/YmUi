@@ -33,6 +33,8 @@ export default {
     type: String as PropType<ChatMessageProps['placement']>, default: 'left',
     validator: (placement: string) => ['left', 'right'].includes(placement),
   },
+  /** 是否禁用推荐问题按钮。 */
+  suggestionDisabled: Boolean,
   /** 局部尺寸。 */
   size: buttonProps.size,
 } satisfies ComponentObjectPropsOptions<ChatMessageProps>

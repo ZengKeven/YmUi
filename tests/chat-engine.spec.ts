@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
+import type { ChatStreamContent } from 'ym-ui-vapor'
 
 interface CapturedStream {
   request: Request
@@ -47,6 +48,10 @@ async function write(page: Page, text: string, index = 0) {
   await page.evaluate(({ text, index }) => {
     window.chatStreams[index].controller.enqueue(new TextEncoder().encode(text))
   }, { text, index })
+}
+
+function frame(data: unknown) {
+  return 'data: ' + JSON.stringify(data) + '\n\n'
 }
 
 test('maps only complete SSE frames across individual UTF-8 bytes and all three line endings', async ({ page }) => {
@@ -106,6 +111,85 @@ test('POSTs conversation and file metadata and completes on DONE without waiting
   await expect(page.locator('#errors')).toHaveText('[]')
 })
 
+test('custom SSE events merge thinking and Markdown and reveal questions only on completion', async ({ page }) => {
+  await captureStreams(page)
+  await page.goto(fixture + '?map')
+  await send(page)
+  await expect.poll(() => page.evaluate(() => window.chatStreams.length)).toBe(1)
+  const reply = assistant(page)
+  const thinking = reply.locator('.ym-chat-thinking')
+  const markdown = reply.locator('.ym-chat-markdown')
+  const question = reply.getByRole('button', { name: '如何补单？' })
+  await write(page, 'event: reasoning\ndata: 先核对\n\n')
+  await expect(thinking).toHaveAttribute('data-status', 'streaming')
+  await expect(thinking).toContainText('先核对')
+  await expect(markdown).toHaveCount(0)
+  await write(page, 'event: reasoning\ndata: 收货时间。\n\n')
+  await expect(thinking).toContainText('先核对收货时间。')
+  await write(page, frame({ piece: '# 安排' }))
+  await expect(thinking).toHaveAttribute('data-status', 'complete')
+  await expect(markdown.getByRole('heading')).toHaveText('安排')
+  await write(page, 'event: question\ndata: 旧的推荐\n\nevent: question\ndata: 如何补单？\n\n'
+    + frame({ piece: '\n\n请去北门。' }))
+  await expect(markdown).toContainText('请去北门。')
+  await expect(markdown).toHaveCount(1)
+  await expect(reply).toHaveAttribute('data-status', 'streaming')
+  await expect(question).toHaveCount(0)
+  await page.evaluate(() => window.chatStreams[0].controller.close())
+  await expect(reply).toHaveAttribute('data-status', 'complete')
+  await expect(question).toBeVisible()
+  await expect(reply.getByRole('button', { name: '旧的推荐' })).toHaveCount(0)
+})
+
+test('a suggested turn keeps the draft and stops mid-thought without enabling concurrent follow-ups', async ({ page }) => {
+  await captureStreams(page)
+  await page.goto(fixture)
+  await send(page)
+  await expect.poll(() => page.evaluate(() => window.chatStreams.length)).toBe(1)
+  await write(page, frame({ type: 'suggestion', data: [{ title: '签收流程' }] }) + 'data: [DONE]\n\n')
+  const question = page.getByRole('button', { name: '签收流程' })
+  const sender = page.locator('.ym-chat-sender')
+  const input = sender.getByRole('textbox')
+  await input.fill('我的待发送问题')
+  await sender.locator('input[type=file]').setInputFiles({ name: '草稿.txt', mimeType: 'text/plain', buffer: Buffer.from('draft') })
+  await question.click()
+  await expect.poll(() => page.evaluate(() => window.chatStreams.length)).toBe(2)
+  expect(await page.evaluate(() => window.chatStreams[1].request.json())).toMatchObject({ prompt: '签收流程', attachments: [] })
+  await expect(input).toHaveValue('我的待发送问题')
+  await expect(sender.getByText('草稿.txt', { exact: true })).toBeVisible()
+  await expect(question).toBeDisabled()
+  await write(page, frame({ type: 'thinking', data: { text: '正在核对签收人。' } }), 1)
+  const thinking = assistant(page).locator('.ym-chat-thinking')
+  await expect(thinking).toHaveAttribute('data-status', 'streaming')
+  await sender.getByRole('button', { name: '停止生成' }).click()
+  await expect(assistant(page)).toHaveAttribute('data-status', 'stop')
+  await expect(thinking).toHaveAttribute('data-status', 'complete')
+  await expect(thinking).toContainText('正在核对签收人。')
+  await expect(question).toBeEnabled()
+  await expect(page.getByRole('article')).toHaveCount(4)
+})
+
+test('a thinking status frame can finish the panel before any Markdown arrives', async ({ page }) => {
+  await captureStreams(page)
+  await page.goto(fixture)
+  await send(page)
+  await expect.poll(() => page.evaluate(() => window.chatStreams.length)).toBe(1)
+  const reply = assistant(page)
+  const thinking = reply.locator('.ym-chat-thinking')
+  await write(page, frame({ type: 'thinking', data: { title: '核对中', text: '已扫描。' } }))
+  await thinking.getByRole('button', { name: '核对中' }).click()
+  await write(page, frame({ type: 'thinking', status: 'complete', data: { title: '核对结束' } }))
+  await expect(thinking).toHaveAttribute('data-status', 'complete')
+  const toggle = thinking.getByRole('button', { name: '核对结束' })
+  await expect(toggle).toHaveAttribute('aria-expanded', 'false')
+  await expect(reply).toHaveAttribute('data-status', 'streaming')
+  await expect(reply.locator('.ym-chat-markdown')).toHaveCount(0)
+  await toggle.click()
+  await expect(thinking.getByText('已扫描。')).toBeVisible()
+  await write(page, 'data: [DONE]\n\n')
+  await expect(reply).toHaveAttribute('data-status', 'complete')
+})
+
 test('stopping a body read aborts the fetch signal and regenerates the same assistant message', async ({ page }) => {
   await captureStreams(page)
   await page.goto(fixture)
@@ -113,10 +197,13 @@ test('stopping a body read aborts the fetch signal and regenerates the same assi
   const reply = assistant(page)
   await expect(reply).toHaveAttribute('data-status', 'pending')
   const id = await reply.getAttribute('data-message-id')
-  await write(page, 'data: 已收到的文字\n\ndata: 半个')
+  await write(page, frame({ type: 'thinking', data: { text: '已查清单。' } })
+    + 'data: 已收到的文字\n\n' + frame({ type: 'suggestion', data: [{ title: '过期的追问' }] }) + 'data: 半个')
   await expect(reply).toHaveAttribute('data-status', 'streaming')
   await page.getByRole('button', { name: '停止生成' }).click()
   await expect(reply).toHaveAttribute('data-status', 'stop')
+  await expect(reply.locator('.ym-chat-thinking')).toContainText('已查清单。')
+  await expect(reply.getByRole('button', { name: '过期的追问' })).toHaveCount(0)
   await expect(reply.locator('.ym-chat-markdown')).toHaveText('已收到的文字')
   await expect.poll(() => page.evaluate(() => {
     const source = window.chatStreams[0]
@@ -130,6 +217,8 @@ test('stopping a body read aborts the fetch signal and regenerates the same assi
   await expect(reply).toHaveAttribute('data-status', 'complete')
   await expect(reply).toHaveAttribute('data-message-id', id!)
   await expect(reply.locator('.ym-chat-markdown')).toHaveText('新的回复')
+  await expect(reply.locator('.ym-chat-thinking')).toHaveCount(0)
+  await expect(reply.getByRole('list', { name: '推荐问题' })).toHaveCount(0)
   await expect(page.getByRole('article')).toHaveCount(2)
   await expect(page.locator('#errors')).toHaveText('[]')
 })
@@ -183,6 +272,67 @@ test('a transport failure and an unmapped object both report errors instead of a
   await expect(assistant(page)).not.toContainText('未知格式')
   await expect(page.locator('#errors')).toContainText('onMessage')
   expect(await page.evaluate(() => window.chatStreams[1].cancelled)).toBe(true)
+})
+
+test('invalid structured data fails the stream without losing earlier blocks or publishing questions', async ({ page }) => {
+  const invalid = [
+    { type: 'thinking', data: { text: 12 } },
+    { type: 'markdown', data: ['正文'] },
+    { type: 'suggestion', data: [{ title: '如何签收？', prompt: false }] },
+  ]
+  let attempt = 0
+  await page.route('**' + endpoint, route => {
+    const body = frame({ type: 'thinking', data: { title: '核对清单', text: '共三项。' } })
+      + frame({ type: 'markdown', data: '已核对。' })
+      + frame({ type: 'suggestion', data: [{ title: '提前到达的推荐' }] })
+      + frame(invalid[attempt++]) + 'data: 后续内容\n\ndata: [DONE]\n\n'
+    return route.fulfill({ contentType: 'text/event-stream', body })
+  })
+  await page.goto(fixture)
+  await send(page)
+  const reply = assistant(page)
+  for (let i = 0; i < invalid.length; i++) {
+    if (i) await reply.getByRole('button', { name: '重新生成' }).click()
+    await expect.poll(async () => JSON.parse(await page.locator('#errors').innerText()).length).toBe(i + 1)
+    await expect(reply).toHaveAttribute('data-status', 'error')
+    await expect(reply.locator('.ym-chat-thinking')).toContainText('共三项。')
+    await expect(reply.locator('.ym-chat-markdown')).toHaveText('已核对。')
+    await expect(reply.getByRole('list', { name: '推荐问题' })).toHaveCount(0)
+  }
+  await expect(page.locator('#events')).toHaveText('[]')
+})
+
+test('standalone callbacks receive normalized blocks once and text-only callers keep legacy behavior', async ({ page }) => {
+  const thinking: ChatStreamContent = { type: 'thinking', status: 'complete', data: { text: '已核对。' } }
+  const markdown: ChatStreamContent = { type: 'markdown', data: '。' }
+  const suggestion: ChatStreamContent = { type: 'suggestion', data: [{ title: '下一项', prompt: '查看下一项' }] }
+  await page.route('**' + endpoint, route => route.fulfill({
+    contentType: 'text/event-stream',
+    body: 'data: 答\n\n' + frame({ delta: '案' }) + frame(markdown) + frame(thinking) + frame(suggestion) + 'data: [DONE]\n\n',
+  }))
+  await page.goto(fixture)
+  const result = await page.evaluate(async () => {
+    const engine = new window.ChatEngineForTest({ endpoint: '/api/sse-fixture' })
+    const chunks: string[] = []
+    const blocks: ChatStreamContent[] = []
+    const base = { prompt: '清单', attachments: [], messages: [], trigger: 'send' as const,
+      signal: new AbortController().signal }
+    const onChunk = (delta: string) => chunks.push(delta)
+    const onlyContent: ChatStreamContent[] = []
+    await engine.send({ ...base, onContent: block => onlyContent.push(block) })
+    await engine.send({ ...base, onChunk, onContent: block => blocks.push(block) })
+    const duplicateChunks = chunks.slice()
+    try {
+      await engine.send({ ...base, onChunk })
+    } catch (error) {
+      return { blocks, onlyContent, duplicateChunks, chunks, error: (error as Error).message }
+    }
+  })
+  const expected = [{ type: 'markdown', data: '答' }, { type: 'markdown', data: '案' }, markdown, thinking, suggestion]
+  expect(result).toEqual({
+    blocks: expected, onlyContent: expected,
+    duplicateChunks: [], chunks: ['答', '案', '。'], error: expect.stringContaining('onContent'),
+  })
 })
 
 test('the public engine rejects a pre-aborted request with its reason and never opens a connection', async ({ page }) => {

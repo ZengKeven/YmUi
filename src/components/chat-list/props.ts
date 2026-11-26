@@ -19,6 +19,8 @@ export default {
   showScrollButton: { type: Boolean, default: true },
   /** 是否提供清空历史操作。 */
   clearHistory: { type: Boolean, default: true },
+  /** 是否禁用内置消息的推荐问题按钮。 */
+  suggestionDisabled: Boolean,
   /** 列表局部尺寸，省略时继承。 */
   size: buttonProps.size,
 } satisfies ComponentObjectPropsOptions<ChatListProps>

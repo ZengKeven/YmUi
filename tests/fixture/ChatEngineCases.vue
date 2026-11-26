@@ -23,6 +23,8 @@ if (options.has('map')) {
     frames.value.push(chunk)
     if (chunk.event === 'ignore') return null
     if (chunk.event === 'invalid') throw new Error('无法转换此事件')
+    if (chunk.event === 'reasoning') return { type: 'thinking', data: { text: chunk.raw } }
+    if (chunk.event === 'question') return { type: 'suggestion', data: [{ title: chunk.raw }] }
     if (typeof chunk.data === 'object' && chunk.data && 'piece' in chunk.data) {
       return { type: 'markdown', data: String(chunk.data.piece) }
     }

@@ -1,10 +1,11 @@
 <script setup lang="ts" vapor>
 import { computed, onScopeDispose, ref, shallowRef, useId } from 'vue'
-import { ChatEngine } from '../../chat-engine'
+import { ChatEngine, type ChatStreamContent } from '../../chat-engine'
+import { createReplyContent } from '../../chat-engine/reply-content'
 import { YmChatActionbar } from '../chat-actionbar'
 import type { ChatAttachmentItem } from '../chat-attachments'
 import { YmChatList } from '../chat-list'
-import type { ChatMessageContent, ChatMessageData } from '../chat-message'
+import type { ChatMessageContent, ChatMessageData, ChatMessageStatus } from '../chat-message'
 import { YmChatSender } from '../chat-sender'
 import chatbotProps from './props'
 import type { ChatbotInstance, ChatbotRequestContext, ChatbotSendOptions } from './types'
@@ -60,27 +61,36 @@ async function generate(history: ChatMessageData[], assistant: ChatMessageData,
   const controller = new AbortController()
   const { signal } = controller
   active.value = controller
-  let markdown = ''
-  function update(status: 'pending' | 'streaming' | 'complete' | 'error') {
-    const content: ChatMessageContent[] = markdown ? [{ type: 'markdown', data: markdown }] : []
-    publish([...history, { ...assistant, status, content }])
+  const reply = createReplyContent()
+  function update(status: ChatMessageStatus) {
+    publish([...history, { ...assistant, status, content: reply.snapshot(status) }])
   }
-  update('pending')
-  if (signal.aborted) return
+  function onContent(chunk: ChatStreamContent) {
+    if (active.value !== controller || (chunk.type === 'markdown' && !chunk.data)) return
+    reply.append(chunk)
+    update('streaming')
+  }
 
   // 即使服务稍后才返回，调用方也可以在停止后立即开始下一轮。
   let onAbort!: () => void
-  const stopped = new Promise<void>(resolve => { onAbort = resolve })
+  const stopped = new Promise<void>(resolve => {
+    onAbort = () => {
+      if (active.value === controller) {
+        active.value = undefined
+        update('stop')
+      }
+      resolve()
+    }
+  })
   signal.addEventListener('abort', onAbort, { once: true })
   let status: 'complete' | 'error' = 'complete'
   try {
+    update('pending')
+    if (signal.aborted) return
     const request = execute({
       ...input, attachments: input.attachments.slice(), messages: history.slice(), trigger, signal,
-      onChunk(delta) {
-        if (active.value !== controller || !delta) return
-        markdown += delta
-        update('streaming')
-      },
+      onChunk: data => onContent({ type: 'markdown', data }),
+      onContent,
     })
     if (request) await Promise.race([request, stopped])
   } catch {
@@ -117,12 +127,7 @@ async function regenerate() {
 }
 
 function abortChat() {
-  const controller = active.value
-  const reply = messages.value.at(-1)
-  if (!controller || !reply) return
-  active.value = undefined
-  publish([...messages.value.slice(0, -1), { ...reply, status: 'stop' }])
-  controller.abort()
+  active.value?.abort()
 }
 
 function clearMessages() {
@@ -142,7 +147,8 @@ defineExpose({ sendUserMessage: input => send(input), regenerate, abortChat, cle
 </script>
 
 <template>
-  <YmChatList class="ym-chatbot" :data="messages" :size="props.size" @clear="clearMessages">
+  <YmChatList class="ym-chatbot" :data="messages" :size="props.size" :suggestion-disabled="!!active || !transport"
+    @clear="clearMessages" @suggestion-click="prompt => send({ prompt })">
     <template #actionbar="{ item }">
       <span v-if="item.status === 'stop' && (item.role ?? 'assistant') === 'assistant'"
         class="ym-chatbot__stopped" role="status">已停止生成</span>

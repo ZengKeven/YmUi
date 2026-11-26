@@ -1770,7 +1770,62 @@ test('the chatbot preview sends attachment metadata, stops the SSE reply, regene
   await expect(sender.getByRole('button', { name: '发送消息' })).toBeDisabled()
 })
 
-test('a server error after the first SSE chunk retains the partial answer for a retry', async ({ page }) => {
+test('the chatbot streams thinking and Markdown before sending a suggested follow-up to the local SSE service', async ({ page }) => {
+  await page.goto('/chatbot/')
+  const bot = page.locator('.demo-canvas .ym-chatbot')
+  const rows = bot.getByRole('article')
+  const first = rows.nth(1)
+  const thinking = first.locator('.ym-chat-thinking')
+  const answer = first.locator('.ym-chat-markdown')
+  const followUp = first.getByRole('button', { name: '要带哪些单据？' })
+  await bot.getByRole('textbox').fill('到货后在哪里登记？')
+  await bot.getByRole('button', { name: '发送消息' }).click()
+
+  await thinking.getByText('先核对收货预约。', { exact: true }).waitFor()
+  await expect(thinking.getByRole('button', { name: '思考中' })).toBeVisible()
+  await expect(answer).toHaveCount(0)
+  await thinking.getByText(/再确认登记地点/).waitFor()
+  await expect(thinking).toContainText('先核对收货预约。')
+  await expect(answer).toHaveCount(0)
+  await answer.getByRole('heading', { name: '收货安排' }).waitFor()
+  await expect(thinking.getByRole('button', { name: '思考完成' })).toBeVisible()
+  await expect(answer).not.toContainText('请在北门登记后前往收货区。')
+  await answer.getByText('请在北门登记后前往收货区。').waitFor()
+  await expect(first).toHaveAttribute('data-status', 'streaming')
+  await expect(followUp).toHaveCount(0)
+  await expect(first).toHaveAttribute('data-status', 'complete')
+  await expect(followUp).toBeVisible()
+
+  const nextRequest = page.waitForRequest(req => new URL(req.url()).pathname === '/api/chat/sse')
+  await followUp.click()
+  const next = await nextRequest
+  const prompt = '办理收货需要准备哪些单据？'
+  expect(next.method()).toBe('POST')
+  expect(next.postDataJSON()).toMatchObject({
+    prompt, trigger: 'send', attachments: [],
+    messages: [
+      { role: 'user', content: [{ type: 'text', data: '到货后在哪里登记？' }] },
+      { role: 'assistant', status: 'complete', content: [
+        { type: 'thinking', data: { text: '先核对收货预约。\n再确认登记地点。' } },
+        { type: 'markdown', data: expect.stringContaining('请在北门登记后前往收货区。') },
+        { type: 'suggestion', data: [{ title: '要带哪些单据？', prompt }, { title: '北门登记后怎么走？' }] },
+      ] },
+      { role: 'user', content: [{ type: 'text', data: prompt }] },
+    ],
+  })
+  await expect(rows).toHaveCount(4)
+  await expect(rows.nth(2)).toContainText(prompt)
+  const second = rows.nth(3)
+  await second.getByText(/再查看所需单据/).waitFor()
+  await expect(second.locator('.ym-chat-markdown')).toHaveCount(0)
+  await second.getByRole('heading', { name: '收货单据' }).waitFor()
+  await expect(second).toHaveAttribute('data-status', 'streaming')
+  await expect(second).toHaveAttribute('data-status', 'complete')
+  await expect(second).toContainText('请携带送货单和采购单号。')
+  await expect(second.getByRole('button', { name: '北门登记后怎么走？' })).toBeVisible()
+})
+
+test('a server error after the first SSE Markdown chunk retains the partial answer for a retry', async ({ page }) => {
   await page.goto('/chatbot/')
   const bot = page.locator('.demo-canvas .ym-chatbot')
   const reply = bot.locator('[data-role=assistant]')
@@ -1778,7 +1833,9 @@ test('a server error after the first SSE chunk retains the partial answer for a 
   await bot.getByRole('textbox').fill('核对收货单')
   await bot.getByRole('button', { name: '发送消息' }).click()
   await expect(reply).toHaveAttribute('data-status', 'error')
+  await expect(reply.locator('.ym-chat-thinking')).toContainText('再确认登记地点。')
   await expect(reply).toContainText('已收到你的消息。')
+  await expect(reply.getByRole('list', { name: '推荐问题' })).toHaveCount(0)
   await expect(reply.getByRole('alert')).toBeVisible()
   await page.getByLabel('模拟服务').selectOption('normal')
   await reply.getByRole('button', { name: '重新生成' }).click()

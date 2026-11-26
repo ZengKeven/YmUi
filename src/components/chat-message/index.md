@@ -23,6 +23,7 @@ category: 聊天组件
 | datetime | `string` | — | 时间的显示文字，由业务页面格式化，例如「今天 09:30」。 |
 | placement | `left / right` | `left` | 消息靠左或靠右排列。 |
 | variant | `text / base / outline` | `text` | 依次为文本、填充气泡和描边气泡。 |
+| suggestionDisabled | `boolean` | `false` | 禁用本条消息的推荐问题按钮，保留问题列表。 |
 | size | `extra-small / small / medium / large` | 继承，初始为 `medium` | 控制消息字号、头像尺寸和间距。 |
 
 嵌套的 `ConfigProvider` 按项继承配置。显式设置的 `size` 优先于全局尺寸。`mode` 和 `theme` 决定当前模式下的文字、气泡和状态颜色。`radius` 设置气泡圆角，为 `0` 时呈直角。

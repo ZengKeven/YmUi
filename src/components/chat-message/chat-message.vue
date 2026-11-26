@@ -95,7 +95,7 @@ function selectSuggestion(prompt: string, context: ChatSuggestionSelectContext) 
             <YmChatSearch v-else-if="block.type === 'search'" :content="block.data" @source-click="openSource" />
             <template v-else-if="block.type === 'suggestion'">
               <YmChatSuggestion v-if="status === 'complete' && (block.status ?? 'complete') === 'complete'"
-                :content="block.data" @select="selectSuggestion" />
+                :content="block.data" :disabled="props.suggestionDisabled" @select="selectSuggestion" />
             </template>
             <div v-else class="ym-chat-message__text">{{ block.data }}</div>
           </template>

@@ -1,7 +1,9 @@
 import { readEventStream, type SSEFrame } from './sse'
-import type { ChatEngineRequestContext, ChatRequestParams, ChatServiceConfig, SSEChunkData } from './types'
+import type { ChatEngineContentContext, ChatEngineRequestContext, ChatRequestParams, ChatServiceConfig,
+  ChatStreamContent, SSEChunkData } from './types'
 
-export type { ChatEngineRequestContext, ChatRequestParams, ChatServiceConfig, SSEChunkData } from './types'
+export type { ChatEngineContentContext, ChatEngineRequestContext, ChatRequestParams, ChatServiceConfig,
+  ChatStreamContent, SSEChunkData } from './types'
 
 function requestOptions(params: ChatRequestParams, init: RequestInit): RequestInit {
   const headers = new Headers(init.headers)
@@ -23,15 +25,57 @@ function decodeFrame(frame: SSEFrame): SSEChunkData {
   return { ...frame, data, raw: frame.data }
 }
 
-function defaultDelta({ data, raw }: SSEChunkData) {
+function defaultContent({ data, raw }: SSEChunkData) {
   if (typeof data === 'string') return data
   if (data === null || typeof data !== 'object') return raw
+  if ('type' in data && 'data' in data &&
+    (data.type === 'thinking' || data.type === 'markdown' || data.type === 'suggestion')) return data
   if ('delta' in data && typeof data.delta === 'string') return data.delta
-  throw new Error('SSE 数据缺少字符串 delta，请使用 onMessage 映射服务分片')
+  return data
 }
 
-async function consume(config: ChatServiceConfig, params: ChatRequestParams, context: ChatEngineRequestContext) {
-  const { signal, onChunk } = context
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === 'object' && !Array.isArray(value)
+}
+
+function optionalString(value: unknown) {
+  return value === undefined || typeof value === 'string'
+}
+
+function isContentBlock(value: unknown): value is ChatStreamContent {
+  if (!isRecord(value)) return false
+  const { data, status } = value
+  switch (value.type) {
+    case 'markdown':
+      return typeof data === 'string'
+    case 'thinking':
+      return isRecord(data) && optionalString(data.title) && optionalString(data.text) &&
+        (status === undefined || status === 'pending' || status === 'streaming' || status === 'complete')
+    case 'suggestion':
+      return Array.isArray(data) && data.every(item => isRecord(item) &&
+        typeof item.title === 'string' && item.title.trim() && optionalString(item.prompt)) &&
+        (status === undefined || status === 'pending' || status === 'streaming' || status === 'complete' ||
+          status === 'stop' || status === 'error')
+    default:
+      return false
+  }
+}
+
+type RequestContext = ChatEngineRequestContext | ChatEngineContentContext
+
+function deliver(value: unknown, context: RequestContext) {
+  const block = typeof value === 'string' ? { type: 'markdown', data: value } : value
+  if (!isContentBlock(block)) {
+    throw new Error('SSE 内容块格式无效，请使用 onMessage 映射为 thinking、markdown 或 suggestion 分片')
+  }
+  if (block.type === 'markdown' && !block.data) return
+  if (context.onContent) context.onContent(block)
+  else if (block.type === 'markdown' && 'onChunk' in context) context.onChunk(block.data)
+  else throw new Error(`接收 ${block.type} 分片需要提供 onContent 回调`)
+}
+
+async function consume(config: ChatServiceConfig, params: ChatRequestParams, context: RequestContext) {
+  const { signal } = context
   signal.throwIfAborted()
   const options = requestOptions(params, config.onRequest?.(params) || {})
   signal.throwIfAborted()
@@ -51,14 +95,9 @@ async function consume(config: ChatServiceConfig, params: ChatRequestParams, con
     }
     if (frame.event === 'done' || frame.data.trim() === '[DONE]') return false
     const chunk = decodeFrame(frame)
-    const mapped = config.onMessage ? config.onMessage(chunk) : defaultDelta(chunk)
+    const mapped = config.onMessage ? config.onMessage(chunk) : defaultContent(chunk)
     signal.throwIfAborted()
-    if (mapped == null) return
-    const delta = typeof mapped === 'string' ? mapped : mapped.data
-    if (typeof delta !== 'string' || (typeof mapped !== 'string' && mapped.type !== 'markdown')) {
-      throw new Error('onMessage 应返回字符串或 Markdown 内容块')
-    }
-    if (delta) onChunk(delta)
+    if (mapped != null) deliver(mapped, context)
   })
 }
 
@@ -71,7 +110,7 @@ async function notifyAfterFailure(notify: () => void | Promise<void>) {
 export class ChatEngine {
   constructor(private readonly config: ChatServiceConfig) {}
 
-  async send(context: ChatEngineRequestContext): Promise<void> {
+  async send(context: RequestContext): Promise<void> {
     const config = { ...this.config }
     const { prompt, attachments, messages, trigger, signal } = context
     const params = { prompt, attachments, messages, trigger }
