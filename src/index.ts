@@ -3,6 +3,7 @@ import { version as packageVersion } from '../package.json'
 export { YmBadge, type BadgeProps } from './components/badge'
 export { YmButton, type ButtonProps } from './components/button'
 export { YmCalendar, type CalendarCell, type CalendarProps } from './components/calendar'
+export { YmChatList, type ChatListProps, type ChatListInstance } from './components/chat-list'
 export { YmChatMessage, type ChatMessageProps, type ChatMessageData, type ChatMessageRole,
   type ChatMessageStatus, type ChatTextContent, type ChatMessageAvatar } from './components/chat-message'
 export { YmChatSender, type ChatSenderProps } from './components/chat-sender'
